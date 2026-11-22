@@ -46,6 +46,8 @@ object MapHomeCatalog {
     /** Official stack: Play Services Fused Location Provider (not LocationManager-only). */
     const val usesFusedLocationProvider: Boolean = true
     const val usesPlayServicesLocationSettingsResolution: Boolean = true
+    /** Blue my-location puck is gated separately by [FlagKeys.MAP_LOCATION_PUCK]. */
+    const val supportsLocationPuck: Boolean = true
 
     val locationPermissions: List<String> = listOf(
         Manifest.permission.ACCESS_FINE_LOCATION,

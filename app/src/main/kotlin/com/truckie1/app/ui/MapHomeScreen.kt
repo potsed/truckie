@@ -106,6 +106,7 @@ fun MapHomeScreen(
     canNavigatePrimary: (TruckiePrimaryDestination) -> Boolean = { true },
     autocomplete: AddressAutocomplete = NoOpAddressAutocomplete,
     requireVerifiedAddress: Boolean = false,
+    showLocationPuck: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
     val dragState = remember {
@@ -154,6 +155,7 @@ fun MapHomeScreen(
 
         MapLibreMap(
             stops = state.route?.stops.orEmpty(),
+            showLocationPuck = showLocationPuck,
             modifier = Modifier
                 .fillMaxSize()
                 .testTag("map_libre_surface"),

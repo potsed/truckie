@@ -56,4 +56,13 @@ class LocalFeatureFlagsTest {
         flags.setEnabled(FlagKeys.ADDRESS_AUTOCOMPLETE, true)
         assertTrue(flags.isEnabled(FlagKeys.ADDRESS_AUTOCOMPLETE))
     }
+
+    @Test
+    fun mapLocationPuckFlagKey() {
+        assertTrue(FlagKeys.MAP_LOCATION_PUCK == "ff_map_location_puck")
+        val flags = LocalFeatureFlags()
+        assertFalse(flags.isEnabled(FlagKeys.MAP_LOCATION_PUCK))
+        flags.setEnabled(FlagKeys.MAP_LOCATION_PUCK, true)
+        assertTrue(flags.isEnabled(FlagKeys.MAP_LOCATION_PUCK))
+    }
 }
