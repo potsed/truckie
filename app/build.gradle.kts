@@ -20,7 +20,7 @@ android {
         minSdk = 24
         targetSdk = 35
         versionCode = 1
-        versionName = "0.8.0-address-autocomplete"
+        versionName = "0.8.1-bridge-markers"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 

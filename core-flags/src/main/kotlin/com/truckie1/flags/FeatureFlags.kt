@@ -36,6 +36,8 @@ object FlagKeys {
      * (stub path until live GraphHopper HTTP). No external maps intents.
      */
     const val NAVIGATE = "ff_navigate"
+    /** Low-bridge markers on MapLibre home (Australia-first sample/fixture asset). */
+    const val BRIDGE_MARKERS = "ff_bridge_markers"
 }
 
 /**

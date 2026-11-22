@@ -24,6 +24,7 @@ XML screen layouts were removed; do not add new AppCompat/XML screens.
 | `ff_map_location_puck` | Blue my-location puck on MapLibre (same Fused fix as camera; subtle LocationComponent pulse; follow mode + Recenter when panned) | off (on in debug) |
 | `ff_route_start_end` | Create route requires verified start + end (same place = round trip) on the map-home sheet | off (on in debug) |
 | `ff_navigate` | Navigate: GraphHopper path always in-app on MapLibre; Settings may pick installed app for post-route handoff only | off (on in debug) |
+| `ff_bridge_markers` | Low-bridge markers on MapLibre home (Australia-first sample JSON asset; SymbolManager + optional clearance label) | off (on in debug) |
 
 ## Rules
 
@@ -57,3 +58,8 @@ XML screen layouts were removed; do not add new AppCompat/XML screens.
     minimised residential penetration, Fastest/Cheapest among safe). Draws on the same
     MapLibre map. Settings key `navigation_app_package` defaults to `com.truckie1.in_app`;
     an installed nav app is optional **post-route** handoff only.
+12. Bridge markers (`ff_bridge_markers`) draw Australia-first sample/fixture bridges on the
+    map-first home via a separate Annotation **SymbolManager**. Points load from
+    `assets/bridges/au_sample_bridges.json` (not live GraphHopper / OSM / NHVR). Optional
+    short clearance labels appear when `clearanceHeightM` is present. Requires map home
+    to be the active surface; does not change create-route or vehicle UI.

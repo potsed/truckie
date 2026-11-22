@@ -1,0 +1,29 @@
+[
+  {
+    "id": "qld-indooroopilly-rail-sample",
+    "name": "Indooroopilly rail underpass (sample)",
+    "lat": -27.5012,
+    "lng": 152.9735,
+    "clearanceHeightM": 4.2
+  },
+  {
+    "id": "qld-story-bridge-approach-sample",
+    "name": "Story Bridge approach (sample)",
+    "lat": -27.4678,
+    "lng": 153.0355,
+    "clearanceHeightM": 4.6
+  },
+  {
+    "id": "nsw-anzac-bridge-underpass-sample",
+    "name": "ANZAC Bridge underpass (sample)",
+    "lat": -33.8691,
+    "lng": 151.1856,
+    "clearanceHeightM": 4.0
+  },
+  {
+    "id": "vic-west-gate-feeder-sample",
+    "name": "West Gate feeder overpass (sample)",
+    "lat": -37.8295,
+    "lng": 144.8982
+  }
+]

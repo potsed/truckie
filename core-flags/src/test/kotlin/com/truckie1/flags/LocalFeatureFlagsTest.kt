@@ -83,4 +83,13 @@ class LocalFeatureFlagsTest {
         flags.setEnabled(FlagKeys.NAVIGATE, true)
         assertTrue(flags.isEnabled(FlagKeys.NAVIGATE))
     }
+
+    @Test
+    fun bridgeMarkersFlagKey() {
+        assertTrue(FlagKeys.BRIDGE_MARKERS == "ff_bridge_markers")
+        val flags = LocalFeatureFlags()
+        assertFalse(flags.isEnabled(FlagKeys.BRIDGE_MARKERS))
+        flags.setEnabled(FlagKeys.BRIDGE_MARKERS, true)
+        assertTrue(flags.isEnabled(FlagKeys.BRIDGE_MARKERS))
+    }
 }
