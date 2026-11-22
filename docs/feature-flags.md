@@ -29,6 +29,7 @@ XML screen layouts were removed; do not add new AppCompat/XML screens.
 5. Route optimize (`ff_route_optimize`) hard-filters by effective clearance (height + buffer) and
    on-board operating mass vs GVM / route max weight. Toll preference stays stubbed as allow-all
    passthrough until `ff_tolls` is implemented.
-6. Nav chrome (`ff_nav_chrome`) adds Material3 `CenterAlignedTopAppBar` + bottom `NavigationBar`
-   via a shared Scaffold used by each Activity. Plan trip / Vehicles tabs still require
+6. Nav chrome (`ff_nav_chrome`) hosts Material3 `CenterAlignedTopAppBar` + bottom
+   `NavigationBar` **once** on `MainActivity` around a Compose NavHost (global fixed
+   chrome; content scrolls in between). Plan trip / Vehicles tabs still require
    `ff_multi_stop` / `ff_vehicle_profiles`.

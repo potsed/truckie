@@ -32,8 +32,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 
 /**
- * Material3 TopAppBar + optional bottom NavigationBar for primary Truckie1 destinations.
- * Respects status / navigation bar WindowInsets via Material3 defaults.
+ * Legacy per-Activity Scaffold used only when [com.truckie1.flags.FlagKeys.NAV_CHROME]
+ * is off. With the flag on, [TruckieRootApp] hosts chrome once around a NavHost.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

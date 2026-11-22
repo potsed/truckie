@@ -31,3 +31,10 @@ Feature: Compose header and footer navigation
     Given edge-to-edge Compose hosting is active
     Then the TopAppBar consumes status bar insets
     And the bottom NavigationBar consumes navigation bar insets
+
+  Scenario: Header and footer are global fixed chrome
+    Given ff_nav_chrome is enabled
+    Then TopAppBar and NavigationBar live once at the single-activity root NavHost
+    And the header and footer stay pinned while destination content scrolls in between
+    And switching Home, Trip, Vehicles, or Settings does not remount the chrome
+    And chrome is Material3 Compose only with no XML layouts or AppCompat ActionBar

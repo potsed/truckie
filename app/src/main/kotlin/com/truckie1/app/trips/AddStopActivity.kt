@@ -11,11 +11,14 @@ import com.truckie1.app.TruckieApp
 import com.truckie1.app.ui.AddStopFormState
 import com.truckie1.app.ui.AddStopScreen
 import com.truckie1.app.ui.TruckieHostedScreen
+import com.truckie1.app.ui.TruckieRoutes
 import com.truckie1.app.ui.navigateToPrimaryDestination
+import com.truckie1.app.ui.redirectToChromeHostIfEnabled
 import com.truckie1.app.ui.setTruckieContent
 import com.truckie1.flags.FlagKeys
 import com.truckie1.trips.CargoAction
 
+/** Legacy host when `ff_nav_chrome` is off; redirects into root NavHost when on. */
 class AddStopActivity : ComponentActivity() {
     private val pendingCargo = mutableListOf<StopFormParser.CargoInput>()
     private var form by mutableStateOf(AddStopFormState())
@@ -28,17 +31,19 @@ class AddStopActivity : ComponentActivity() {
             finish()
             return
         }
+        if (redirectToChromeHostIfEnabled(TruckieRoutes.ADD_STOP)) {
+            finish()
+            return
+        }
         val cargoEnabled = app.featureFlags.isEnabled(FlagKeys.STOP_CARGO)
         form = form.copy(cargoEnabled = cargoEnabled)
-        val navChrome = app.featureFlags.isEnabled(FlagKeys.NAV_CHROME)
 
         setTruckieContent {
             TruckieHostedScreen(
                 title = getString(R.string.add_stop_title),
                 activitySimpleName = "AddStopActivity",
-                navChromeEnabled = navChrome,
+                navChromeEnabled = false,
                 onNavigate = { navigateToPrimaryDestination(it) },
-                onNavigateUp = if (navChrome) ({ finish() }) else null,
                 scrollable = true,
             ) {
                 AddStopScreen(
