@@ -1,5 +1,6 @@
 package com.truckie1.app.ui
 
+import android.Manifest
 import com.truckie1.flags.FeatureFlags
 import com.truckie1.flags.FlagKeys
 
@@ -25,12 +26,31 @@ object MapHomeCatalog {
     const val halfFraction: Float = 0.5f
     const val fullFraction: Float = 0.92f
 
+    /** Sheet height changes via drag (AnchoredDraggable), not click-only. */
+    const val usesDragGestures: Boolean = true
+    const val usesMaterial3DragHandle: Boolean = true
+    const val usesNestedScrollBridge: Boolean = true
+
     const val composeOnly: Boolean = true
     const val allowsXmlLayouts: Boolean = false
     const val hostActivitySimpleName: String = "MainActivity"
     const val hostedInNavHost: Boolean = true
+    /** Sheet / overlays stay high-contrast; global TopAppBar+bottom bar are off on map home. */
     const val keepsHighContrastChrome: Boolean = true
+    const val hidesGlobalHeaderFooter: Boolean = true
     const val mapEngineName: String = "MapLibre"
+
+    /** Camera prefers the driver's current location; Brisbane is fallback only. */
+    const val usesCurrentLocationCamera: Boolean = true
+    const val fallsBackToBrisbaneWhenLocationUnavailable: Boolean = true
+    /** Official stack: Play Services Fused Location Provider (not LocationManager-only). */
+    const val usesFusedLocationProvider: Boolean = true
+    const val usesPlayServicesLocationSettingsResolution: Boolean = true
+
+    val locationPermissions: List<String> = listOf(
+        Manifest.permission.ACCESS_FINE_LOCATION,
+        Manifest.permission.ACCESS_COARSE_LOCATION,
+    )
 
     val stopKindLabels: List<String> = listOf("pickup/load", "drop-off/unload")
 
@@ -48,5 +68,16 @@ object MapHomeCatalog {
         RouteSheetValue.Peek -> peekFraction
         RouteSheetValue.Half -> halfFraction
         RouteSheetValue.Full -> fullFraction
+    }
+
+    /**
+     * Y offsets for [AnchoredDraggable] anchors (top of sheet from container top).
+     * Peek is lowest sheet (largest Y); Full is highest sheet (smallest Y).
+     */
+    fun sheetAnchorOffsets(containerHeightPx: Float): Map<RouteSheetValue, Float> {
+        val height = containerHeightPx.coerceAtLeast(1f)
+        return sheetAnchors.associateWith { value ->
+            height * (1f - fractionFor(value))
+        }
     }
 }

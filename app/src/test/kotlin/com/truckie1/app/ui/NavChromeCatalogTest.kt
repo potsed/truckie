@@ -175,4 +175,13 @@ class NavChromeCatalogTest {
         assertFalse(NavChromeCatalog.showBottomBarForRoute(TruckieRoutes.VEHICLE_EDIT))
         assertFalse(NavChromeCatalog.showBottomBarForRoute(TruckieRoutes.BLOCKED_ROUTE))
     }
+
+    @Test
+    fun mapHomeHidesGlobalChromeOnHomeOnly() {
+        assertFalse(NavChromeCatalog.showGlobalChromeForRoute(TruckieRoutes.HOME, true))
+        assertTrue(NavChromeCatalog.showGlobalChromeForRoute(TruckieRoutes.SETTINGS, true))
+        assertTrue(NavChromeCatalog.showTopBarForRoute(TruckieRoutes.PLAN_TRIP, true))
+        assertFalse(NavChromeCatalog.showBottomBarForRoute(TruckieRoutes.HOME, true))
+        assertTrue(NavChromeCatalog.showBottomBarForRoute(TruckieRoutes.HOME, false))
+    }
 }

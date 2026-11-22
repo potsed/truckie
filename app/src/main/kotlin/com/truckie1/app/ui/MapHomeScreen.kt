@@ -2,25 +2,44 @@ package com.truckie1.app.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectVerticalDragGestures
+import androidx.compose.foundation.gestures.AnchoredDraggableDefaults
+import androidx.compose.foundation.gestures.AnchoredDraggableState
+import androidx.compose.foundation.gestures.DraggableAnchors
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.anchoredDraggable
+import androidx.compose.foundation.gestures.animateTo
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DirectionsCar
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Place
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.BottomSheetDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
@@ -28,20 +47,27 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import com.truckie1.app.R
 import com.truckie1.app.trips.AddressAutocomplete
@@ -52,6 +78,8 @@ import com.truckie1.trips.RouteDateChoice
 import com.truckie1.trips.RouteStop
 import com.truckie1.trips.RouteSummary
 import com.truckie1.trips.StopKind
+import kotlin.math.roundToInt
+import kotlinx.coroutines.flow.distinctUntilChanged
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -63,24 +91,66 @@ data class MapHomeUiState(
     val summaryStrip: String = RouteSummary.emptyStrip(),
 )
 
+/**
+ * Map-first home: full-bleed MapLibre + draggable route sheet (peek / half / full).
+ * Global TopAppBar / bottom nav are suppressed for this destination.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MapHomeScreen(
     state: MapHomeUiState,
     onSheetValueChange: (RouteSheetValue) -> Unit,
     onCreateRoute: (name: String?, dateChoice: RouteDateChoice, customDate: LocalDate?) -> Unit,
     onAddStop: (addressLabel: String, kind: StopKind, suggestion: AddressSuggestion?) -> Unit,
+    onNavigatePrimary: (TruckiePrimaryDestination) -> Unit = {},
+    canNavigatePrimary: (TruckiePrimaryDestination) -> Boolean = { true },
     autocomplete: AddressAutocomplete = NoOpAddressAutocomplete,
     modifier: Modifier = Modifier,
 ) {
-    var sheetFraction by remember(state.sheetValue) {
-        mutableFloatStateOf(MapHomeCatalog.fractionFor(state.sheetValue))
+    val dragState = remember {
+        AnchoredDraggableState(initialValue = state.sheetValue)
+    }
+    val flingBehavior = AnchoredDraggableDefaults.flingBehavior(state = dragState)
+
+    LaunchedEffect(dragState) {
+        snapshotFlow { dragState.settledValue }
+            .distinctUntilChanged()
+            .collect { onSheetValueChange(it) }
     }
 
-    Box(
+    LaunchedEffect(state.sheetValue) {
+        if (dragState.settledValue != state.sheetValue &&
+            dragState.anchors.hasPositionFor(state.sheetValue)
+        ) {
+            dragState.animateTo(state.sheetValue)
+        }
+    }
+
+    val nestedScroll = remember(dragState) {
+        sheetNestedScrollConnection(dragState)
+    }
+
+    BoxWithConstraints(
         modifier = modifier
             .fillMaxSize()
             .testTag("map_home_root"),
     ) {
+        val containerHeightPx = constraints.maxHeight.toFloat().coerceAtLeast(1f)
+        val anchors = remember(containerHeightPx) {
+            val offsets = MapHomeCatalog.sheetAnchorOffsets(containerHeightPx)
+            DraggableAnchors {
+                RouteSheetValue.Peek at offsets.getValue(RouteSheetValue.Peek)
+                RouteSheetValue.Half at offsets.getValue(RouteSheetValue.Half)
+                RouteSheetValue.Full at offsets.getValue(RouteSheetValue.Full)
+            }
+        }
+        // Sync before draw so requireOffset() is safe on first layout.
+        SideEffect {
+            if (dragState.anchors != anchors) {
+                dragState.updateAnchors(anchors, dragState.targetValue)
+            }
+        }
+
         MapLibreMap(
             stops = state.route?.stops.orEmpty(),
             modifier = Modifier
@@ -88,116 +158,201 @@ fun MapHomeScreen(
                 .testTag("map_libre_surface"),
         )
 
-        RouteDragSheet(
-            fraction = sheetFraction,
-            sheetValue = state.sheetValue,
-            summaryStrip = state.summaryStrip,
-            route = state.route,
-            onFractionChange = { fraction ->
-                sheetFraction = fraction.coerceIn(
-                    MapHomeCatalog.peekFraction,
-                    MapHomeCatalog.fullFraction,
-                )
-            },
-            onSheetSettled = { value ->
-                sheetFraction = MapHomeCatalog.fractionFor(value)
-                onSheetValueChange(value)
-            },
-            onCreateRoute = onCreateRoute,
-            onAddStop = onAddStop,
-            autocomplete = autocomplete,
-            modifier = Modifier.align(Alignment.BottomCenter),
+        MapHomeOverflowMenu(
+            onNavigatePrimary = onNavigatePrimary,
+            canNavigatePrimary = canNavigatePrimary,
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .statusBarsPadding()
+                .padding(12.dp),
         )
+
+        Surface(
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .fillMaxSize()
+                .offset {
+                    IntOffset(
+                        x = 0,
+                        y = dragState
+                            .requireOffset()
+                            .roundToInt()
+                            .coerceIn(0, containerHeightPx.roundToInt()),
+                    )
+                }
+                .anchoredDraggable(
+                    state = dragState,
+                    orientation = Orientation.Vertical,
+                    flingBehavior = flingBehavior,
+                )
+                .nestedScroll(nestedScroll)
+                .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
+                .testTag("route_drag_sheet")
+                .semantics {
+                    contentDescription = "Route drag sheet ${dragState.currentValue}"
+                },
+            color = MaterialTheme.colorScheme.surface,
+            tonalElevation = 6.dp,
+            shadowElevation = 8.dp,
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .navigationBarsPadding(),
+            ) {
+                // Drag handle only — no clickable here so vertical drag reaches
+                // AnchoredDraggable (clickable was consuming the gesture).
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 4.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    BottomSheetDefaults.DragHandle(
+                        modifier = Modifier.testTag("sheet_drag_handle"),
+                    )
+                }
+
+                if (MapHomeCatalog.showsSummaryStrip(dragState.currentValue)) {
+                    Text(
+                        text = state.summaryStrip,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp)
+                            .testTag("route_summary_strip"),
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+
+                if (MapHomeCatalog.showsCreateRouteForm(dragState.currentValue) ||
+                    MapHomeCatalog.showsStopList(dragState.currentValue)
+                ) {
+                    RouteSheetBody(
+                        route = state.route,
+                        sheetValue = dragState.currentValue,
+                        onCreateRoute = onCreateRoute,
+                        onAddStop = onAddStop,
+                        autocomplete = autocomplete,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .verticalScroll(rememberScrollState())
+                            .padding(horizontal = 16.dp)
+                            .padding(bottom = 16.dp),
+                    )
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Nested-scroll bridge so dragging the sheet content (when scrolled to edges)
+ * continues to move the sheet — same contract as Material3 bottom sheets.
+ */
+private fun sheetNestedScrollConnection(
+    state: AnchoredDraggableState<RouteSheetValue>,
+): NestedScrollConnection = object : NestedScrollConnection {
+    override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+        val delta = available.y
+        return if (delta < 0 && source == NestedScrollSource.UserInput) {
+            Offset(0f, state.dispatchRawDelta(delta))
+        } else {
+            Offset.Zero
+        }
+    }
+
+    override fun onPostScroll(
+        consumed: Offset,
+        available: Offset,
+        source: NestedScrollSource,
+    ): Offset {
+        val delta = available.y
+        return if (source == NestedScrollSource.UserInput) {
+            Offset(0f, state.dispatchRawDelta(delta))
+        } else {
+            Offset.Zero
+        }
+    }
+
+    override suspend fun onPreFling(available: Velocity): Velocity {
+        val toFling = available.y
+        return if (toFling < 0 && state.offset > state.anchors.minPosition()) {
+            val target = state.anchors.closestAnchor(
+                state.requireOffset(),
+                searchUpwards = true,
+            ) ?: state.currentValue
+            state.animateTo(target)
+            available
+        } else {
+            Velocity.Zero
+        }
+    }
+
+    override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity {
+        val target = state.anchors.closestAnchor(state.requireOffset())
+            ?: state.currentValue
+        state.animateTo(target)
+        return available
     }
 }
 
 @Composable
-private fun RouteDragSheet(
-    fraction: Float,
-    sheetValue: RouteSheetValue,
-    summaryStrip: String,
-    route: Route?,
-    onFractionChange: (Float) -> Unit,
-    onSheetSettled: (RouteSheetValue) -> Unit,
-    onCreateRoute: (name: String?, dateChoice: RouteDateChoice, customDate: LocalDate?) -> Unit,
-    onAddStop: (addressLabel: String, kind: StopKind, suggestion: AddressSuggestion?) -> Unit,
-    autocomplete: AddressAutocomplete,
+private fun MapHomeOverflowMenu(
+    onNavigatePrimary: (TruckiePrimaryDestination) -> Unit,
+    canNavigatePrimary: (TruckiePrimaryDestination) -> Boolean,
     modifier: Modifier = Modifier,
 ) {
-    Surface(
-        modifier = modifier
-            .fillMaxWidth()
-            .fillMaxHeight(fraction)
-            .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
-            .testTag("route_drag_sheet")
-            .semantics { contentDescription = "Route drag sheet $sheetValue" },
-        color = MaterialTheme.colorScheme.surface,
-        tonalElevation = 6.dp,
-        shadowElevation = 8.dp,
-    ) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .pointerInput(Unit) {
-                        detectVerticalDragGestures(
-                            onVerticalDrag = { _, dragAmount ->
-                                val delta = -dragAmount / size.height.toFloat()
-                                onFractionChange(fraction + delta)
-                            },
-                            onDragEnd = {
-                                onSheetSettled(nearestSheetValue(fraction))
-                            },
-                        )
-                    }
-                    .clickable {
-                        val next = when (sheetValue) {
-                            RouteSheetValue.Peek -> RouteSheetValue.Half
-                            RouteSheetValue.Half -> RouteSheetValue.Full
-                            RouteSheetValue.Full -> RouteSheetValue.Peek
-                        }
-                        onSheetSettled(next)
-                    }
-                    .padding(vertical = 10.dp),
-                contentAlignment = Alignment.Center,
-            ) {
-                Box(
-                    modifier = Modifier
-                        .width(40.dp)
-                        .height(4.dp)
-                        .clip(RoundedCornerShape(2.dp))
-                        .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f))
-                        .testTag("sheet_drag_handle"),
+    var expanded by remember { mutableStateOf(false) }
+    Box(modifier = modifier) {
+        Surface(
+            shape = CircleShape,
+            color = MaterialTheme.colorScheme.primary,
+            shadowElevation = 4.dp,
+            modifier = Modifier.testTag("map_home_menu"),
+        ) {
+            IconButton(onClick = { expanded = true }) {
+                Icon(
+                    imageVector = Icons.Filled.Menu,
+                    contentDescription = stringResource(R.string.map_home_menu),
+                    tint = MaterialTheme.colorScheme.onPrimary,
                 )
             }
-
-            if (MapHomeCatalog.showsSummaryStrip(sheetValue)) {
-                Text(
-                    text = summaryStrip,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                        .testTag("route_summary_strip"),
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-            }
-
-            if (MapHomeCatalog.showsCreateRouteForm(sheetValue) ||
-                MapHomeCatalog.showsStopList(sheetValue)
-            ) {
-                RouteSheetBody(
-                    route = route,
-                    sheetValue = sheetValue,
-                    onCreateRoute = onCreateRoute,
-                    onAddStop = onAddStop,
-                    autocomplete = autocomplete,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .verticalScroll(rememberScrollState())
-                        .padding(horizontal = 16.dp)
-                        .padding(bottom = 16.dp),
+        }
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+        ) {
+            val items = listOf(
+                Triple(
+                    TruckiePrimaryDestination.PLAN_TRIP,
+                    Icons.Filled.Place,
+                    R.string.nav_plan_trip,
+                ),
+                Triple(
+                    TruckiePrimaryDestination.VEHICLES,
+                    Icons.Filled.DirectionsCar,
+                    R.string.nav_vehicles,
+                ),
+                Triple(
+                    TruckiePrimaryDestination.SETTINGS,
+                    Icons.Filled.Settings,
+                    R.string.nav_settings,
+                ),
+            )
+            items.forEach { (destination, icon, labelRes) ->
+                val enabled = canNavigatePrimary(destination)
+                DropdownMenuItem(
+                    text = { Text(stringResource(labelRes)) },
+                    leadingIcon = {
+                        Icon(imageVector = icon, contentDescription = null)
+                    },
+                    enabled = enabled,
+                    onClick = {
+                        expanded = false
+                        onNavigatePrimary(destination)
+                    },
                 )
             }
         }

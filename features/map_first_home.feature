@@ -13,16 +13,33 @@ Feature: Map-first home with route stop drag sheet
     When ff_map_home is enabled
     Then Home uses the map-first Compose screen with MapLibre
 
-  Scenario: Default camera is Australia Brisbane
+  Scenario: Default camera prefers the driver's current location
     Given map camera defaults for Truckie
-    Then the default latitude and longitude centre on Brisbane Australia
+    And the official Play Services Fused Location Provider stack is used
+    When location permission is granted and Settings can satisfy a fused request
+    Then the map camera centres on the driver's current location
+    When location is unavailable, permission is denied, or Settings resolution is cancelled
+    Then the map camera falls back to Brisbane Australia
     And the default zoom shows a metro overview
+
+  Scenario: Map style renders a street basemap
+    Given MapLibre map home is shown
+    Then the style URL is OpenFreeMap Liberty street tiles
+    And demotiles is not used as the default style
+    And stop markers use SymbolManager not deprecated MarkerOptions
 
   Scenario: Drag sheet supports peek half and full
     Given ff_map_home is enabled
     Then the route sheet exposes peek, half, and full anchors
+    And the sheet responds to drag gestures via AnchoredDraggable with a Material3 drag handle
     And the peek state shows a summary strip over the map
     And half and full reveal create-route and stop list content
+
+  Scenario: Map home hides global header and footer chrome
+    Given ff_map_home is enabled
+    Then the map home destination has no TopAppBar or bottom NavigationBar
+    And Trip Vehicles and Settings still show global chrome when opened
+    And a map overlay menu reaches those destinations
 
   Scenario: Create route with optional name and date
     Given ff_map_home is enabled

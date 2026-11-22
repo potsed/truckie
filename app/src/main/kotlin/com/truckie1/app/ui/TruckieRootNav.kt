@@ -79,7 +79,10 @@ fun TruckieRootApp(
     val currentRoute = backStackEntry?.destination?.route
     val baseRoute = TruckieRoutes.baseRoute(currentRoute) ?: TruckieRoutes.HOME
     val selected = NavChromeCatalog.destinationForRoute(baseRoute)
-    val showBottomBar = NavChromeCatalog.showBottomBarForRoute(baseRoute)
+    val mapHomeEnabled = MapHomeCatalog.usesMapHome(app.featureFlags)
+    val showGlobalChrome = NavChromeCatalog.showGlobalChromeForRoute(baseRoute, mapHomeEnabled)
+    val showBottomBar = NavChromeCatalog.showBottomBarForRoute(baseRoute, mapHomeEnabled)
+    val showTopBar = NavChromeCatalog.showTopBarForRoute(baseRoute, mapHomeEnabled)
     val title = rootTitle(baseRoute)
     val canNavigateUp = baseRoute !in TruckieRoutes.primaryRoutes
     val graphStart = remember(Unit) { primaryStartDestination(startRoute) }
@@ -97,32 +100,34 @@ fun TruckieRootApp(
         containerColor = MaterialTheme.colorScheme.background,
         contentColor = MaterialTheme.colorScheme.onBackground,
         topBar = {
-            CenterAlignedTopAppBar(
-                title = {
-                    Text(
-                        text = title,
-                        color = MaterialTheme.colorScheme.onPrimary,
-                    )
-                },
-                navigationIcon = {
-                    if (canNavigateUp) {
-                        IconButton(onClick = { navController.popBackStack() }) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = stringResource(R.string.nav_back),
-                                tint = MaterialTheme.colorScheme.onPrimary,
-                            )
+            if (showTopBar) {
+                CenterAlignedTopAppBar(
+                    title = {
+                        Text(
+                            text = title,
+                            color = MaterialTheme.colorScheme.onPrimary,
+                        )
+                    },
+                    navigationIcon = {
+                        if (canNavigateUp) {
+                            IconButton(onClick = { navController.popBackStack() }) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                    contentDescription = stringResource(R.string.nav_back),
+                                    tint = MaterialTheme.colorScheme.onPrimary,
+                                )
+                            }
                         }
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
-                    actionIconContentColor = MaterialTheme.colorScheme.onPrimary,
-                ),
-                windowInsets = TopAppBarDefaults.windowInsets,
-            )
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                        navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
+                        actionIconContentColor = MaterialTheme.colorScheme.onPrimary,
+                    ),
+                    windowInsets = TopAppBarDefaults.windowInsets,
+                )
+            }
         },
         bottomBar = {
             if (showBottomBar && selected != null) {
@@ -135,16 +140,27 @@ fun TruckieRootApp(
             }
         },
     ) { innerPadding ->
+        val hostModifier = if (showGlobalChrome) {
+            Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        } else {
+            // Map-first home: full-bleed under system bars; no chrome inset.
+            Modifier.fillMaxSize()
+        }
         NavHost(
             navController = navController,
             startDestination = graphStart,
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding),
+            modifier = hostModifier,
         ) {
             composable(TruckieRoutes.HOME) {
-                if (MapHomeCatalog.usesMapHome(app.featureFlags)) {
-                    MapHomeRoute(app = app)
+                if (mapHomeEnabled) {
+                    MapHomeRoute(
+                        app = app,
+                        onNavigatePrimary = { destination ->
+                            navigatePrimary(navController, app, activity, destination)
+                        },
+                    )
                 } else {
                     RootScrollBody {
                         HomeRoute(
@@ -432,10 +448,13 @@ private fun HomeRoute(
 
 /**
  * MapLibre map-first home + route/stop drag sheet (`ff_map_home`).
- * Hosted inside the single-activity NavHost; no XML / multi-Activity remount.
+ * Hosted inside the single-activity NavHost with **no** global header/footer chrome.
  */
 @Composable
-private fun MapHomeRoute(app: TruckieApp) {
+private fun MapHomeRoute(
+    app: TruckieApp,
+    onNavigatePrimary: (TruckiePrimaryDestination) -> Unit,
+) {
     var sheetValue by remember { mutableStateOf(RouteSheetValue.Peek) }
     var route by remember { mutableStateOf(app.routeSession.activeRoute()) }
     val summary = remember(route) {
@@ -469,6 +488,10 @@ private fun MapHomeRoute(app: TruckieApp) {
                 ),
             )
             route = app.routeSession.activeRoute()
+        },
+        onNavigatePrimary = onNavigatePrimary,
+        canNavigatePrimary = { destination ->
+            NavChromeCatalog.canNavigate(destination, app.featureFlags)
         },
         autocomplete = com.truckie1.app.trips.NoOpAddressAutocomplete,
         modifier = Modifier.fillMaxSize(),
