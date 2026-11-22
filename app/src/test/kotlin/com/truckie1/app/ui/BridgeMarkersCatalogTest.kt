@@ -47,8 +47,10 @@ class BridgeMarkersCatalogTest {
     fun usesSymbolManagerNotDeprecatedMarkerApi() {
         assertTrue(BridgeMarkersCatalog.usesSymbolManager)
         assertFalse(BridgeMarkersCatalog.usesDeprecatedMarkerApi)
-        assertEquals("truckie_bridge_marker", BridgeMarkersCatalog.ICON_ID)
+        assertTrue(BridgeMarkersCatalog.usesAuRoadSignW58)
+        assertEquals("truckie_bridge_marker_w5_8", BridgeMarkersCatalog.ICON_ID)
         assertEquals("bridges/au_sample_bridges.json", BridgeMarkersCatalog.ASSET_PATH)
+        assertEquals("bridges/AU_road_sign_W5-8.svg", BridgeMarkersCatalog.W5_8_SVG_ASSET)
         assertEquals("AU", BridgeMarkersCatalog.REGION)
     }
 
@@ -118,5 +120,35 @@ class BridgeMarkersCatalogTest {
         assertEquals(48, bitmap.width)
         assertEquals(48, bitmap.height)
         assertFalse(bitmap.isRecycled)
+    }
+
+    @Test
+    fun loadsAuRoadSignW58DrawableBitmap() {
+        val context = RuntimeEnvironment.getApplication()
+        val bitmap = BridgeMarkersCatalog.createBridgeMarkerBitmap(
+            sizePx = BridgeMarkersCatalog.DEFAULT_ICON_PX,
+            context = context,
+        )
+        assertNotNull(bitmap)
+        assertEquals(BridgeMarkersCatalog.DEFAULT_ICON_PX, bitmap.width)
+        assertEquals(BridgeMarkersCatalog.DEFAULT_ICON_PX, bitmap.height)
+        assertFalse(bitmap.isRecycled)
+        // W5-8 yellow diamond should have non-transparent pixels.
+        var opaque = 0
+        for (x in 0 until bitmap.width step 8) {
+            for (y in 0 until bitmap.height step 8) {
+                if ((bitmap.getPixel(x, y) ushr 24) > 0) opaque++
+            }
+        }
+        assertTrue("Expected opaque W5-8 pixels, got $opaque", opaque > 20)
+    }
+
+    @Test
+    fun shipsW58SvgAssetForProvenance() {
+        val context = RuntimeEnvironment.getApplication()
+        val exists = runCatching {
+            context.assets.open(BridgeMarkersCatalog.W5_8_SVG_ASSET).use { true }
+        }.getOrDefault(false)
+        assertTrue(exists)
     }
 }

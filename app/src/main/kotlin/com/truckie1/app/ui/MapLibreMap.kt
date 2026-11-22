@@ -287,11 +287,17 @@ fun MapLibreMap(
             .testTag("map_libre_surface"),
         update = { view ->
             view.getMapAsync { map ->
-                map.setStyle(Style.Builder().fromUri(MapCameraDefaults.STYLE_URI)) { style ->
-                    map.cameraPosition = CameraPosition.Builder()
-                        .target(LatLng(cameraTarget.latitude, cameraTarget.longitude))
-                        .zoom(cameraTarget.zoom)
-                        .build()
+                // Load style once. Re-calling setStyle on every recomposition orphans
+                // SymbolManagers / LineManager / LocationComponent bound to the old style
+                // (root cause of invisible bridge markers after location updates).
+                mapHost.ensureStyle(map) { style ->
+                    if (!mapHost.hasAppliedInitialCamera) {
+                        map.cameraPosition = CameraPosition.Builder()
+                            .target(LatLng(cameraTarget.latitude, cameraTarget.longitude))
+                            .zoom(cameraTarget.zoom)
+                            .build()
+                        mapHost.hasAppliedInitialCamera = true
+                    }
                     mapHost.bindStops(mapView = view, map = map, style = style, stops = stops)
                     mapHost.bindRoutePath(mapView = view, map = map, style = style, points = routePathPoints)
                     mapHost.bindBridges(
@@ -338,6 +344,44 @@ private class MapLibreHost(
     private var locationActivated: Boolean = false
     private var followGesturesBound: Boolean = false
     private var ignoreTrackingDismiss: Boolean = false
+    private var styleReady: Boolean = false
+    var hasAppliedInitialCamera: Boolean = false
+
+    /**
+     * Loads the basemap style once. If Compose recomposes, reuse the live style
+     * and only rebind annotations — never orphan SymbolManagers via setStyle.
+     */
+    fun ensureStyle(map: MapLibreMap, onReady: (Style) -> Unit) {
+        mapRef = map
+        val existing = map.style
+        if (styleReady && existing != null) {
+            onReady(existing)
+            return
+        }
+        map.setStyle(Style.Builder().fromUri(MapCameraDefaults.STYLE_URI)) { style ->
+            // Fresh style → managers tied to any previous style are invalid.
+            resetAnnotationManagers()
+            styleReady = true
+            onReady(style)
+        }
+    }
+
+    private fun resetAnnotationManagers() {
+        runCatching { symbolManager?.onDestroy() }
+        symbolManager = null
+        runCatching { lineManager?.onDestroy() }
+        lineManager = null
+        runCatching { bridgeSymbolManager?.onDestroy() }
+        bridgeSymbolManager = null
+        if (locationActivated) {
+            runCatching {
+                mapRef?.locationComponent?.isLocationComponentEnabled = false
+                mapRef?.locationComponent?.onDestroy()
+            }
+            locationActivated = false
+        }
+        followGesturesBound = false
+    }
 
     fun bindStops(
         mapView: MapView,
@@ -400,7 +444,7 @@ private class MapLibreHost(
         bridges: List<BridgePoint>,
     ) {
         mapRef = map
-        BridgeMarkersCatalog.ensureBridgeMarkerImage(style)
+        BridgeMarkersCatalog.ensureBridgeMarkerImage(style, context)
         val manager = bridgeSymbolManager ?: SymbolManager(mapView, map, style).also { created ->
             created.iconAllowOverlap = true
             created.iconIgnorePlacement = true
@@ -411,25 +455,28 @@ private class MapLibreHost(
         if (bridges.isEmpty()) return
         val options = bridges.map { bridge ->
             val label = BridgeMarkersCatalog.clearanceLabel(bridge)
+            // W5-8 is a diamond road sign — centre on the bridge point (not a pin tip).
             val base = SymbolOptions()
                 .withLatLng(LatLng(bridge.latitude, bridge.longitude))
                 .withIconImage(BridgeMarkersCatalog.ICON_ID)
-                .withIconSize(1.0f)
-                .withIconAnchor("bottom")
+                .withIconSize(BridgeMarkersVisibility.iconSize)
+                .withIconAnchor("center")
             if (label == null) {
                 base
             } else {
                 base
                     .withTextField(label)
-                    .withTextSize(11f)
+                    .withTextSize(12f)
                     .withTextColor("#0B1F33")
                     .withTextHaloColor("#FFFFFF")
-                    .withTextHaloWidth(1.2f)
-                    .withTextOffset(arrayOf(0f, -1.35f))
+                    .withTextHaloWidth(1.4f)
+                    .withTextOffset(arrayOf(0f, -1.6f))
                     .withTextAnchor("bottom")
             }
         }
-        manager.create(options)
+        if (options.isNotEmpty()) {
+            manager.create(options)
+        }
     }
 
     fun ensureLocationComponent(map: MapLibreMap, style: Style) {
@@ -552,20 +599,9 @@ private class MapLibreHost(
     }
 
     fun dispose() {
-        runCatching { symbolManager?.onDestroy() }
-        symbolManager = null
-        runCatching { lineManager?.onDestroy() }
-        lineManager = null
-        runCatching { bridgeSymbolManager?.onDestroy() }
-        bridgeSymbolManager = null
-        if (locationActivated) {
-            runCatching {
-                mapRef?.locationComponent?.isLocationComponentEnabled = false
-                mapRef?.locationComponent?.onDestroy()
-            }
-            locationActivated = false
-        }
-        followGesturesBound = false
+        resetAnnotationManagers()
+        styleReady = false
+        hasAppliedInitialCamera = false
         mapRef = null
     }
 

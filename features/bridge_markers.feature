@@ -22,11 +22,20 @@ Feature: Bridge markers on home map
     Then bridges are loaded from a local Australia-first JSON asset
     And each bridge has an id, name, latitude, and longitude
     And clearance height is optional
+    And several sample bridges sit within 2 km of Brisbane CBD fallback
+
+  Scenario: Markers stay visible across map recompositions
+    Given ff_bridge_markers is enabled
+    And the MapLibre style has loaded once
+    When location updates cause Compose to recompose the map
+    Then the style is not reloaded
+    And SymbolManagers are rebound on the live style so bridge markers remain visible
 
   Scenario: Markers use SymbolManager with optional clearance labels
     Given ff_bridge_markers is enabled
     And sample bridges include a height clearance
     Then bridge markers use SymbolManager not deprecated MarkerOptions
+    And the marker icon is the AU W5-8 low-bridge road sign
     And a short clearance label is shown when height data is present
     And bridges without height show a marker without a clearance label
 

@@ -1,10 +1,10 @@
 [
   {
-    "id": "qld-indooroopilly-rail-sample",
-    "name": "Indooroopilly rail underpass (sample)",
-    "lat": -27.5012,
-    "lng": 152.9735,
-    "clearanceHeightM": 4.2
+    "id": "qld-victoria-bridge-sample",
+    "name": "Victoria Bridge approach (sample)",
+    "lat": -27.4726,
+    "lng": 153.0218,
+    "clearanceHeightM": 4.5
   },
   {
     "id": "qld-story-bridge-approach-sample",
@@ -14,16 +14,37 @@
     "clearanceHeightM": 4.6
   },
   {
-    "id": "nsw-anzac-bridge-underpass-sample",
-    "name": "ANZAC Bridge underpass (sample)",
-    "lat": -33.8691,
-    "lng": 151.1856,
-    "clearanceHeightM": 4.0
+    "id": "qld-grey-street-bridge-sample",
+    "name": "Grey Street Bridge / South Bank (sample)",
+    "lat": -27.4755,
+    "lng": 153.0198,
+    "clearanceHeightM": 4.3
   },
   {
-    "id": "vic-west-gate-feeder-sample",
-    "name": "West Gate feeder overpass (sample)",
-    "lat": -37.8295,
-    "lng": 144.8982
+    "id": "qld-captain-cook-north-sample",
+    "name": "Captain Cook Bridge north approach (sample)",
+    "lat": -27.4788,
+    "lng": 153.0282,
+    "clearanceHeightM": 4.8
+  },
+  {
+    "id": "qld-ann-st-overpass-sample",
+    "name": "Ann Street overpass (sample)",
+    "lat": -27.4642,
+    "lng": 153.0245,
+    "clearanceHeightM": 4.1
+  },
+  {
+    "id": "qld-indooroopilly-rail-sample",
+    "name": "Indooroopilly rail underpass (sample)",
+    "lat": -27.5012,
+    "lng": 152.9735,
+    "clearanceHeightM": 4.2
+  },
+  {
+    "id": "qld-kangaroo-point-cliffs-road-sample",
+    "name": "Kangaroo Point cliffs road overpass (sample)",
+    "lat": -27.4750,
+    "lng": 153.0340
   }
 ]
