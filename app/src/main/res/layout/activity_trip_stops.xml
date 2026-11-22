@@ -47,4 +47,56 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:text="@string/add_stop" />
+
+    <LinearLayout
+        android:id="@+id/optimizePanel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/optimize_for_vehicle"
+            android:textColor="@color/truckie_navy"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <RadioGroup
+            android:id="@+id/optimizeModeGroup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <RadioButton
+                android:id="@+id/modeFastest"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:text="@string/optimize_fastest" />
+
+            <RadioButton
+                android:id="@+id/modeCheapest"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:text="@string/optimize_cheapest" />
+        </RadioGroup>
+
+        <Button
+            android:id="@+id/runOptimize"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/run_optimize" />
+
+        <TextView
+            android:id="@+id/optimizeStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textColor="@color/truckie_navy"
+            android:textSize="13sp" />
+    </LinearLayout>
 </LinearLayout>

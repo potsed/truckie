@@ -48,4 +48,15 @@
     <string name="delete">Del</string>
     <string name="set_vehicle_for_clearance">Set a vehicle profile to compute clearance</string>
     <string name="trip_eff_clearance">Eff. clearance: %1$s m</string>
+    <string name="optimize_for_vehicle">Optimize for this vehicle</string>
+    <string name="optimize_fastest">Fastest</string>
+    <string name="optimize_cheapest">Cheapest</string>
+    <string name="run_optimize">Optimize</string>
+    <string name="optimize_need_vehicle">Set an active vehicle before optimizing</string>
+    <string name="optimize_need_stops">Add stops before optimizing</string>
+    <string name="optimize_success">Optimized · %1$s · %2$ds</string>
+    <string name="blocked_route_title">No safe route</string>
+    <string name="blocked_route_default_reason">No height- and weight-safe tour for this vehicle and cargo.</string>
+    <string name="edit_stops">Edit stops</string>
+    <string name="edit_vehicle">Edit vehicle</string>
 </resources>

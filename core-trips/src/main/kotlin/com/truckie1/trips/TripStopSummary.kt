@@ -23,13 +23,18 @@ object TripStopSummary {
         return parts.joinToString(" · ")
     }
 
-    fun tripOverview(stops: List<TripStop>): String {
+    fun tripOverview(stops: List<TripStop>, optimizeMode: OptimizeMode? = null): String {
         if (stops.isEmpty()) return "No stops yet"
         val labels = stops.map { it.addressLabel }
         val path = when {
             labels.size <= 3 -> labels.joinToString(" → ")
             else -> "${labels.first()} → … → ${labels.last()}"
         }
-        return "Trip: ${stops.size} stops · $path"
+        val modeLabel = when (optimizeMode) {
+            OptimizeMode.FASTEST -> " · Fastest"
+            OptimizeMode.CHEAPEST -> " · Cheapest"
+            null -> ""
+        }
+        return "Trip: ${stops.size} stops$modeLabel · $path"
     }
 }

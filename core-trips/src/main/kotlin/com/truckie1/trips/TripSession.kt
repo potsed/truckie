@@ -8,6 +8,9 @@ class TripSession(
 ) {
     private val stops = initialStops.toMutableList()
 
+    /** Last successful optimize mode (Fastest / Cheapest), if any. */
+    var lastOptimizeMode: OptimizeMode? = null
+
     fun stops(): List<TripStop> = stops.toList()
 
     fun addStop(stop: TripStop) {

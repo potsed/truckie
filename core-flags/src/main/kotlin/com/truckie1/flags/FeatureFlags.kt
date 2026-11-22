@@ -12,7 +12,11 @@ object FlagKeys {
     const val MULTI_STOP = "ff_multi_stop"
     const val STOP_CARGO = "ff_stop_cargo"
     const val BRIDGE_SAFE_ROUTING = "ff_bridge_safe_routing"
-    const val OPTIMIZE_FOR_VEHICLE = "ff_optimize_for_vehicle"
+    /** Fastest / Cheapest among height- and weight-safe tours. */
+    const val ROUTE_OPTIMIZE = "ff_route_optimize"
+
+    @Deprecated("Use ROUTE_OPTIMIZE (ff_route_optimize)", ReplaceWith("ROUTE_OPTIMIZE"))
+    const val OPTIMIZE_FOR_VEHICLE = ROUTE_OPTIMIZE
     const val TOLLS = "ff_tolls"
     const val OFFLINE_MAPS = "ff_offline_maps"
     const val ANDROID_AUTO = "ff_android_auto"

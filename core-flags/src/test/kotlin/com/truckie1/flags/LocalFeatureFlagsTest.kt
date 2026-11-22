@@ -20,4 +20,13 @@ class LocalFeatureFlagsTest {
         flags.setEnabled(FlagKeys.TOLLS, true)
         assertTrue(flags.isEnabled(FlagKeys.TOLLS))
     }
+
+    @Test
+    fun routeOptimizeFlagKey() {
+        assertTrue(FlagKeys.ROUTE_OPTIMIZE == "ff_route_optimize")
+        val flags = LocalFeatureFlags()
+        assertFalse(flags.isEnabled(FlagKeys.ROUTE_OPTIMIZE))
+        flags.setEnabled(FlagKeys.ROUTE_OPTIMIZE, true)
+        assertTrue(flags.isEnabled(FlagKeys.ROUTE_OPTIMIZE))
+    }
 }

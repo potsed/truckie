@@ -45,6 +45,11 @@
             android:exported="false"
             android:parentActivityName=".trips.TripStopsActivity" />
 
+        <activity
+            android:name=".trips.BlockedRouteActivity"
+            android:exported="false"
+            android:parentActivityName=".trips.TripStopsActivity" />
+
         <!-- Android Auto service: declared for Phase 1+; gated in code to API 23+ -->
         <service
             android:name=".auto.TruckieCarAppService"
