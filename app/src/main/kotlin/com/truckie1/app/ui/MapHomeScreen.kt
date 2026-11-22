@@ -33,6 +33,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
@@ -114,8 +115,11 @@ fun MapHomeScreen(
     autocomplete: AddressAutocomplete = NoOpAddressAutocomplete,
     requireVerifiedAddress: Boolean = false,
     showLocationPuck: Boolean = false,
+    locationFollowEnabled: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
+    var followState by remember { mutableStateOf(MapLocationFollow.initial()) }
+    var recenterToken by remember { mutableStateOf(0) }
     val dragState = remember {
         AnchoredDraggableState(initialValue = state.sheetValue)
     }
@@ -163,6 +167,10 @@ fun MapHomeScreen(
         MapLibreMap(
             stops = state.route?.stops.orEmpty(),
             showLocationPuck = showLocationPuck,
+            locationFollowEnabled = locationFollowEnabled && showLocationPuck,
+            followState = followState,
+            onFollowStateChange = { followState = it },
+            recenterToken = recenterToken,
             modifier = Modifier
                 .fillMaxSize()
                 .testTag("map_libre_surface"),
@@ -275,6 +283,42 @@ fun MapHomeScreen(
                     )
                 }
             }
+        }
+
+        if (locationFollowEnabled && showLocationPuck && followState.showsRecenter) {
+            MapRecenterButton(
+                onClick = {
+                    followState = MapLocationFollow.onRecenter(followState)
+                    recenterToken += 1
+                },
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .navigationBarsPadding()
+                    .padding(end = 16.dp, bottom = 96.dp),
+            )
+        }
+    }
+}
+
+@Composable
+private fun MapRecenterButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        shape = CircleShape,
+        color = MaterialTheme.colorScheme.primary,
+        shadowElevation = 4.dp,
+        modifier = modifier
+            .testTag("map_recenter_button")
+            .semantics { contentDescription = "Recenter on my location" },
+    ) {
+        IconButton(onClick = onClick) {
+            Icon(
+                imageVector = Icons.Filled.MyLocation,
+                contentDescription = stringResource(R.string.map_recenter),
+                tint = MaterialTheme.colorScheme.onPrimary,
+            )
         }
     }
 }

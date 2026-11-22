@@ -48,6 +48,12 @@ object MapHomeCatalog {
     const val usesPlayServicesLocationSettingsResolution: Boolean = true
     /** Blue my-location puck is gated separately by [FlagKeys.MAP_LOCATION_PUCK]. */
     const val supportsLocationPuck: Boolean = true
+    /**
+     * Follow mode (puck locked at centre, camera tracks) + Recenter when panned away.
+     * Gated by [FlagKeys.MAP_HOME] + [FlagKeys.MAP_LOCATION_PUCK] via [MapLocationFollow].
+     */
+    const val supportsLocationFollow: Boolean = true
+    const val supportsRecenterControl: Boolean = true
 
     val locationPermissions: List<String> = listOf(
         Manifest.permission.ACCESS_FINE_LOCATION,

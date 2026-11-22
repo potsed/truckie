@@ -21,7 +21,7 @@ XML screen layouts were removed; do not add new AppCompat/XML screens.
 | `ff_nav_chrome` | Material3 TopAppBar + bottom NavigationBar (Home, Plan trip, Vehicles, Settings) | off (on in debug) |
 | `ff_map_home` | MapLibre map-first home + route/stop drag sheet (peek/half/full) | off (on in debug) |
 | `ff_address_autocomplete` | Verified address autocomplete (Nominatim AU default) for map-home stops | off (on in debug) |
-| `ff_map_location_puck` | Blue my-location puck on MapLibre (same Fused fix as camera; subtle LocationComponent pulse) | off (on in debug) |
+| `ff_map_location_puck` | Blue my-location puck on MapLibre (same Fused fix as camera; subtle LocationComponent pulse; follow mode + Recenter when panned) | off (on in debug) |
 
 ## Rules
 
@@ -45,4 +45,6 @@ XML screen layouts were removed; do not add new AppCompat/XML screens.
    unverified addresses are rejected while the flag is on.
 9. Location puck (`ff_map_location_puck`) shows a blue MapLibre LocationComponent with a subtle pulse
    indicator at the driver's Fused Location fix and centres the camera on that same
-   fix. Hidden when permission is denied or a fix is unavailable.
+   fix. Hidden when permission is denied or a fix is unavailable. With `ff_map_home` +
+   `ff_map_location_puck`, **follow mode** keeps the puck centred (camera tracks) until
+   the driver pans away; a **Recenter** control then restores follow.
