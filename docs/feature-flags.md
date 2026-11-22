@@ -4,6 +4,9 @@ Facade: `:core-flags` (`FeatureFlags` / `LocalFeatureFlags`).
 
 Production defaults are **off** until explicitly enabled for dogfood or release.
 
+Presentation stack: **Jetpack Compose Material3** (see `features/compose_ui.feature`). Not a product toggle —
+XML screen layouts were removed; do not add new AppCompat/XML screens.
+
 | Flag key | Gates | Default |
 | --- | --- | --- |
 | `ff_vehicle_profiles` | Vehicle profile list/edit (Room by rego), Home active summary | off (on in debug) |

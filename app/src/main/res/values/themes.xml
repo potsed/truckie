@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Shared attrs for Light.DarkActionBar; API 35 adds edge-to-edge opt-out. -->
-    <style name="Theme.Truckie1.Base" parent="Theme.MaterialComponents.Light.DarkActionBar">
+    <!-- Compose hosts all screens; NoActionBar avoids the old DarkActionBar strip.
+         Edge-to-edge + WindowInsets padding are applied in setTruckieContent. -->
+    <style name="Theme.Truckie1" parent="Theme.Material3.Light.NoActionBar">
         <item name="colorPrimary">@color/truckie_navy</item>
-        <item name="colorPrimaryDark">@color/truckie_navy</item>
-        <item name="colorPrimaryVariant">@color/truckie_navy</item>
         <item name="colorOnPrimary">@color/truckie_on_primary</item>
         <item name="colorSecondary">@color/truckie_amber</item>
         <item name="colorOnSecondary">@color/truckie_navy</item>
@@ -12,33 +11,9 @@
         <item name="colorOnSurface">@color/truckie_navy</item>
         <item name="android:colorBackground">@color/truckie_sky</item>
         <item name="android:windowBackground">@color/truckie_sky</item>
-        <item name="android:statusBarColor">@color/truckie_navy</item>
-        <item name="android:navigationBarColor">@color/truckie_sky</item>
-        <item name="actionBarStyle">@style/Widget.Truckie1.ActionBar</item>
-        <item name="materialButtonStyle">@style/Widget.Truckie1.Button</item>
-        <item name="buttonStyle">@style/Widget.Truckie1.Button</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="android:textColorPrimary">@color/truckie_navy</item>
         <item name="android:textColorSecondary">@color/truckie_navy</item>
-        <item name="colorControlNormal">@color/truckie_navy</item>
-        <item name="colorControlActivated">@color/truckie_navy</item>
-    </style>
-
-    <style name="Theme.Truckie1" parent="Theme.Truckie1.Base" />
-
-    <style name="Widget.Truckie1.ActionBar" parent="Widget.AppCompat.ActionBar.Solid">
-        <item name="background">@color/truckie_navy</item>
-        <item name="titleTextStyle">@style/TextAppearance.Truckie1.ActionBar.Title</item>
-        <item name="elevation">0dp</item>
-    </style>
-
-    <style name="TextAppearance.Truckie1.ActionBar.Title" parent="TextAppearance.AppCompat.Widget.ActionBar.Title">
-        <item name="android:textColor">@color/truckie_on_primary</item>
-    </style>
-
-    <!-- Filled navy buttons with white labels — fixes near-black-on-navy Material defaults. -->
-    <style name="Widget.Truckie1.Button" parent="Widget.MaterialComponents.Button">
-        <item name="backgroundTint">@color/truckie_navy</item>
-        <item name="android:textColor">@color/truckie_on_primary</item>
-        <item name="rippleColor">@color/truckie_amber</item>
     </style>
 </resources>

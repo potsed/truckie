@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.compose.compiler)
     alias(libs.plugins.ksp)
 }
 
@@ -9,11 +10,11 @@ android {
 
     defaultConfig {
         applicationId = "com.truckie1.app"
-        minSdk = 16
+        // Compose requires API 21+; Android Auto remains gated to API 23+ in code.
+        minSdk = 21
         targetSdk = 35
         versionCode = 1
-        versionName = "0.4.0-route-optimize"
-        multiDexEnabled = true
+        versionName = "0.5.0-compose-ui"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -33,7 +34,7 @@ android {
     }
 
     buildFeatures {
-        viewBinding = true
+        compose = true
         buildConfig = true
     }
 
@@ -64,8 +65,15 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     implementation(libs.androidx.activity)
-    implementation(libs.androidx.constraintlayout)
-    implementation(libs.androidx.multidex)
+    implementation(libs.androidx.activity.compose)
+
+    val composeBom = platform(libs.androidx.compose.bom)
+    implementation(composeBom)
+    androidTestImplementation(composeBom)
+    implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.compose.ui.tooling.preview)
+    debugImplementation(libs.androidx.compose.ui.tooling)
 
     // Android Auto (Cars App Library) — runtime gated to API 23+
     implementation(libs.androidx.car.app)

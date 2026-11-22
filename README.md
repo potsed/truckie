@@ -7,14 +7,15 @@ AU-first (QLD/Brisbane), expandable. Product UI term: **Vehicle** (not Truck).
 
 | Layer | Choice |
 | --- | --- |
-| Language | Kotlin **2.4.21** (AGP **9.3.1**, Gradle **9.7.0**) |
+| Language | Kotlin **2.4.21** (AGP **9.5.2**, Gradle **9.7.0**) |
+| UI | Jetpack Compose Material3 (Compose BOM **2024.12.01**) |
 | Modules | `app`, `core-routing`, `core-profiles`, `core-trips`, `core-maps`, `core-flags` |
 | Map | MapLibre stub (`:core-maps`) |
 | Routing | GraphHopper client stub (`:core-routing`) |
 | Flags | Local feature-flag facade (`:core-flags`) |
 | Profiles | Room by rego (`ff_vehicle_profiles`); make/model/year, H/W/L, mass/TARE/GVM/GCM, axles, network |
 | Trips | In-memory stop list (`ff_multi_stop`); cargo pick-up/drop-off (`ff_stop_cargo`); optimize Fastest/Cheapest (`ff_route_optimize`) |
-| minSdk | **16** (Android Auto gated to API **23+**) |
+| minSdk | **21** (Compose; Android Auto gated to API **23+**) |
 
 ## Clearance model
 

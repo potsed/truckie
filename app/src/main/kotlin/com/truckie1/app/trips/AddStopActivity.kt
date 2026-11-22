@@ -1,21 +1,22 @@
 package com.truckie1.app.trips
 
 import android.os.Bundle
-import android.view.View
-import android.widget.Button
-import android.widget.EditText
-import android.widget.LinearLayout
-import android.widget.RadioButton
-import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
+import androidx.activity.ComponentActivity
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import com.truckie1.app.R
 import com.truckie1.app.TruckieApp
+import com.truckie1.app.ui.AddStopFormState
+import com.truckie1.app.ui.AddStopScreen
+import com.truckie1.app.ui.setTruckieContent
 import com.truckie1.flags.FlagKeys
 import com.truckie1.trips.CargoAction
 
-class AddStopActivity : AppCompatActivity() {
+class AddStopActivity : ComponentActivity() {
     private val pendingCargo = mutableListOf<StopFormParser.CargoInput>()
+    private var form by mutableStateOf(AddStopFormState())
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -25,20 +26,29 @@ class AddStopActivity : AppCompatActivity() {
             finish()
             return
         }
-        setContentView(R.layout.activity_add_stop)
-
         val cargoEnabled = app.featureFlags.isEnabled(FlagKeys.STOP_CARGO)
-        findViewById<LinearLayout>(R.id.cargoSection).visibility =
-            if (cargoEnabled) View.VISIBLE else View.GONE
+        form = form.copy(cargoEnabled = cargoEnabled)
 
-        findViewById<Button>(R.id.addAnotherCargo).setOnClickListener {
-            if (!cargoEnabled) return@setOnClickListener
-            stageCurrentCargoRow()?.let { pendingCargo += it }
-            clearCargoFields()
-            bindPendingCargo()
+        setTruckieContent {
+            AddStopScreen(
+                state = form,
+                onChange = { form = it },
+                onAddAnotherCargo = {
+                    if (!cargoEnabled) return@AddStopScreen
+                    stageCurrentCargoRow()?.let { pendingCargo += it }
+                    form = form.copy(
+                        cargoDescription = "",
+                        cargoHeightM = "",
+                        cargoWidthM = "",
+                        cargoLengthM = "",
+                        cargoMassT = "",
+                        cargoAction = CargoAction.PICK_UP,
+                        pendingCargoLines = pendingCargoLines(),
+                    )
+                },
+                onSave = { save(cargoEnabled) },
+            )
         }
-
-        findViewById<Button>(R.id.saveStop).setOnClickListener { save(cargoEnabled) }
     }
 
     private fun save(cargoEnabled: Boolean) {
@@ -48,7 +58,7 @@ class AddStopActivity : AppCompatActivity() {
         }
         val result = StopFormParser.parse(
             StopFormParser.Input(
-                addressLabel = text(R.id.fieldAddress),
+                addressLabel = form.address,
                 cargoEnabled = cargoEnabled,
                 cargoItems = cargoItems,
             ),
@@ -66,21 +76,16 @@ class AddStopActivity : AppCompatActivity() {
     }
 
     private fun stageCurrentCargoRow(): StopFormParser.CargoInput? {
-        val description = text(R.id.fieldCargoDescription)
-        val height = text(R.id.fieldCargoHeight)
-        val width = text(R.id.fieldCargoWidth)
-        val length = text(R.id.fieldCargoLength)
-        val mass = text(R.id.fieldCargoMass)
+        val description = form.cargoDescription
+        val height = form.cargoHeightM
+        val width = form.cargoWidthM
+        val length = form.cargoLengthM
+        val mass = form.cargoMassT
         if (description.isBlank() && height.isBlank() && width.isBlank() && length.isBlank() && mass.isBlank()) {
             return null
         }
-        val action = if (findViewById<RadioButton>(R.id.actionDropOff).isChecked) {
-            CargoAction.DROP_OFF.name
-        } else {
-            CargoAction.PICK_UP.name
-        }
         return StopFormParser.CargoInput(
-            action = action,
+            action = form.cargoAction.name,
             description = description,
             heightM = height,
             widthM = width,
@@ -89,22 +94,8 @@ class AddStopActivity : AppCompatActivity() {
         )
     }
 
-    private fun clearCargoFields() {
-        findViewById<EditText>(R.id.fieldCargoDescription).setText("")
-        findViewById<EditText>(R.id.fieldCargoHeight).setText("")
-        findViewById<EditText>(R.id.fieldCargoWidth).setText("")
-        findViewById<EditText>(R.id.fieldCargoLength).setText("")
-        findViewById<EditText>(R.id.fieldCargoMass).setText("")
-        findViewById<RadioButton>(R.id.actionPickUp).isChecked = true
+    private fun pendingCargoLines(): List<String> = pendingCargo.mapIndexed { index, cargo ->
+        val action = if (cargo.action == CargoAction.DROP_OFF.name) "drop" else "pick"
+        "${index + 1}. $action · ${cargo.description} · ${cargo.heightM}m / ${cargo.massT}t"
     }
-
-    private fun bindPendingCargo() {
-        val lines = pendingCargo.mapIndexed { index, cargo ->
-            val action = if (cargo.action == CargoAction.DROP_OFF.name) "drop" else "pick"
-            "${index + 1}. $action · ${cargo.description} · ${cargo.heightM}m / ${cargo.massT}t"
-        }
-        findViewById<TextView>(R.id.pendingCargoList).text = lines.joinToString("\n")
-    }
-
-    private fun text(id: Int): String = findViewById<EditText>(id).text?.toString().orEmpty()
 }

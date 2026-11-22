@@ -2,32 +2,31 @@ package com.truckie1.app.trips
 
 import android.content.Intent
 import android.os.Bundle
-import android.widget.Button
-import android.widget.TextView
-import androidx.appcompat.app.AppCompatActivity
+import androidx.activity.ComponentActivity
 import com.truckie1.app.R
 import com.truckie1.app.TruckieApp
 import com.truckie1.app.profiles.VehicleListActivity
+import com.truckie1.app.ui.BlockedRouteScreen
+import com.truckie1.app.ui.setTruckieContent
 import com.truckie1.flags.FlagKeys
 
-class BlockedRouteActivity : AppCompatActivity() {
+class BlockedRouteActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_blocked_route)
-
         val reason = intent.getStringExtra(EXTRA_REASON)
             ?: getString(R.string.blocked_route_default_reason)
-        findViewById<TextView>(R.id.blockedReason).text = reason
-
-        findViewById<Button>(R.id.editStops).setOnClickListener {
-            finish()
-        }
-        findViewById<Button>(R.id.editVehicle).setOnClickListener {
-            val app = application as TruckieApp
-            if (app.featureFlags.isEnabled(FlagKeys.VEHICLE_PROFILES)) {
-                startActivity(Intent(this, VehicleListActivity::class.java))
-            }
-            finish()
+        setTruckieContent {
+            BlockedRouteScreen(
+                reason = reason,
+                onEditStops = { finish() },
+                onEditVehicle = {
+                    val app = application as TruckieApp
+                    if (app.featureFlags.isEnabled(FlagKeys.VEHICLE_PROFILES)) {
+                        startActivity(Intent(this, VehicleListActivity::class.java))
+                    }
+                    finish()
+                },
+            )
         }
     }
 
