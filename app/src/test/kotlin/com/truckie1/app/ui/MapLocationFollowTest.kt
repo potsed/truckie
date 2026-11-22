@@ -73,6 +73,11 @@ class MapLocationFollowTest {
         )
         assertFalse(result.cameraTarget.usedFallback)
         assertTrue(result.resetsZoom)
+        assertEquals(
+            RecenterZoomApplyMode.TRACKING_TRANSITION_WITH_ZOOM,
+            result.cameraPlan.zoomApplyMode,
+        )
+        assertEquals(MapCameraDefaults.ZOOM, result.cameraPlan.target.zoom, 0.0)
     }
 
     @Test
@@ -89,6 +94,37 @@ class MapLocationFollowTest {
         assertEquals(-33.8688, target.latitude, 0.0)
         assertEquals(151.2093, target.longitude, 0.0)
         assertFalse(target.usedFallback)
+    }
+
+    @Test
+    fun recenterCameraPlanAppliesDefaultZoomViaTrackingTransitionNotAnimateCamera() {
+        val priorZoom = 11.0
+        assertTrue(priorZoom < MapCameraDefaults.ZOOM)
+
+        val plan = MapLocationFollow.cameraPlanForRecenter(
+            latitude = -27.4705,
+            longitude = 153.0260,
+        )
+        assertEquals(MapCameraDefaults.ZOOM, plan.target.zoom, 0.0)
+        assertEquals(
+            RecenterZoomApplyMode.TRACKING_TRANSITION_WITH_ZOOM,
+            plan.zoomApplyMode,
+        )
+        assertEquals(MapLocationFollow.RECENTER_ANIMATION_MS, plan.animationDurationMs)
+
+        // #24 regression model: animateCamera + immediate TRACKING keeps prior zoom.
+        val brokenPlan = plan.copy(zoomApplyMode = RecenterZoomApplyMode.ANIMATE_CAMERA_LAT_LNG_ZOOM)
+        assertEquals(
+            priorZoom,
+            MapLocationFollow.effectiveZoomAfterRecenter(brokenPlan, priorZoom),
+            0.0,
+        )
+        // Fixed path: tracking transition (or sync moveCamera before TRACKING) applies 15.5.
+        assertEquals(
+            MapCameraDefaults.ZOOM,
+            MapLocationFollow.effectiveZoomAfterRecenter(plan, priorZoom),
+            0.0,
+        )
     }
 
     @Test

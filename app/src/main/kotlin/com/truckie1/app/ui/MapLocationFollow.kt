@@ -71,10 +71,42 @@ object MapLocationFollow {
             followState = onRecenter(state),
             cameraTarget = cameraTargetForRecenter(latitude, longitude),
             resetsZoom = resetsZoomToDefaultOnRecenter,
+            cameraPlan = cameraPlanForRecenter(latitude, longitude),
         )
+
+    /**
+     * MapLibre apply plan for Recenter. Prefer [RecenterZoomApplyMode.TRACKING_TRANSITION_WITH_ZOOM]:
+     * CameraMode.TRACKING owns the camera and keeps the zoom current when TRACKING starts,
+     * so async [org.maplibre.android.camera.CameraUpdateFactory.newLatLngZoom] is discarded
+     * when follow is re-enabled immediately (#24 regression).
+     */
+    fun cameraPlanForRecenter(latitude: Double, longitude: Double): RecenterCameraPlan =
+        RecenterCameraPlan(
+            target = cameraTargetForRecenter(latitude, longitude),
+            zoomApplyMode = RecenterZoomApplyMode.TRACKING_TRANSITION_WITH_ZOOM,
+            animationDurationMs = RECENTER_ANIMATION_MS,
+        )
+
+    /**
+     * Models MapLibre Recenter zoom outcome for tests.
+     * Async animateCamera + immediate TRACKING keeps [priorZoom]; tracking-transition
+     * (or sync moveCamera before TRACKING) applies [RecenterCameraPlan] zoom.
+     */
+    fun effectiveZoomAfterRecenter(
+        plan: RecenterCameraPlan,
+        priorZoom: Double,
+        trackingEnabledImmediately: Boolean = true,
+    ): Double = when (plan.zoomApplyMode) {
+        RecenterZoomApplyMode.ANIMATE_CAMERA_LAT_LNG_ZOOM ->
+            if (trackingEnabledImmediately) priorZoom else plan.target.zoom
+        RecenterZoomApplyMode.TRACKING_TRANSITION_WITH_ZOOM -> plan.target.zoom
+    }
 
     fun onLocationFixChanged(state: MapFollowState, hasLocationFix: Boolean): MapFollowState =
         state.copy(hasLocationFix = hasLocationFix)
+
+    /** Duration shared with MapLibreHost Recenter animation. */
+    const val RECENTER_ANIMATION_MS: Long = 750L
 }
 
 /** Outcome of tapping Recenter: follow restored + camera at default closer zoom. */
@@ -82,6 +114,30 @@ data class RecenterResult(
     val followState: MapFollowState,
     val cameraTarget: MapCameraTarget,
     val resetsZoom: Boolean,
+    val cameraPlan: RecenterCameraPlan,
+)
+
+/**
+ * How default closer zoom is applied under MapLibre LocationComponent TRACKING.
+ */
+enum class RecenterZoomApplyMode {
+    /**
+     * Broken with immediate TRACKING (#24): async animateCamera zoom never lands.
+     */
+    ANIMATE_CAMERA_LAT_LNG_ZOOM,
+
+    /**
+     * Correct: [org.maplibre.android.location.LocationComponent.setCameraMode] with
+     * zoom transition, or sync moveCamera(newLatLngZoom) before enabling TRACKING.
+     */
+    TRACKING_TRANSITION_WITH_ZOOM,
+}
+
+/** Camera ops Recenter must perform so MapLibre honors [MapCameraDefaults.ZOOM]. */
+data class RecenterCameraPlan(
+    val target: MapCameraTarget,
+    val zoomApplyMode: RecenterZoomApplyMode,
+    val animationDurationMs: Long,
 )
 
 enum class MapFollowMode {

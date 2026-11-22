@@ -57,7 +57,8 @@ import org.maplibre.android.plugins.annotation.SymbolOptions
  *
  * When [locationFollowEnabled] is true, follow mode keeps the puck centred and
  * moves the camera with location updates until the driver pans away; Recenter
- * is owned by the parent overlay.
+ * (owned by the parent overlay) re-enables TRACKING and restores default closer
+ * zoom via LocationComponent setCameraMode zoom transition.
  *
  * Stop markers use the Annotation plugin [SymbolManager] (not deprecated MarkerOptions).
  * When [showBridgeMarkers] is true (`ff_bridge_markers`), a separate SymbolManager
@@ -516,19 +517,50 @@ private class MapLibreHost(
         ignoreTrackingDismiss = true
         runCatching {
             if (animate) {
-                map.animateCamera(
-                    CameraUpdateFactory.newLatLngZoom(latLng, target.zoom),
-                    RECENTER_ANIMATION_MS,
+                // #24 bug: animateCamera(newLatLngZoom) is async; enabling TRACKING
+                // immediately keeps the free-pan zoom. Pass zoom into setCameraMode
+                // (or sync moveCamera before TRACKING) so MapLibre honors it.
+                val plan = MapLocationFollow.cameraPlanForRecenter(
+                    target.latitude,
+                    target.longitude,
                 )
+                when (plan.zoomApplyMode) {
+                    RecenterZoomApplyMode.TRACKING_TRANSITION_WITH_ZOOM -> {
+                        if (locationActivated) {
+                            map.locationComponent.setCameraMode(
+                                CameraMode.TRACKING,
+                                plan.animationDurationMs,
+                                plan.target.zoom,
+                                null,
+                                null,
+                                null,
+                            )
+                        } else {
+                            map.moveCamera(
+                                CameraUpdateFactory.newLatLngZoom(latLng, plan.target.zoom),
+                            )
+                        }
+                    }
+                    RecenterZoomApplyMode.ANIMATE_CAMERA_LAT_LNG_ZOOM -> {
+                        map.animateCamera(
+                            CameraUpdateFactory.newLatLngZoom(latLng, plan.target.zoom),
+                            plan.animationDurationMs.toInt(),
+                        )
+                        setCameraFollowing(true)
+                    }
+                }
             } else {
                 map.cameraPosition = CameraPosition.Builder()
                     .target(latLng)
                     .zoom(target.zoom)
                     .build()
+                setCameraFollowing(true)
             }
-            setCameraFollowing(true)
         }
-        mapView.postDelayed({ ignoreTrackingDismiss = false }, RECENTER_ANIMATION_MS.toLong() + 50L)
+        mapView.postDelayed(
+            { ignoreTrackingDismiss = false },
+            MapLocationFollow.RECENTER_ANIMATION_MS + 50L,
+        )
     }
 
     fun setCameraFollowing(following: Boolean) {
@@ -570,7 +602,7 @@ private class MapLibreHost(
     }
 
     companion object {
-        const val RECENTER_ANIMATION_MS: Int = 750
+        val RECENTER_ANIMATION_MS: Int = MapLocationFollow.RECENTER_ANIMATION_MS.toInt()
     }
 }
 
