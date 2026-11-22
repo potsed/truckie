@@ -18,6 +18,7 @@ XML screen layouts were removed; do not add new AppCompat/XML screens.
 | `ff_offline_maps` | Offline map pack manager (MapLibre) | off |
 | `ff_android_auto` | Android Auto surfaces (requires API 23+) | off |
 | `ff_nhvr_overlay` | NHVR / state restriction overlays | off |
+| `ff_nav_chrome` | Material3 TopAppBar + bottom NavigationBar (Home, Plan trip, Vehicles, Settings) | off (on in debug) |
 
 ## Rules
 
@@ -28,3 +29,6 @@ XML screen layouts were removed; do not add new AppCompat/XML screens.
 5. Route optimize (`ff_route_optimize`) hard-filters by effective clearance (height + buffer) and
    on-board operating mass vs GVM / route max weight. Toll preference stays stubbed as allow-all
    passthrough until `ff_tolls` is implemented.
+6. Nav chrome (`ff_nav_chrome`) adds Material3 `CenterAlignedTopAppBar` + bottom `NavigationBar`
+   via a shared Scaffold used by each Activity. Plan trip / Vehicles tabs still require
+   `ff_multi_stop` / `ff_vehicle_profiles`.

@@ -10,6 +10,8 @@ import com.truckie1.app.R
 import com.truckie1.app.TruckieApp
 import com.truckie1.app.ui.AddStopFormState
 import com.truckie1.app.ui.AddStopScreen
+import com.truckie1.app.ui.TruckieHostedScreen
+import com.truckie1.app.ui.navigateToPrimaryDestination
 import com.truckie1.app.ui.setTruckieContent
 import com.truckie1.flags.FlagKeys
 import com.truckie1.trips.CargoAction
@@ -28,26 +30,36 @@ class AddStopActivity : ComponentActivity() {
         }
         val cargoEnabled = app.featureFlags.isEnabled(FlagKeys.STOP_CARGO)
         form = form.copy(cargoEnabled = cargoEnabled)
+        val navChrome = app.featureFlags.isEnabled(FlagKeys.NAV_CHROME)
 
         setTruckieContent {
-            AddStopScreen(
-                state = form,
-                onChange = { form = it },
-                onAddAnotherCargo = {
-                    if (!cargoEnabled) return@AddStopScreen
-                    stageCurrentCargoRow()?.let { pendingCargo += it }
-                    form = form.copy(
-                        cargoDescription = "",
-                        cargoHeightM = "",
-                        cargoWidthM = "",
-                        cargoLengthM = "",
-                        cargoMassT = "",
-                        cargoAction = CargoAction.PICK_UP,
-                        pendingCargoLines = pendingCargoLines(),
-                    )
-                },
-                onSave = { save(cargoEnabled) },
-            )
+            TruckieHostedScreen(
+                title = getString(R.string.add_stop_title),
+                activitySimpleName = "AddStopActivity",
+                navChromeEnabled = navChrome,
+                onNavigate = { navigateToPrimaryDestination(it) },
+                onNavigateUp = if (navChrome) ({ finish() }) else null,
+                scrollable = true,
+            ) {
+                AddStopScreen(
+                    state = form,
+                    onChange = { form = it },
+                    onAddAnotherCargo = {
+                        if (!cargoEnabled) return@AddStopScreen
+                        stageCurrentCargoRow()?.let { pendingCargo += it }
+                        form = form.copy(
+                            cargoDescription = "",
+                            cargoHeightM = "",
+                            cargoWidthM = "",
+                            cargoLengthM = "",
+                            cargoMassT = "",
+                            cargoAction = CargoAction.PICK_UP,
+                            pendingCargoLines = pendingCargoLines(),
+                        )
+                    },
+                    onSave = { save(cargoEnabled) },
+                )
+            }
         }
     }
 

@@ -1,6 +1,5 @@
 package com.truckie1.app
 
-import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -8,11 +7,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.truckie1.app.profiles.HomeVehicleSummary
-import com.truckie1.app.profiles.VehicleListActivity
 import com.truckie1.app.trips.HomeTripSummary
-import com.truckie1.app.trips.TripStopsActivity
 import com.truckie1.app.ui.HomeScreen
 import com.truckie1.app.ui.HomeUiState
+import com.truckie1.app.ui.TruckieHostedScreen
+import com.truckie1.app.ui.TruckiePrimaryDestination
+import com.truckie1.app.ui.navigateToPrimaryDestination
 import com.truckie1.app.ui.setTruckieContent
 import com.truckie1.flags.FlagKeys
 
@@ -27,37 +27,40 @@ class MainActivity : ComponentActivity() {
             showVehicleProfiles = false,
         ),
     )
+    private var navChromeEnabled by mutableStateOf(false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        navChromeEnabled = (application as TruckieApp).featureFlags.isEnabled(FlagKeys.NAV_CHROME)
         setTruckieContent {
-            HomeScreen(
-                state = uiState,
-                onPlanTrip = {
-                    val app = application as TruckieApp
-                    if (app.featureFlags.isEnabled(FlagKeys.MULTI_STOP)) {
-                        startActivity(Intent(this, TripStopsActivity::class.java))
-                    } else {
-                        Toast.makeText(this, getString(R.string.flag_off, FlagKeys.MULTI_STOP), Toast.LENGTH_SHORT).show()
-                    }
-                },
-                onVehicleProfiles = {
-                    val app = application as TruckieApp
-                    if (app.featureFlags.isEnabled(FlagKeys.VEHICLE_PROFILES)) {
-                        startActivity(Intent(this, VehicleListActivity::class.java))
-                    } else {
-                        Toast.makeText(this, getString(R.string.flag_off, FlagKeys.VEHICLE_PROFILES), Toast.LENGTH_SHORT).show()
-                    }
-                },
-                onSettings = {
-                    val app = application as TruckieApp
-                    Toast.makeText(
-                        this,
-                        "Buffer ${app.clearanceBufferM} m (Settings range 0.15–1.0)",
-                        Toast.LENGTH_SHORT,
-                    ).show()
-                },
-            )
+            TruckieHostedScreen(
+                title = getString(R.string.home_title),
+                activitySimpleName = "MainActivity",
+                navChromeEnabled = navChromeEnabled,
+                onNavigate = { navigateToPrimaryDestination(it) },
+            ) {
+                HomeScreen(
+                    state = uiState,
+                    onPlanTrip = {
+                        navigateToPrimaryDestination(TruckiePrimaryDestination.PLAN_TRIP)
+                    },
+                    onVehicleProfiles = {
+                        navigateToPrimaryDestination(TruckiePrimaryDestination.VEHICLES)
+                    },
+                    onSettings = {
+                        if (navChromeEnabled) {
+                            navigateToPrimaryDestination(TruckiePrimaryDestination.SETTINGS)
+                        } else {
+                            val app = application as TruckieApp
+                            Toast.makeText(
+                                this@MainActivity,
+                                "Buffer ${app.clearanceBufferM} m (Settings range 0.15–1.0)",
+                                Toast.LENGTH_SHORT,
+                            ).show()
+                        }
+                    },
+                )
+            }
         }
     }
 
@@ -68,6 +71,7 @@ class MainActivity : ComponentActivity() {
 
     private fun bindHome() {
         val app = application as TruckieApp
+        navChromeEnabled = app.featureFlags.isEnabled(FlagKeys.NAV_CHROME)
         val activeSummary = HomeVehicleSummary.text(app.featureFlags, app.vehicleProfiles)
         val active = app.vehicleProfiles.activeRego?.let { app.vehicleProfiles.findByRego(it) }
         val clearanceLine = if (activeSummary == null) {

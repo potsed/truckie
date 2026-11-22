@@ -5,6 +5,15 @@
     <string name="plan_trip">Plan trip</string>
     <string name="vehicle_profiles">Vehicle profiles</string>
     <string name="settings">Settings</string>
+    <!-- Bottom nav: trip-first for owner-operators (pickups/dropoffs + optimize). Settings last. -->
+    <string name="nav_home">Home</string>
+    <string name="nav_plan_trip">Trip</string>
+    <string name="nav_vehicles">Vehicles</string>
+    <string name="nav_settings">Settings</string>
+    <string name="nav_plan_trip_cd">Trip — add pickups and dropoffs, optimize route</string>
+    <string name="nav_back">Back</string>
+    <string name="settings_buffer_value">Current buffer: %1$s m</string>
+    <string name="settings_stub_note">Toll preferences, offline maps, licenses, and disclaimer land in later milestones.</string>
     <string name="clearance_buffer_label">Clearance buffer (0.15–1.0 m)</string>
     <string name="auto_unavailable">Android Auto requires API 23+</string>
     <string name="add_vehicle">+</string>
@@ -35,7 +44,8 @@
     <string name="add_stop">+ Add stop</string>
     <string name="add_stop_title">Add stop</string>
     <string name="no_stops_yet">No stops yet. Tap + Add stop.</string>
-    <string name="hint_address">Address</string>
+    <!-- Ready for verified autocomplete (provider lands later; no fake geocoder in nav chrome). -->
+    <string name="hint_address">Search address…</string>
     <string name="cargo_at_stop">Cargo at this stop</string>
     <string name="pick_up">Pick up</string>
     <string name="drop_off">Drop off</string>

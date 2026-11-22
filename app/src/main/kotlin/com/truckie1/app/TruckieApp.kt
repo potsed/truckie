@@ -48,6 +48,7 @@ class TruckieApp : Application() {
             featureFlags.setEnabled(FlagKeys.MULTI_STOP, true)
             featureFlags.setEnabled(FlagKeys.STOP_CARGO, true)
             featureFlags.setEnabled(FlagKeys.ROUTE_OPTIMIZE, true)
+            featureFlags.setEnabled(FlagKeys.NAV_CHROME, true)
         }
     }
 }
