@@ -16,7 +16,8 @@ abstract class VehicleDatabase : RoomDatabase() {
     companion object {
         fun build(context: Context, name: String = "truckie_vehicles.db"): VehicleDatabase =
             Room.databaseBuilder(context.applicationContext, VehicleDatabase::class.java, name)
-                .fallbackToDestructiveMigration()
+                // Room 2.7+: no-arg fallbackToDestructiveMigration() is deprecated; drop all tables.
+                .fallbackToDestructiveMigration(dropAllTables = true)
                 .allowMainThreadQueries()
                 .build()
 
