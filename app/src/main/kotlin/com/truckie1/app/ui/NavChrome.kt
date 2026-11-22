@@ -5,7 +5,7 @@ import com.truckie1.flags.FeatureFlags
 import com.truckie1.flags.FlagKeys
 
 /**
- * Primary bottom-nav destinations for Truckie1 chrome (`ff_nav_chrome`).
+ * Primary bottom-nav destinations for Truckie chrome (`ff_nav_chrome`).
  *
  * Order is trip-first for single-owner-operator drivers: Home → Trip (pickups/dropoffs
  * + optimize) → Vehicles → Settings (secondary). Product flags still gate Trip / Vehicles.

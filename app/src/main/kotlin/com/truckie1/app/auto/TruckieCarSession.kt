@@ -18,10 +18,10 @@ class TruckieCarHomeScreen(
     override fun onGetTemplate(): Template {
         // Cars App 1.7: MessageTemplate.setTitle / setHeaderAction are deprecated in favor of Header.
         val header = Header.Builder()
-            .setTitle("Truckie1")
+            .setTitle("Truckie")
             .setStartHeaderAction(Action.APP_ICON)
             .build()
-        return MessageTemplate.Builder("Truckie1 navigation (scaffold)")
+        return MessageTemplate.Builder("Truckie navigation (scaffold)")
             .setHeader(header)
             .build()
     }

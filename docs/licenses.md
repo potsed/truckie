@@ -1,6 +1,6 @@
 # Licenses baseline
 
-Truckie1 itself is **Apache License 2.0**. See `/LICENSE` and `/NOTICE`.
+Truckie itself is **Apache License 2.0**. See `/LICENSE` and `/NOTICE`.
 
 ## Third-party (Phase 0 stubs / planned)
 

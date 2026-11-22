@@ -9,7 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
 /**
- * High-contrast Truckie1 palette (PR #6 intent): navy chrome/text, sky surfaces,
+ * High-contrast Truckie palette (PR #6 intent): navy chrome/text, sky surfaces,
  * white labels on filled primary buttons.
  */
 object TruckiePalette {
@@ -62,7 +62,7 @@ object ComposeScreenCatalog {
         "item_trip_stop_row",
     )
 
-    /** Theme.Truckie1 is NoActionBar; content uses WindowInsets padding. */
+    /** Theme.Truckie is NoActionBar; content uses WindowInsets padding. */
     const val usesActionBar: Boolean = false
     const val usesEdgeToEdgeInsets: Boolean = true
 }

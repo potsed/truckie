@@ -38,7 +38,7 @@ Activities remain the multi-Activity path without chrome.
 
 Secondary routes (no bottom bar; TopAppBar back): `add_stop`, `vehicle_edit`, `blocked_route/...`.
 
-Header titles: Truckie1 · Trip stops · Vehicle profiles · Settings.
+Header titles: Truckie · Trip stops · Vehicle profiles · Settings.
 
 ## Address autocomplete (queued)
 

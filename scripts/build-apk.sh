@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build Truckie1 APKs for local dogfood / sideload.
+# Build Truckie APKs for local dogfood / sideload.
 # Play Store path is AAB — prefer ./scripts/build-aab.sh for release uploads.
 # Artifacts stay under */build/ — never commit *.apk/*.aab.
 set -euo pipefail
