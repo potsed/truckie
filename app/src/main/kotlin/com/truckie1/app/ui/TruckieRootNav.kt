@@ -507,6 +507,7 @@ private fun MapHomeRoute(
         ),
         requireVerifiedAddress = com.truckie1.app.trips.VerifiedAddressCatalog
             .requiresVerifiedSuggestion(app.featureFlags),
+        showLocationPuck = MapLocationPuck.isEnabled(app.featureFlags),
         modifier = Modifier.fillMaxSize(),
     )
 }

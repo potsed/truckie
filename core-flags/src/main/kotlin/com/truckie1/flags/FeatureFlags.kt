@@ -27,6 +27,8 @@ object FlagKeys {
     const val MAP_HOME = "ff_map_home"
     /** Verified address autocomplete (Nominatim AU default) for route stops (Phase B). */
     const val ADDRESS_AUTOCOMPLETE = "ff_address_autocomplete"
+    /** Blue my-location puck on the MapLibre map (updates with Fused Location). */
+    const val MAP_LOCATION_PUCK = "ff_map_location_puck"
 }
 
 /**

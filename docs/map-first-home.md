@@ -1,12 +1,12 @@
 # Map-first home (Phase A)
 
-Feature flag: **`ff_map_home`** (on in debug). Gherkin: [`features/map_first_home.feature`](../features/map_first_home.feature).
+Feature flags: **`ff_map_home`** (map + sheet), **`ff_map_location_puck`** (blue my-location indicator), **`ff_address_autocomplete`** (verified stops) — on in debug. Gherkin: [`features/map_first_home.feature`](../features/map_first_home.feature).
 
 ## Screens
 
 | Surface | What ships |
 | --- | --- |
-| **Map home** | Full-bleed MapLibre map — **OpenFreeMap Liberty** street basemap (`https://tiles.openfreemap.org/styles/liberty`, OSM vector tiles, no API key); camera = **current location** via Play Services **Fused Location Provider** (runtime permission + Settings resolution); Brisbane AU fallback if unavailable; stop markers via Annotation **SymbolManager** |
+| **Map home** | Full-bleed MapLibre map — **OpenFreeMap Liberty** street basemap (`https://tiles.openfreemap.org/styles/liberty`, OSM vector tiles, no API key); camera = **current location** via Play Services **Fused Location Provider** (runtime permission + Settings resolution); Brisbane AU fallback if unavailable; stop markers via Annotation **SymbolManager**; blue **my-location puck** (`ff_map_location_puck`) via MapLibre LocationComponent at the same fused fix (camera centres on that fix; accuracy circle optional; hidden without permission) |
 | **Route drag sheet** | Peek / half / full anchors over the map |
 | **Create route** | Optional name; Today / Tomorrow / Pick a date |
 | **Add/find stops** | Search field + pickup/load \| drop-off/unload; verified autocomplete when `ff_address_autocomplete` is on (Nominatim AU) |
