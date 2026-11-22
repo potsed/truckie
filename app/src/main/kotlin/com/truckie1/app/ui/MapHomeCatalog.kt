@@ -83,3 +83,36 @@ object MapHomeCatalog {
         }
     }
 }
+
+/**
+ * Production polish tokens for the map-home route/stop drag sheet.
+ * Gherkin: features/route_sheet_polish.feature — ships with [FlagKeys.MAP_HOME].
+ */
+object RouteSheetPolishCatalog {
+    /** Larger top radius so the sheet reads as a Material3 sheet over the map. */
+    const val topCornerRadiusDp: Int = 28
+
+    /** Wider/taller than the default handle so it stays visible on busy map tiles. */
+    const val dragHandleWidthDp: Int = 48
+    const val dragHandleHeightDp: Int = 5
+    const val dragHandleUsesOnSurfaceVariant: Boolean = true
+
+    const val tonalElevationDp: Int = 3
+    const val shadowElevationDp: Int = 8
+    const val contentHorizontalPaddingDp: Int = 20
+    const val sectionSpacingDp: Int = 20
+    const val peekContentVerticalPaddingDp: Int = 4
+
+    const val summaryUsesTitleSmall: Boolean = true
+    const val createRouteUsesHeadlineTitle: Boolean = true
+    const val dateChoicesUseOutlinedCards: Boolean = true
+    const val addFindUsesSearchLeadingIcon: Boolean = true
+    const val stopKindsUseFilterChips: Boolean = true
+    const val suggestionsUseSurfaceRows: Boolean = true
+    const val stopRowsUseTimelineBadge: Boolean = true
+
+    const val preservesDragGestures: Boolean = true
+    const val hidesGlobalHeaderFooter: Boolean = true
+    const val domainUsesRouteAndStops: Boolean = true
+    val stopKindLabels: List<String> = MapHomeCatalog.stopKindLabels
+}
