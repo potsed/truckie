@@ -6,7 +6,7 @@ Feature flag: **`ff_map_home`** (on in debug). Gherkin: [`features/map_first_hom
 
 | Surface | What ships |
 | --- | --- |
-| **Map home** | Full-bleed MapLibre map (demotiles); camera = **current location** via Play Services **Fused Location Provider** (runtime permission + Settings resolution); Brisbane AU fallback if unavailable |
+| **Map home** | Full-bleed MapLibre map — **OpenFreeMap Liberty** street basemap (`https://tiles.openfreemap.org/styles/liberty`, OSM vector tiles, no API key); camera = **current location** via Play Services **Fused Location Provider** (runtime permission + Settings resolution); Brisbane AU fallback if unavailable; stop markers via Annotation **SymbolManager** |
 | **Route drag sheet** | Peek / half / full anchors over the map |
 | **Create route** | Optional name; Today / Tomorrow / Pick a date |
 | **Add/find stops** | Search field + pickup/load \| drop-off/unload; autocomplete = NoOp stub |

@@ -1,11 +1,12 @@
 package com.truckie1.maps
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * Gherkin: map_first_home.feature — Brisbane remains the offline/unavailable fallback.
+ * Gherkin: map_first_home.feature — Brisbane fallback + street basemap style.
  */
 class MapCameraDefaultsTest {
 
@@ -20,7 +21,15 @@ class MapCameraDefaultsTest {
     }
 
     @Test
-    fun demotilesStyleIsConfiguredForMapLibre() {
-        assertTrue(MapCameraDefaults.STYLE_URI.contains("maplibre", ignoreCase = true))
+    fun streetBasemapStyleIsOpenFreeMapLiberty() {
+        assertEquals(
+            "https://tiles.openfreemap.org/styles/liberty",
+            MapCameraDefaults.STYLE_URI,
+        )
+        assertTrue(MapCameraDefaults.STYLE_SOURCE_LABEL.contains("OpenFreeMap", ignoreCase = true))
+        assertFalse(
+            "Demotiles has no roads — must not be the default style",
+            MapCameraDefaults.STYLE_URI.contains("demotiles", ignoreCase = true),
+        )
     }
 }

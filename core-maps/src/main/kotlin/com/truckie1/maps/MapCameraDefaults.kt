@@ -16,10 +16,14 @@ object MapCameraDefaults {
     const val ZOOM: Double = 11.0
 
     /**
-     * Public MapLibre demotiles style (no API key). Replace with a production
-     * style / self-hosted tiles when offline packs and branding land.
+     * OpenFreeMap Liberty — free OSM street basemap for MapLibre (no API key).
+     * Demotiles only shows continent polygons (no roads); do not use for dogfood.
+     * Swap to a production / self-hosted style when offline packs land.
      */
-    const val STYLE_URI: String = "https://demotiles.maplibre.org/style.json"
+    const val STYLE_URI: String = "https://tiles.openfreemap.org/styles/liberty"
+
+    /** Human-readable source label for docs / catalog tests. */
+    const val STYLE_SOURCE_LABEL: String = "OpenFreeMap Liberty (OSM vector tiles)"
 
     @Deprecated(
         "Use FALLBACK_LATITUDE — camera prefers current location",

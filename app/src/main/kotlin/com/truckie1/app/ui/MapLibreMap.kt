@@ -27,16 +27,20 @@ import com.truckie1.maps.MapCameraDefaults
 import com.truckie1.maps.MapCameraTarget
 import com.truckie1.trips.RouteStop
 import org.maplibre.android.MapLibre
-import org.maplibre.android.annotations.MarkerOptions
 import org.maplibre.android.camera.CameraPosition
 import org.maplibre.android.geometry.LatLng
+import org.maplibre.android.maps.MapLibreMap
 import org.maplibre.android.maps.MapView
 import org.maplibre.android.maps.Style
+import org.maplibre.android.plugins.annotation.SymbolManager
+import org.maplibre.android.plugins.annotation.SymbolOptions
 
 /**
  * Full-bleed MapLibre map. Camera prefers the driver's **current location** via
  * Play Services Fused Location Provider (runtime permission + Settings resolution);
  * falls back to Brisbane when unavailable.
+ *
+ * Stop markers use the Annotation plugin [SymbolManager] (not deprecated MarkerOptions).
  *
  * When the native MapView cannot be created (e.g. Robolectric unit tests),
  * a high-contrast placeholder keeps the Compose tree testable.
@@ -102,20 +106,21 @@ fun MapLibreMap(
         }
     }
 
-    val mapView = remember {
+    val mapHost = remember {
         runCatching {
             MapLibre.getInstance(context.applicationContext)
-            MapView(context).apply {
+            val view = MapView(context).apply {
                 layoutParams = ViewGroup.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT,
                     ViewGroup.LayoutParams.MATCH_PARENT,
                 )
                 onCreate(null)
             }
+            MapLibreHost(mapView = view)
         }.getOrNull()
     }
 
-    if (mapView == null) {
+    if (mapHost == null) {
         val label = if (cameraTarget.usedFallback) {
             "MapLibre · Brisbane fallback"
         } else {
@@ -136,6 +141,8 @@ fun MapLibreMap(
         return
     }
 
+    val mapView = mapHost.mapView
+
     DisposableEffect(lifecycleOwner, mapView) {
         val observer = LifecycleEventObserver { _, event ->
             when (event) {
@@ -143,7 +150,10 @@ fun MapLibreMap(
                 Lifecycle.Event.ON_RESUME -> mapView.onResume()
                 Lifecycle.Event.ON_PAUSE -> mapView.onPause()
                 Lifecycle.Event.ON_STOP -> mapView.onStop()
-                Lifecycle.Event.ON_DESTROY -> mapView.onDestroy()
+                Lifecycle.Event.ON_DESTROY -> {
+                    mapHost.disposeAnnotations()
+                    mapView.onDestroy()
+                }
                 else -> Unit
             }
         }
@@ -151,6 +161,7 @@ fun MapLibreMap(
         onDispose {
             lifecycleOwner.lifecycle.removeObserver(observer)
             try {
+                mapHost.disposeAnnotations()
                 mapView.onDestroy()
             } catch (_: Throwable) {
                 // Already destroyed or unavailable in test hosts.
@@ -165,24 +176,63 @@ fun MapLibreMap(
             .testTag("map_libre_surface"),
         update = { view ->
             view.getMapAsync { map ->
-                map.setStyle(Style.Builder().fromUri(MapCameraDefaults.STYLE_URI)) {
+                map.setStyle(Style.Builder().fromUri(MapCameraDefaults.STYLE_URI)) { style ->
                     map.cameraPosition = CameraPosition.Builder()
                         .target(LatLng(cameraTarget.latitude, cameraTarget.longitude))
                         .zoom(cameraTarget.zoom)
                         .build()
-                    map.clear()
-                    stops.forEachIndexed { index, stop ->
-                        val lat = stop.latitude ?: return@forEachIndexed
-                        val lng = stop.longitude ?: return@forEachIndexed
-                        map.addMarker(
-                            MarkerOptions()
-                                .position(LatLng(lat, lng))
-                                .title("${index + 1}. ${stop.addressLabel}")
-                                .snippet(stop.kind.name.lowercase().replace('_', '/')),
-                        )
-                    }
+                    mapHost.bindStops(mapView = view, map = map, style = style, stops = stops)
                 }
             }
         },
     )
+}
+
+/**
+ * Holds [SymbolManager] across Compose recompositions so we can replace stop
+ * symbols without deprecated MapLibreMap.clear() / addMarker().
+ */
+private class MapLibreHost(
+    val mapView: MapView,
+) {
+    private var symbolManager: SymbolManager? = null
+
+    fun bindStops(
+        mapView: MapView,
+        map: MapLibreMap,
+        style: Style,
+        stops: List<RouteStop>,
+    ) {
+        MapStopAnnotations.ensureStopMarkerImage(style)
+        val manager = symbolManager ?: SymbolManager(mapView, map, style).also { created ->
+            created.iconAllowOverlap = true
+            created.iconIgnorePlacement = true
+            created.textAllowOverlap = true
+            symbolManager = created
+        }
+        manager.deleteAll()
+        val options = stops.mapIndexedNotNull { index, stop ->
+            val lat = stop.latitude ?: return@mapIndexedNotNull null
+            val lng = stop.longitude ?: return@mapIndexedNotNull null
+            SymbolOptions()
+                .withLatLng(LatLng(lat, lng))
+                .withIconImage(MapStopAnnotations.ICON_ID)
+                .withIconSize(1.1f)
+                .withIconAnchor("center")
+                .withTextField("${index + 1}")
+                .withTextSize(12f)
+                .withTextColor("#FFFFFF")
+                .withTextHaloColor("#0B1F33")
+                .withTextHaloWidth(1.0f)
+                .withTextOffset(arrayOf(0f, 0.05f))
+        }
+        if (options.isNotEmpty()) {
+            manager.create(options)
+        }
+    }
+
+    fun disposeAnnotations() {
+        runCatching { symbolManager?.onDestroy() }
+        symbolManager = null
+    }
 }
