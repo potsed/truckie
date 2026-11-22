@@ -7,7 +7,7 @@ AU-first (QLD/Brisbane), expandable. Product UI term: **Vehicle** (not Truck).
 
 | Layer | Choice |
 | --- | --- |
-| Language | Kotlin |
+| Language | Kotlin **2.4.21** (AGP **9.3.1**, Gradle **9.7.0**) |
 | Modules | `app`, `core-routing`, `core-profiles`, `core-trips`, `core-maps`, `core-flags` |
 | Map | MapLibre stub (`:core-maps`) |
 | Routing | GraphHopper client stub (`:core-routing`) |
@@ -30,7 +30,7 @@ Cargo height/width/length/mass live on trip stops (pick up / drop off).
 
 ## Build
 
-Requires JDK 17+ (21 OK) and an Android SDK (`platforms;android-35`, build-tools).
+Requires JDK 17+ (21 OK) and an Android SDK (`platforms;android-35`, `build-tools;36.0.0`).
 
 ### Play Store artifact (primary): AAB
 
