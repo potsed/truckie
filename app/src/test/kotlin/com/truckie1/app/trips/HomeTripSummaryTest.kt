@@ -4,6 +4,7 @@ import com.truckie1.flags.FlagKeys
 import com.truckie1.flags.LocalFeatureFlags
 import com.truckie1.trips.Cargo
 import com.truckie1.trips.CargoAction
+import com.truckie1.trips.OptimizeMode
 import com.truckie1.trips.TripSession
 import com.truckie1.trips.TripStop
 import org.junit.Assert.assertNull
@@ -31,6 +32,15 @@ class HomeTripSummaryTest {
         assertTrue(text.contains("2 stops"))
         assertTrue(text.contains("Depot"))
         assertTrue(text.contains("Yard"))
+    }
+
+    @Test
+    fun showsOptimizeModeWhenPersisted() {
+        val flags = LocalFeatureFlags(mapOf(FlagKeys.MULTI_STOP to true))
+        val session = TripSession(listOf(TripStop(id = "1", addressLabel = "Depot")))
+        session.lastOptimizeMode = OptimizeMode.FASTEST
+        val text = HomeTripSummary.text(flags, session)!!
+        assertTrue(text.contains("Fastest"))
     }
 
     @Test

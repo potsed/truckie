@@ -13,7 +13,7 @@ AU-first (QLD/Brisbane), expandable. Product UI term: **Vehicle** (not Truck).
 | Routing | GraphHopper client stub (`:core-routing`) |
 | Flags | Local feature-flag facade (`:core-flags`) |
 | Profiles | Room by rego (`ff_vehicle_profiles`); make/model/year, H/W/L, mass/TARE/GVM/GCM, axles, network |
-| Trips | In-memory stop list (`ff_multi_stop`); cargo pick-up/drop-off (`ff_stop_cargo`) |
+| Trips | In-memory stop list (`ff_multi_stop`); cargo pick-up/drop-off (`ff_stop_cargo`); optimize Fastest/Cheapest (`ff_route_optimize`) |
 | minSdk | **16** (Android Auto gated to API **23+**) |
 
 ## Clearance model

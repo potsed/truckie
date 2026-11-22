@@ -32,9 +32,11 @@ class StubGraphHopperRouterTest {
 
     @Test
     fun rejectsLowBridge() {
-        val router = StubGraphHopperRouter {
-            listOf(RouteCandidate("low", 1000, 100, maxHeightM = 3.4, maxWeightT = 40.0))
-        }
+        val router = StubGraphHopperRouter(
+            candidatesProvider = {
+                listOf(RouteCandidate("low", 1000, 100, maxHeightM = 3.4, maxWeightT = 40.0))
+            },
+        )
         val result = router.route(
             trip = trip,
             vehicle = vehicle,
@@ -47,12 +49,14 @@ class StubGraphHopperRouterTest {
 
     @Test
     fun picksFastestSafeRoute() {
-        val router = StubGraphHopperRouter {
-            listOf(
-                RouteCandidate("slow", 5000, 50, maxHeightM = 4.5, maxWeightT = 40.0),
-                RouteCandidate("fast", 2000, 200, maxHeightM = 4.5, maxWeightT = 40.0),
-            )
-        }
+        val router = StubGraphHopperRouter(
+            candidatesProvider = {
+                listOf(
+                    RouteCandidate("slow", 5000, 50, maxHeightM = 4.5, maxWeightT = 40.0),
+                    RouteCandidate("fast", 2000, 200, maxHeightM = 4.5, maxWeightT = 40.0),
+                )
+            },
+        )
         val result = router.route(
             trip = trip,
             vehicle = vehicle,
@@ -62,5 +66,26 @@ class StubGraphHopperRouterTest {
         )
         assertTrue(result is RouteResult.Ok)
         assertTrue((result as RouteResult.Ok).selected.id == "fast")
+    }
+
+    @Test
+    fun picksCheapestSafeRoute() {
+        val router = StubGraphHopperRouter(
+            candidatesProvider = {
+                listOf(
+                    RouteCandidate("slow", 5000, 50, maxHeightM = 4.5, maxWeightT = 40.0),
+                    RouteCandidate("fast", 2000, 200, maxHeightM = 4.5, maxWeightT = 40.0),
+                )
+            },
+        )
+        val result = router.route(
+            trip = trip,
+            vehicle = vehicle,
+            effectiveClearanceHeightM = 3.65,
+            mode = OptimizeMode.CHEAPEST,
+            tollPreference = TollPreference.ALLOW_ALL,
+        )
+        assertTrue(result is RouteResult.Ok)
+        assertTrue((result as RouteResult.Ok).selected.id == "slow")
     }
 }

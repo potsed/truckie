@@ -12,7 +12,10 @@ import com.truckie1.trips.TripStopSummary
 object HomeTripSummary {
     fun text(flags: FeatureFlags, session: TripSession): String? {
         if (!flags.isEnabled(FlagKeys.MULTI_STOP)) return null
-        return TripStopSummary.tripOverview(session.stops())
+        return TripStopSummary.tripOverview(
+            stops = session.stops(),
+            optimizeMode = session.lastOptimizeMode,
+        )
     }
 
     fun clearanceLine(

@@ -37,10 +37,14 @@ sealed class RouteResult {
 }
 
 /**
- * Stub GraphHopper client for assemble/tests. Rejects candidates below clearance or mass.
+ * Stub GraphHopper client for assemble/tests. Rejects candidates below clearance or mass
+ * via [SafeRouteSelector].
  */
 class StubGraphHopperRouter(
-    private val candidatesProvider: (Trip) -> List<RouteCandidate> = { emptyList() },
+    private val candidatesProvider: (Trip) -> List<RouteCandidate> = { trip ->
+        DefaultTourCandidates.forStops(trip.stops.size)
+    },
+    private val selector: SafeRouteSelector = SafeRouteSelector(),
 ) : Router {
     override fun route(
         trip: Trip,
@@ -48,21 +52,39 @@ class StubGraphHopperRouter(
         effectiveClearanceHeightM: Double,
         mode: OptimizeMode,
         tollPreference: TollPreference,
-    ): RouteResult {
-        val safe = candidatesProvider(trip).filter { candidate ->
-            candidate.maxHeightM >= effectiveClearanceHeightM &&
-                candidate.maxWeightT >= vehicle.grossMassT
-        }
-        if (safe.isEmpty()) {
-            return RouteResult.Blocked(
-                reason = "No safe route for clearance ${"%.2f".format(effectiveClearanceHeightM)} m " +
-                    "and mass ${vehicle.grossMassT} t",
-            )
-        }
-        val selected = when (mode) {
-            OptimizeMode.FASTEST -> safe.minBy { it.durationSeconds }
-            OptimizeMode.CHEAPEST -> safe.minBy { it.costCents }
-        }
-        return RouteResult.Ok(selected = selected, alternatives = safe - selected)
+    ): RouteResult = selector.select(
+        candidates = candidatesProvider(trip),
+        requiredClearanceHeightM = effectiveClearanceHeightM,
+        requiredMassT = vehicle.grossMassT,
+        mode = mode,
+    )
+}
+
+/**
+ * Synthetic GraphHopper alternatives for dogfood / offline stub.
+ * Primary is faster; alternate is cheaper. Both allow generous height/weight
+ * so real Custom Model filtering happens in [SafeRouteSelector] / [VehicleTripOptimizer].
+ */
+object DefaultTourCandidates {
+    fun forStops(stopCount: Int, orderKey: Int = 0): List<RouteCandidate> {
+        val n = stopCount.coerceAtLeast(1)
+        val baseDuration = 1_000L * n + orderKey * 100L
+        val baseCost = 100L * n + (10 - orderKey).coerceAtLeast(0) * 10L
+        return listOf(
+            RouteCandidate(
+                id = "primary-$orderKey",
+                durationSeconds = baseDuration,
+                costCents = baseCost + 80,
+                maxHeightM = 5.0,
+                maxWeightT = 50.0,
+            ),
+            RouteCandidate(
+                id = "alt-$orderKey",
+                durationSeconds = baseDuration + 2_000L,
+                costCents = baseCost,
+                maxHeightM = 5.0,
+                maxWeightT = 50.0,
+            ),
+        )
     }
 }

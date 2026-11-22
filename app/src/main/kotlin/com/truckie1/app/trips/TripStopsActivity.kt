@@ -7,14 +7,18 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
 import android.widget.Button
+import android.widget.LinearLayout
 import android.widget.ListView
+import android.widget.RadioButton
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.truckie1.app.R
 import com.truckie1.app.TruckieApp
 import com.truckie1.flags.FlagKeys
+import com.truckie1.routing.OptimizeResult
 import com.truckie1.trips.ClearanceCalculator
+import com.truckie1.trips.OptimizeMode
 import com.truckie1.trips.TripStop
 import com.truckie1.trips.TripStopSummary
 
@@ -32,11 +36,69 @@ class TripStopsActivity : AppCompatActivity() {
         findViewById<Button>(R.id.addStop).setOnClickListener {
             startActivity(Intent(this, AddStopActivity::class.java))
         }
+
+        val optimizePanel = findViewById<LinearLayout>(R.id.optimizePanel)
+        if (OptimizeForVehicleGate.isAvailable(app.featureFlags)) {
+            optimizePanel.visibility = View.VISIBLE
+            findViewById<Button>(R.id.runOptimize).setOnClickListener { runOptimize() }
+        } else {
+            optimizePanel.visibility = View.GONE
+        }
     }
 
     override fun onResume() {
         super.onResume()
         bindList()
+    }
+
+    private fun runOptimize() {
+        val app = application as TruckieApp
+        if (!OptimizeForVehicleGate.isAvailable(app.featureFlags)) {
+            Toast.makeText(this, getString(R.string.flag_off, FlagKeys.ROUTE_OPTIMIZE), Toast.LENGTH_SHORT).show()
+            return
+        }
+        val vehicle = app.vehicleProfiles.activeRego?.let { app.vehicleProfiles.findByRego(it) }
+        if (vehicle == null) {
+            Toast.makeText(this, getString(R.string.optimize_need_vehicle), Toast.LENGTH_SHORT).show()
+            return
+        }
+        val stops = app.tripSession.stops()
+        if (stops.isEmpty()) {
+            Toast.makeText(this, getString(R.string.optimize_need_stops), Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val mode = if (findViewById<RadioButton>(R.id.modeCheapest).isChecked) {
+            OptimizeMode.CHEAPEST
+        } else {
+            OptimizeMode.FASTEST
+        }
+
+        when (
+            val result = app.routeOptimizer.optimize(
+                stops = stops,
+                vehicle = vehicle,
+                bufferM = app.clearanceBufferM,
+                mode = mode,
+            )
+        ) {
+            is OptimizeResult.Ok -> {
+                app.tripSession.replaceStops(result.orderedStops)
+                app.tripSession.lastOptimizeMode = result.mode
+                findViewById<TextView>(R.id.optimizeStatus).text = getString(
+                    R.string.optimize_success,
+                    result.mode.name.lowercase().replaceFirstChar { it.titlecase() },
+                    result.route.durationSeconds,
+                )
+                bindList()
+            }
+            is OptimizeResult.Blocked -> {
+                startActivity(
+                    Intent(this, BlockedRouteActivity::class.java)
+                        .putExtra(BlockedRouteActivity.EXTRA_REASON, result.reason),
+                )
+            }
+        }
     }
 
     private fun bindList() {
