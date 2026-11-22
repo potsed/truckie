@@ -15,8 +15,8 @@ class MapCameraDefaultsTest {
         assertEquals(-27.4698, MapCameraDefaults.FALLBACK_LATITUDE, 0.01)
         assertEquals(153.0251, MapCameraDefaults.FALLBACK_LONGITUDE, 0.01)
         assertTrue(
-            "Metro overview zoom expected between 9 and 13, was ${MapCameraDefaults.ZOOM}",
-            MapCameraDefaults.ZOOM in 9.0..13.0,
+            "Street-neighbourhood zoom expected between 15 and 16.5, was ${MapCameraDefaults.ZOOM}",
+            MapCameraDefaults.ZOOM in 15.0..16.5,
         )
     }
 

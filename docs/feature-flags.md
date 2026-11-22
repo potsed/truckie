@@ -21,7 +21,7 @@ XML screen layouts were removed; do not add new AppCompat/XML screens.
 | `ff_nav_chrome` | Material3 TopAppBar + bottom NavigationBar (Home, Plan trip, Vehicles, Settings) | off (on in debug) |
 | `ff_map_home` | MapLibre map-first home + route/stop drag sheet (peek/half/full) | off (on in debug) |
 | `ff_address_autocomplete` | Verified address autocomplete (Nominatim AU default) for map-home stops | off (on in debug) |
-| `ff_map_location_puck` | Blue my-location puck on MapLibre (same Fused fix as camera) | off (on in debug) |
+| `ff_map_location_puck` | Blue my-location puck on MapLibre (same Fused fix as camera; subtle LocationComponent pulse) | off (on in debug) |
 
 ## Rules
 
@@ -43,6 +43,6 @@ XML screen layouts were removed; do not add new AppCompat/XML screens.
    (formatted label + lat/lng) when adding stops on the map-home sheet. Default
    provider is Nominatim with Australia `countrycodes=au` bias. Free-text-only
    unverified addresses are rejected while the flag is on.
-9. Location puck (`ff_map_location_puck`) shows a blue MapLibre LocationComponent
+9. Location puck (`ff_map_location_puck`) shows a blue MapLibre LocationComponent with a subtle pulse
    indicator at the driver's Fused Location fix and centres the camera on that same
    fix. Hidden when permission is denied or a fix is unavailable.

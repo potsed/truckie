@@ -12,8 +12,8 @@ object MapCameraDefaults {
 
     const val FALLBACK_LONGITUDE: Double = 153.0251
 
-    /** Metro overview zoom around the resolved centre. */
-    const val ZOOM: Double = 11.0
+    /** Street-neighbourhood zoom around the resolved centre (my-location puck). */
+    const val ZOOM: Double = 15.5
 
     /**
      * OpenFreeMap Liberty — free OSM street basemap for MapLibre (no API key).
