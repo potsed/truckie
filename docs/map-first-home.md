@@ -1,31 +1,60 @@
 # Map-first home (Phase A)
 
-Feature flags: **`ff_map_home`** (map + sheet), **`ff_map_location_puck`** (blue my-location indicator + follow/recenter), **`ff_address_autocomplete`** (verified stops) — on in debug. Gherkin: [`features/map_first_home.feature`](../features/map_first_home.feature).
+Feature flags:
+
+| Flag | Role | Default |
+| --- | --- | --- |
+| `ff_map_home` | Map + sheet | off (on in debug) |
+| `ff_map_location_puck` | Blue my-location + follow/recenter | off (on in debug) |
+| `ff_address_autocomplete` | Verified stops | off (on in debug) |
+| `ff_route_start_end` | Create route requires verified **start** + **end** (same place = round trip) | off (on in debug) |
+| `ff_navigate` | Navigate: in-app GraphHopper path on MapLibre; optional post-route external handoff | off (on in debug) |
+
+Gherkin: [`features/map_first_home.feature`](../features/map_first_home.feature), [`features/create_route_start_end.feature`](../features/create_route_start_end.feature).
 
 ## Screens
 
 | Surface | What ships |
 | --- | --- |
-| **Map home** | Full-bleed MapLibre map — **OpenFreeMap Liberty** street basemap (`https://tiles.openfreemap.org/styles/liberty`, OSM vector tiles, no API key); camera = **current location** via Play Services **Fused Location Provider** (runtime permission + Settings resolution) at **street-neighbourhood zoom** (`MapCameraDefaults.ZOOM` = 15.5); Brisbane AU fallback if unavailable; stop markers via Annotation **SymbolManager**; blue **my-location puck** (`ff_map_location_puck`) via MapLibre LocationComponent at the same fused fix (camera centres on that fix; subtle repeating pulse ring; accuracy circle optional; hidden without permission); **follow mode** keeps the puck locked at centre while the camera tracks movement; pan exits follow and shows a high-contrast **Recenter** map overlay control |
-| **Route drag sheet** | Peek / half / full anchors over the map — Material3 elevated surface, large top radius, high-contrast drag handle ([`route_sheet_polish.feature`](../features/route_sheet_polish.feature)) |
-| **Create route** | Headline title; optional name; Today / Tomorrow / Pick a date as outlined selectable cards |
-| **Add/find stops** | Search field with leading icon + pickup/load \| drop-off/unload filter chips; verified autocomplete when `ff_address_autocomplete` is on (Nominatim AU); suggestion surface rows |
-| **Stop list + summary strip** | Numbered timeline badges + kind labels; title-small summary strip readable over the map |
+| **Map home** | Full-bleed MapLibre map — **OpenFreeMap Liberty** street basemap; camera = **current location** via Fused Location; Brisbane AU fallback; stop markers via SymbolManager; blue **my-location puck** + follow/Recenter when flagged |
+| **Route drag sheet** | Peek / half / full — Material3 elevated surface, large top radius, drag handle |
+| **Create route** | Headline; optional name; **Start** + **End** verified autocomplete when `ff_route_start_end` is on; round-trip checkbox (same place OK); Today / Tomorrow / Pick a date |
+| **Navigate** | When `ff_navigate` is on and the active route has start+end: **Navigate** computes a GraphHopper path **in-app** (stub until live HTTP) and draws it on the **same** MapLibre map. Optional Settings handoff app runs **after** that constrained path — never replaces GraphHopper |
+| **Add/find stops** | Search + pickup/load \| drop-off/unload chips; verified autocomplete when flagged |
+| **Stop list + summary strip** | Numbered timeline; summary includes start→end or round trip when set |
 
-Hosted in **MainActivity** Compose **NavHost** only (no new XML / AppCompat screens). Enabling `ff_map_home` also forces the single-activity chrome host.
-
-**Chrome:** map home suppresses the global TopAppBar + bottom NavigationBar (map + drag sheet own the viewport). Trip / Vehicles / Settings keep chrome. A map overlay menu opens those destinations.
-
-**Sheet drag:** peek / half / full via `AnchoredDraggable` + Material3 `BottomSheetDefaults.DragHandle` and nested-scroll bridging (not click-only).
+Hosted in **MainActivity** Compose **NavHost** only. Map home suppresses global TopAppBar + bottom NavigationBar.
 
 ## Domain
 
-`Route` → `RouteStop[]` with `StopKind.PICKUP_LOAD` \| `DROP_OFF_UNLOAD` (`:core-trips` `RouteSession`).
+`Route` → verified `start` + `end` (same place = round trip) → `RouteStop[]` with `StopKind.PICKUP_LOAD` \| `DROP_OFF_UNLOAD` (`:core-trips` `RouteSession`).
+
+## Truck routing preferences (Navigate / GraphHopper)
+
+Aligned with architecture-plan §3 Navigate + Phase A/D. Custom Model / path request
+shape is recorded by the stub; **live** GraphHopper + bridge/weight packs = Phase D.
+
+- **Route calculation always in-app** on this MapLibre map (never replace with an external nav app)
+- Hard constraints: low bridges (`max_height`), weight limits (`max_weight`), toll preference
+- Soft residential: prefer non-residential **through-routes**; when a residential delivery
+  needs residential roads, keep exposure to **only what is required** to reach the stop
+  (minimise penetration — never hard-block delivery access)
+- Among safe tours: most **cost-effective and efficient** — Fastest / Cheapest (`optimize`)
+- Settings installed-nav app = **post-route handoff only** after the constrained path exists
+
+## Settings
+
+Preference key: `navigation_app_package` (SharedPreferences `truckie_settings`).
+
+| Value | Meaning |
+| --- | --- |
+| `com.truckie1.in_app` (default) | Stay on Truckie MapLibre after GraphHopper calculates |
+| `<installed package>` | Optional **post-route** handoff to that app (destination/waypoints from the calculated path) |
 
 ## Related
 
-Verified addresses: [verified-address-autocomplete.md](./verified-address-autocomplete.md) (`ff_address_autocomplete`).
+Verified addresses: [verified-address-autocomplete.md](./verified-address-autocomplete.md). Feature flags: [feature-flags.md](./feature-flags.md).
 
 ## Out of scope (later phases)
 
-Live GraphHopper, tolls, load optimisation, offline packs.
+Live GraphHopper HTTP + full bridge/weight packs (Phase D), toll UX (Phase E), load optimisation, vehicle depth (Phase C), Android Auto.

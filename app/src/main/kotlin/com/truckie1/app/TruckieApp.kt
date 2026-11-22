@@ -3,6 +3,10 @@ package com.truckie1.app
 import android.app.Application
 import com.truckie1.app.profiles.RoomVehicleProfileRepository
 import com.truckie1.app.profiles.VehicleDatabase
+import com.truckie1.app.settings.NavigationAppStore
+import com.truckie1.app.settings.PackageManagerNavigationAppQuery
+import com.truckie1.app.settings.SharedNavigationAppStore
+import com.truckie1.app.trips.RouteNavigateSession
 import com.truckie1.flags.FlagKeys
 import com.truckie1.flags.LocalFeatureFlags
 import com.truckie1.maps.MapLibreNativeEngine
@@ -18,8 +22,13 @@ class TruckieApp : Application() {
     val featureFlags = LocalFeatureFlags()
     lateinit var vehicleProfiles: VehicleProfileRepository
         private set
+    lateinit var navigationAppStore: NavigationAppStore
+        private set
+    lateinit var navigationAppQuery: PackageManagerNavigationAppQuery
+        private set
     val tripSession = TripSession()
     val routeSession = RouteSession()
+    val routeNavigateSession = RouteNavigateSession()
     val mapEngine = MapLibreNativeEngine()
     val router = StubGraphHopperRouter()
 
@@ -44,6 +53,8 @@ class TruckieApp : Application() {
         super.onCreate()
         val db = VehicleDatabase.build(this)
         vehicleProfiles = RoomVehicleProfileRepository(db.vehicleDao())
+        navigationAppStore = SharedNavigationAppStore(this)
+        navigationAppQuery = PackageManagerNavigationAppQuery(packageManager)
         // Dogfood: enable shipped capabilities in debug builds only.
         if (BuildConfig.DEBUG) {
             featureFlags.setEnabled(FlagKeys.VEHICLE_PROFILES, true)
@@ -54,6 +65,8 @@ class TruckieApp : Application() {
             featureFlags.setEnabled(FlagKeys.MAP_HOME, true)
             featureFlags.setEnabled(FlagKeys.ADDRESS_AUTOCOMPLETE, true)
             featureFlags.setEnabled(FlagKeys.MAP_LOCATION_PUCK, true)
+            featureFlags.setEnabled(FlagKeys.ROUTE_START_END, true)
+            featureFlags.setEnabled(FlagKeys.NAVIGATE, true)
         }
     }
 }

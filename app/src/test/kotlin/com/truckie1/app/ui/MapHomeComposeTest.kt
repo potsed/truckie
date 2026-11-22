@@ -42,7 +42,7 @@ class MapHomeComposeTest {
                     RouteSheetBody(
                         route = null,
                         sheetValue = RouteSheetValue.Half,
-                        onCreateRoute = { _, _, _ -> },
+                        onCreateRoute = { _ -> },
                         onAddStop = { _, _, _ -> },
                         modifier = Modifier
                             .fillMaxSize()
@@ -85,7 +85,7 @@ class MapHomeComposeTest {
                     RouteSheetBody(
                         route = route,
                         sheetValue = RouteSheetValue.Half,
-                        onCreateRoute = { _, _, _ -> },
+                        onCreateRoute = { _ -> },
                         onAddStop = { _, _, _ -> },
                         modifier = Modifier
                             .fillMaxSize()

@@ -28,6 +28,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.truckie1.maps.MapCameraDefaults
 import com.truckie1.maps.MapCameraTarget
+import com.truckie1.routing.LatLngPoint
 import com.truckie1.trips.RouteStop
 import org.maplibre.android.MapLibre
 import org.maplibre.android.camera.CameraPosition
@@ -41,6 +42,8 @@ import org.maplibre.android.location.modes.RenderMode
 import org.maplibre.android.maps.MapLibreMap
 import org.maplibre.android.maps.MapView
 import org.maplibre.android.maps.Style
+import org.maplibre.android.plugins.annotation.LineManager
+import org.maplibre.android.plugins.annotation.LineOptions
 import org.maplibre.android.plugins.annotation.SymbolManager
 import org.maplibre.android.plugins.annotation.SymbolOptions
 
@@ -72,6 +75,8 @@ fun MapLibreMap(
     followState: MapFollowState = MapLocationFollow.initial(),
     onFollowStateChange: (MapFollowState) -> Unit = {},
     recenterToken: Int = 0,
+    /** GraphHopper path points drawn on this same map (Navigate). */
+    routePathPoints: List<LatLngPoint> = emptyList(),
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -284,6 +289,7 @@ fun MapLibreMap(
                         .zoom(cameraTarget.zoom)
                         .build()
                     mapHost.bindStops(mapView = view, map = map, style = style, stops = stops)
+                    mapHost.bindRoutePath(mapView = view, map = map, style = style, points = routePathPoints)
                     if (showLocationPuck) {
                         mapHost.ensureLocationComponent(map = map, style = style)
                         mapHost.updatePuck(locationFix, enabled = locationFix != null)
@@ -316,6 +322,7 @@ private class MapLibreHost(
     private val context: android.content.Context,
 ) {
     private var symbolManager: SymbolManager? = null
+    private var lineManager: LineManager? = null
     private var mapRef: MapLibreMap? = null
     private var locationActivated: Boolean = false
     private var followGesturesBound: Boolean = false
@@ -354,6 +361,25 @@ private class MapLibreHost(
         if (options.isNotEmpty()) {
             manager.create(options)
         }
+    }
+
+    fun bindRoutePath(
+        mapView: MapView,
+        map: MapLibreMap,
+        style: Style,
+        points: List<LatLngPoint>,
+    ) {
+        mapRef = map
+        val manager = lineManager ?: LineManager(mapView, map, style).also { lineManager = it }
+        manager.deleteAll()
+        if (points.size < 2) return
+        val latLngs = points.map { LatLng(it.latitude, it.longitude) }
+        manager.create(
+            LineOptions()
+                .withLatLngs(latLngs)
+                .withLineColor(MapRoutePathAnnotations.LINE_COLOR_HEX)
+                .withLineWidth(MapRoutePathAnnotations.LINE_WIDTH),
+        )
     }
 
     fun ensureLocationComponent(map: MapLibreMap, style: Style) {
@@ -478,6 +504,8 @@ private class MapLibreHost(
     fun dispose() {
         runCatching { symbolManager?.onDestroy() }
         symbolManager = null
+        runCatching { lineManager?.onDestroy() }
+        lineManager = null
         if (locationActivated) {
             runCatching {
                 mapRef?.locationComponent?.isLocationComponentEnabled = false

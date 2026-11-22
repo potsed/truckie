@@ -60,7 +60,7 @@ class VerifiedAddressComposeTest {
                 RouteSheetBody(
                     route = activeRoute,
                     sheetValue = RouteSheetValue.Half,
-                    onCreateRoute = { _, _, _ -> },
+                    onCreateRoute = { _ -> },
                     onAddStop = { label, kind, suggestion ->
                         added = Triple(label, kind, suggestion)
                     },
@@ -91,7 +91,7 @@ class VerifiedAddressComposeTest {
                 RouteSheetBody(
                     route = activeRoute,
                     sheetValue = RouteSheetValue.Half,
-                    onCreateRoute = { _, _, _ -> },
+                    onCreateRoute = { _ -> },
                     onAddStop = { label, kind, suggestion ->
                         added = Triple(label, kind, suggestion)
                     },
@@ -127,7 +127,7 @@ class VerifiedAddressComposeTest {
                 RouteSheetBody(
                     route = withCoords,
                     sheetValue = RouteSheetValue.Half,
-                    onCreateRoute = { _, _, _ -> },
+                    onCreateRoute = { _ -> },
                     onAddStop = { _, _, _ -> },
                     requireVerifiedAddress = true,
                 )

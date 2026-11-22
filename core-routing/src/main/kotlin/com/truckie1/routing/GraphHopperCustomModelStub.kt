@@ -3,25 +3,72 @@ package com.truckie1.routing
 import com.truckie1.profiles.Vehicle
 
 /**
- * Stub GraphHopper Custom Model built from active vehicle + trip constraints.
- * Toll preference defaults to [TollPreference.ALLOW_ALL] (avoid-none / allow-all passthrough).
+ * Stub GraphHopper Custom Model built from active vehicle + [TruckRoutingPreferences].
+ *
+ * Encodes bridges (max_height), weight (max_weight), tolls, and a **soft**
+ * non-residential through-route preference in the request snippet shape.
+ * Residential is never hard-blocked — deliveries to residential addresses remain OK.
+ * Live evaluation + restriction packs remain Phase D.
  */
 data class GraphHopperCustomModelStub(
     val requiredClearanceHeightM: Double,
     val requiredMassT: Double,
     val vehicleWidthM: Double,
     val vehicleLengthM: Double,
-    val tollPreference: TollPreference = TollPreference.ALLOW_ALL,
+    val preferences: TruckRoutingPreferences = TruckRoutingPreferences.DEFAULT,
 ) {
-    fun toRequestSnippet(): String =
-        """
+    val tollPreference: TollPreference
+        get() = preferences.tollPreference
+
+    val preferNonResidentialThroughRoutes: Boolean
+        get() = preferences.preferNonResidentialThroughRoutes
+
+    @Deprecated(
+        "Use preferNonResidentialThroughRoutes (soft preference, not hard block)",
+        ReplaceWith("preferNonResidentialThroughRoutes"),
+    )
+    val avoidResidentialWherePossible: Boolean
+        get() = preferNonResidentialThroughRoutes
+
+    fun toRequestSnippet(): String {
+        val priority = buildList {
+            if (preferences.avoidLowBridges) {
+                add("""{ "if": "max_height < $requiredClearanceHeightM", "multiply_by": "0" }""")
+            }
+            if (preferences.avoidWeightRestrictedRoads) {
+                add("""{ "if": "max_weight < $requiredMassT", "multiply_by": "0" }""")
+            }
+            if (preferences.preferNonResidentialThroughRoutes) {
+                // Soft preference only (multiply_by > 0): prefer arterial/through roads.
+                // Never hard-block — residential delivery start/end/stops must stay reachable.
+                // When residential is required, minimise penetration (last-mile access only,
+                // not as a through-route between non-residential segments).
+                val residentialFactor = if (preferences.minimiseResidentialPenetration) {
+                    "0.05"
+                } else {
+                    "0.1"
+                }
+                add("""{ "if": "road_class == RESIDENTIAL", "multiply_by": "$residentialFactor" }""")
+            }
+        }.joinToString(",\n                       ")
+        // Among height-/weight-/toll-safe edges (with soft residential preference),
+        // ask GraphHopper for the most efficient (FASTEST) or cost-effective (CHEAPEST) tour.
+        val optimize = preferences.optimizeMode.name
+        return """
         {
-          "priority": [{ "if": "max_height < $requiredClearanceHeightM", "multiply_by": "0" },
-                       { "if": "max_weight < $requiredMassT", "multiply_by": "0" }],
+          "priority": [$priority],
           "areas": {},
-          "toll": "${tollPreference.name}"
+          "toll": "${preferences.tollPreference.name}",
+          "prefer_non_residential_through_routes": ${preferences.preferNonResidentialThroughRoutes},
+          "minimise_residential_penetration": ${preferences.minimiseResidentialPenetration},
+          "residential_soft_preference_only": true,
+          "residential_delivery_access_ok": true,
+          "avoid_low_bridges": ${preferences.avoidLowBridges},
+          "avoid_weight_restricted": ${preferences.avoidWeightRestrictedRoads},
+          "optimize": "$optimize"
         }
         """.trimIndent()
+    }
 
     companion object {
         fun from(
@@ -29,12 +76,15 @@ data class GraphHopperCustomModelStub(
             requiredClearanceHeightM: Double,
             requiredMassT: Double,
             tollPreference: TollPreference = TollPreference.ALLOW_ALL,
+            preferences: TruckRoutingPreferences = TruckRoutingPreferences.DEFAULT.copy(
+                tollPreference = tollPreference,
+            ),
         ): GraphHopperCustomModelStub = GraphHopperCustomModelStub(
             requiredClearanceHeightM = requiredClearanceHeightM,
             requiredMassT = requiredMassT,
             vehicleWidthM = vehicle.widthM,
             vehicleLengthM = vehicle.lengthM,
-            tollPreference = tollPreference,
+            preferences = preferences.copy(tollPreference = tollPreference),
         )
     }
 }

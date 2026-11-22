@@ -38,6 +38,7 @@ import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.BottomSheetDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -81,6 +82,7 @@ import com.truckie1.app.R
 import com.truckie1.app.trips.AddressAutocomplete
 import com.truckie1.app.trips.AddressSuggestion
 import com.truckie1.app.trips.NoOpAddressAutocomplete
+import com.truckie1.routing.LatLngPoint
 import com.truckie1.trips.Route
 import com.truckie1.trips.RouteDateChoice
 import com.truckie1.trips.RouteStop
@@ -97,6 +99,7 @@ data class MapHomeUiState(
     val route: Route?,
     val sheetValue: RouteSheetValue = RouteSheetValue.Peek,
     val summaryStrip: String = RouteSummary.emptyStrip(),
+    val navigatePathPoints: List<LatLngPoint> = emptyList(),
 )
 
 /**
@@ -108,12 +111,15 @@ data class MapHomeUiState(
 fun MapHomeScreen(
     state: MapHomeUiState,
     onSheetValueChange: (RouteSheetValue) -> Unit,
-    onCreateRoute: (name: String?, dateChoice: RouteDateChoice, customDate: LocalDate?) -> Unit,
+    onCreateRoute: (CreateRouteInput) -> Unit,
     onAddStop: (addressLabel: String, kind: StopKind, suggestion: AddressSuggestion?) -> Unit,
+    onNavigateRoute: () -> Unit = {},
     onNavigatePrimary: (TruckiePrimaryDestination) -> Unit = {},
     canNavigatePrimary: (TruckiePrimaryDestination) -> Boolean = { true },
     autocomplete: AddressAutocomplete = NoOpAddressAutocomplete,
     requireVerifiedAddress: Boolean = false,
+    requireStartEnd: Boolean = false,
+    showNavigateAction: Boolean = false,
     showLocationPuck: Boolean = false,
     locationFollowEnabled: Boolean = false,
     modifier: Modifier = Modifier,
@@ -171,6 +177,7 @@ fun MapHomeScreen(
             followState = followState,
             onFollowStateChange = { followState = it },
             recenterToken = recenterToken,
+            routePathPoints = state.navigatePathPoints,
             modifier = Modifier
                 .fillMaxSize()
                 .testTag("map_libre_surface"),
@@ -273,8 +280,11 @@ fun MapHomeScreen(
                         sheetValue = dragState.currentValue,
                         onCreateRoute = onCreateRoute,
                         onAddStop = onAddStop,
+                        onNavigateRoute = onNavigateRoute,
                         autocomplete = autocomplete,
                         requireVerifiedAddress = requireVerifiedAddress,
+                        requireStartEnd = requireStartEnd,
+                        showNavigateAction = showNavigateAction,
                         modifier = Modifier
                             .fillMaxSize()
                             .verticalScroll(rememberScrollState())
@@ -439,17 +449,35 @@ private fun MapHomeOverflowMenu(
 internal fun RouteSheetBody(
     route: Route?,
     sheetValue: RouteSheetValue,
-    onCreateRoute: (name: String?, dateChoice: RouteDateChoice, customDate: LocalDate?) -> Unit,
+    onCreateRoute: (CreateRouteInput) -> Unit,
     onAddStop: (addressLabel: String, kind: StopKind, suggestion: AddressSuggestion?) -> Unit,
+    onNavigateRoute: () -> Unit = {},
     autocomplete: AddressAutocomplete = NoOpAddressAutocomplete,
     requireVerifiedAddress: Boolean = false,
+    requireStartEnd: Boolean = false,
+    showNavigateAction: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier.testTag("route_sheet_body")) {
         if (route == null && MapHomeCatalog.showsCreateRouteForm(sheetValue)) {
-            CreateRouteForm(onCreateRoute = onCreateRoute)
+            CreateRouteForm(
+                onCreateRoute = onCreateRoute,
+                autocomplete = autocomplete,
+                requireStartEnd = requireStartEnd,
+            )
         } else if (route != null) {
+            if (showNavigateAction && MapHomeCatalog.showsCreateRouteForm(sheetValue)) {
+                NavigateRouteButton(
+                    enabled = route.hasEndpoints,
+                    onClick = onNavigateRoute,
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+            }
             if (MapHomeCatalog.showsCreateRouteForm(sheetValue)) {
+                if (route.hasEndpoints) {
+                    RouteEndpointsSummary(route = route)
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
                 AddFindStopsSection(
                     autocomplete = autocomplete,
                     onAddStop = onAddStop,
@@ -465,16 +493,60 @@ internal fun RouteSheetBody(
 }
 
 @Composable
+private fun NavigateRouteButton(
+    enabled: Boolean,
+    onClick: () -> Unit,
+) {
+    TruckiePrimaryButton(
+        text = stringResource(R.string.navigate_route),
+        onClick = onClick,
+        enabled = enabled,
+        modifier = Modifier
+            .fillMaxWidth()
+            .testTag("navigate_route_button"),
+    )
+}
+
+@Composable
+private fun RouteEndpointsSummary(route: Route) {
+    val start = route.start ?: return
+    val end = route.end ?: return
+    Text(
+        text = if (route.isRoundTrip) {
+            stringResource(R.string.route_round_trip)
+        } else {
+            "${start.addressLabel} → ${end.addressLabel}"
+        },
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.testTag("route_endpoints_summary"),
+    )
+}
+
+@Composable
 private fun CreateRouteForm(
-    onCreateRoute: (name: String?, dateChoice: RouteDateChoice, customDate: LocalDate?) -> Unit,
+    onCreateRoute: (CreateRouteInput) -> Unit,
+    autocomplete: AddressAutocomplete = NoOpAddressAutocomplete,
+    requireStartEnd: Boolean = false,
 ) {
     var name by remember { mutableStateOf("") }
     var dateChoice by remember { mutableStateOf(RouteDateChoice.TODAY) }
+    var startSuggestion by remember { mutableStateOf<AddressSuggestion?>(null) }
+    var endSuggestion by remember { mutableStateOf<AddressSuggestion?>(null) }
+    var roundTrip by remember { mutableStateOf(false) }
+    var startQuery by remember { mutableStateOf("") }
+    var endQuery by remember { mutableStateOf("") }
     val today = remember { LocalDate.now() }
     val formatter = remember {
         DateTimeFormatter.ofPattern("EEE d MMM", Locale.ENGLISH)
     }
     val sectionGap = RouteSheetPolishCatalog.sectionSpacingDp.dp
+    val startSuggestions = remember(startQuery) { autocomplete.suggest(startQuery) }
+    val endSuggestions = remember(endQuery) { autocomplete.suggest(endQuery) }
+    val endpointsReady = !requireStartEnd || (
+        startSuggestion?.isVerified == true &&
+            (roundTrip || endSuggestion?.isVerified == true)
+        )
 
     Text(
         text = stringResource(R.string.create_route_title),
@@ -505,6 +577,81 @@ private fun CreateRouteForm(
         placeholder = { Text(stringResource(R.string.route_name_hint)) },
         colors = highContrastFieldColors(),
     )
+    if (requireStartEnd) {
+        Spacer(modifier = Modifier.height(sectionGap))
+        EndpointAddressField(
+            label = stringResource(R.string.route_start_label),
+            query = startQuery,
+            onQueryChange = {
+                startQuery = it
+                startSuggestion = null
+            },
+            suggestions = startSuggestions,
+            selected = startSuggestion,
+            onSelect = {
+                startSuggestion = it
+                startQuery = it.label
+                if (roundTrip) {
+                    endSuggestion = it
+                    endQuery = it.label
+                }
+            },
+            placeholder = stringResource(R.string.route_start_hint),
+            fieldTestTag = "route_start_field",
+            suggestionTestTag = "route_start_suggestion",
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag("route_round_trip_row")
+                .clickable {
+                    roundTrip = !roundTrip
+                    if (roundTrip && startSuggestion != null) {
+                        endSuggestion = startSuggestion
+                        endQuery = startSuggestion!!.label
+                    }
+                },
+        ) {
+            Checkbox(
+                checked = roundTrip,
+                onCheckedChange = { checked ->
+                    roundTrip = checked
+                    if (checked && startSuggestion != null) {
+                        endSuggestion = startSuggestion
+                        endQuery = startSuggestion!!.label
+                    }
+                },
+                modifier = Modifier.testTag("route_round_trip_checkbox"),
+            )
+            Text(
+                text = stringResource(R.string.route_round_trip),
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+        }
+        if (!roundTrip) {
+            Spacer(modifier = Modifier.height(12.dp))
+            EndpointAddressField(
+                label = stringResource(R.string.route_end_label),
+                query = endQuery,
+                onQueryChange = {
+                    endQuery = it
+                    endSuggestion = null
+                },
+                suggestions = endSuggestions,
+                selected = endSuggestion,
+                onSelect = {
+                    endSuggestion = it
+                    endQuery = it.label
+                },
+                placeholder = stringResource(R.string.route_end_hint),
+                fieldTestTag = "route_end_field",
+                suggestionTestTag = "route_end_suggestion",
+            )
+        }
+    }
     Spacer(modifier = Modifier.height(sectionGap))
     Text(
         text = stringResource(R.string.select_date),
@@ -537,17 +684,99 @@ private fun CreateRouteForm(
     TruckiePrimaryButton(
         text = stringResource(R.string.confirm_route),
         onClick = {
+            if (!endpointsReady) return@TruckiePrimaryButton
             val custom = if (dateChoice == RouteDateChoice.CUSTOM) {
                 today.plusDays(7)
             } else {
                 null
             }
-            onCreateRoute(name.ifBlank { null }, dateChoice, custom)
+            val end = if (roundTrip) startSuggestion else endSuggestion
+            onCreateRoute(
+                CreateRouteInput(
+                    name = name.ifBlank { null },
+                    dateChoice = dateChoice,
+                    customDate = custom,
+                    start = startSuggestion,
+                    end = end,
+                    roundTrip = roundTrip,
+                ),
+            )
         },
         modifier = Modifier
             .fillMaxWidth()
             .testTag("confirm_route_button"),
+        enabled = endpointsReady,
     )
+}
+
+@Composable
+private fun EndpointAddressField(
+    label: String,
+    query: String,
+    onQueryChange: (String) -> Unit,
+    suggestions: List<AddressSuggestion>,
+    selected: AddressSuggestion?,
+    onSelect: (AddressSuggestion) -> Unit,
+    placeholder: String,
+    fieldTestTag: String,
+    suggestionTestTag: String,
+) {
+    Text(
+        text = label,
+        style = MaterialTheme.typography.labelLarge,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+    Spacer(modifier = Modifier.height(8.dp))
+    OutlinedTextField(
+        value = query,
+        onValueChange = onQueryChange,
+        modifier = Modifier
+            .fillMaxWidth()
+            .testTag(fieldTestTag),
+        singleLine = true,
+        shape = RoundedCornerShape(12.dp),
+        placeholder = { Text(placeholder) },
+        leadingIcon = {
+            Icon(
+                imageVector = Icons.Filled.Search,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        },
+        colors = highContrastFieldColors(),
+    )
+    if (selected?.isVerified == true) {
+        Text(
+            text = selected.label,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier
+                .padding(top = 4.dp)
+                .testTag("${fieldTestTag}_selected"),
+        )
+    }
+    if (suggestions.isNotEmpty()) {
+        Spacer(modifier = Modifier.height(8.dp))
+        suggestions.forEach { suggestion ->
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 3.dp)
+                    .testTag(suggestionTestTag)
+                    .clickable { onSelect(suggestion) },
+                shape = RoundedCornerShape(10.dp),
+                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f),
+                tonalElevation = 1.dp,
+            ) {
+                Text(
+                    text = suggestion.label,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+                )
+            }
+        }
+    }
 }
 
 @Composable

@@ -65,4 +65,22 @@ class LocalFeatureFlagsTest {
         flags.setEnabled(FlagKeys.MAP_LOCATION_PUCK, true)
         assertTrue(flags.isEnabled(FlagKeys.MAP_LOCATION_PUCK))
     }
+
+    @Test
+    fun routeStartEndFlagKey() {
+        assertTrue(FlagKeys.ROUTE_START_END == "ff_route_start_end")
+        val flags = LocalFeatureFlags()
+        assertFalse(flags.isEnabled(FlagKeys.ROUTE_START_END))
+        flags.setEnabled(FlagKeys.ROUTE_START_END, true)
+        assertTrue(flags.isEnabled(FlagKeys.ROUTE_START_END))
+    }
+
+    @Test
+    fun navigateFlagKey() {
+        assertTrue(FlagKeys.NAVIGATE == "ff_navigate")
+        val flags = LocalFeatureFlags()
+        assertFalse(flags.isEnabled(FlagKeys.NAVIGATE))
+        flags.setEnabled(FlagKeys.NAVIGATE, true)
+        assertTrue(flags.isEnabled(FlagKeys.NAVIGATE))
+    }
 }
