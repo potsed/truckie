@@ -6,7 +6,7 @@ Truckie itself is **Apache License 2.0**. See `/LICENSE` and `/NOTICE`.
 
 | Component | License | Notes |
 | --- | --- | --- |
-| MapLibre Native Android | BSD-2-Clause | Stubbed in `:core-maps` |
+| MapLibre Native Android (`org.maplibre.gl:android-sdk` **13.7.1**) + Annotation plugin (`android-plugin-annotation` **4.0.0**) | BSD-2-Clause | Wired in `:app`; facade/stub in `:core-maps` |
 | GraphHopper | Apache-2.0 | HTTP client stub in `:core-routing` |
 | OpenStreetMap data | ODbL | Attribution required in-app |
 | AndroidX / Material | Apache-2.0 | Via Maven |
