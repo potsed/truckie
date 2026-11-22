@@ -39,6 +39,24 @@ class MapLocationPuckTest {
     }
 
     @Test
+    fun catalogDescribesSubtleRepeatingPulse() {
+        assertTrue(MapLocationPuck.pulseEnabled)
+        assertTrue(MapLocationPuck.pulseFadeEnabled)
+        assertTrue(
+            "Pulse alpha should stay soft (0.2–0.45), was ${MapLocationPuck.PULSE_ALPHA}",
+            MapLocationPuck.PULSE_ALPHA in 0.2f..0.45f,
+        )
+        assertTrue(
+            "Pulse duration should feel calm (1800–3200ms), was ${MapLocationPuck.PULSE_SINGLE_DURATION_MS}",
+            MapLocationPuck.PULSE_SINGLE_DURATION_MS in 1800f..3200f,
+        )
+        assertTrue(
+            "Pulse max radius should stay neighbourhood-scale (30–55), was ${MapLocationPuck.PULSE_MAX_RADIUS}",
+            MapLocationPuck.PULSE_MAX_RADIUS in 30f..55f,
+        )
+    }
+
+    @Test
     fun hidesPuckWhenFlagOffOrPermissionMissingOrFixUnavailable() {
         val flagsOff = LocalFeatureFlags()
         assertFalse(

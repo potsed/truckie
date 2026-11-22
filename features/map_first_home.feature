@@ -20,7 +20,7 @@ Feature: Map-first home with route stop drag sheet
     Then the map camera centres on the driver's current location
     When location is unavailable, permission is denied, or Settings resolution is cancelled
     Then the map camera falls back to Brisbane Australia
-    And the default zoom shows a metro overview
+    And the default zoom shows a street-neighbourhood view
 
   Scenario: Blue my-location puck follows the same Fused Location fix
     Given ff_map_home and ff_map_location_puck are enabled
@@ -28,6 +28,7 @@ Feature: Map-first home with route stop drag sheet
     When location permission is granted and a current fix is available
     Then a standard blue location indicator is shown at that fix
     And the map camera centres on that same fix
+    And the puck shows a subtle repeating LocationComponent pulse
     And the puck updates as location updates arrive
     When location permission is denied or a fix is unavailable
     Then the blue location indicator is hidden

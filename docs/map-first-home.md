@@ -6,7 +6,7 @@ Feature flags: **`ff_map_home`** (map + sheet), **`ff_map_location_puck`** (blue
 
 | Surface | What ships |
 | --- | --- |
-| **Map home** | Full-bleed MapLibre map — **OpenFreeMap Liberty** street basemap (`https://tiles.openfreemap.org/styles/liberty`, OSM vector tiles, no API key); camera = **current location** via Play Services **Fused Location Provider** (runtime permission + Settings resolution); Brisbane AU fallback if unavailable; stop markers via Annotation **SymbolManager**; blue **my-location puck** (`ff_map_location_puck`) via MapLibre LocationComponent at the same fused fix (camera centres on that fix; accuracy circle optional; hidden without permission) |
+| **Map home** | Full-bleed MapLibre map — **OpenFreeMap Liberty** street basemap (`https://tiles.openfreemap.org/styles/liberty`, OSM vector tiles, no API key); camera = **current location** via Play Services **Fused Location Provider** (runtime permission + Settings resolution) at **street-neighbourhood zoom** (`MapCameraDefaults.ZOOM` = 15.5); Brisbane AU fallback if unavailable; stop markers via Annotation **SymbolManager**; blue **my-location puck** (`ff_map_location_puck`) via MapLibre LocationComponent at the same fused fix (camera centres on that fix; subtle repeating pulse ring; accuracy circle optional; hidden without permission) |
 | **Route drag sheet** | Peek / half / full anchors over the map |
 | **Create route** | Optional name; Today / Tomorrow / Pick a date |
 | **Add/find stops** | Search field + pickup/load \| drop-off/unload; verified autocomplete when `ff_address_autocomplete` is on (Nominatim AU) |

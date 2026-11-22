@@ -11,6 +11,7 @@ import com.truckie1.maps.MapCameraTarget
 /**
  * Blue my-location puck for MapLibre map home (`ff_map_location_puck`).
  * Camera and puck share the same Fused Location [LocationFix].
+ * Soft repeating LocationComponent pulse (fade + modest alpha/radius).
  * Gherkin: features/map_first_home.feature
  */
 object MapLocationPuck {
@@ -21,6 +22,16 @@ object MapLocationPuck {
     const val centersCameraOnSameFix: Boolean = true
     const val accuracyCircleOptional: Boolean = true
     const val usesMapLibreLocationComponent: Boolean = true
+
+    /** Soft repeating LocationComponent pulse (not flashy). */
+    const val pulseEnabled: Boolean = true
+    const val pulseFadeEnabled: Boolean = true
+    /** Peak opacity of the expanding ring — kept under half for subtlety. */
+    const val PULSE_ALPHA: Float = 0.35f
+    /** Max expand radius in density-independent pixels. */
+    const val PULSE_MAX_RADIUS: Float = 42f
+    /** One full pulse cycle in milliseconds — slow enough to read as calm. */
+    const val PULSE_SINGLE_DURATION_MS: Float = 2500f
 
     data class Resolved(
         val puck: LocationFix?,
