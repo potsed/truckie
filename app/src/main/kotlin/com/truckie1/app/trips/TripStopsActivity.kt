@@ -2,27 +2,28 @@ package com.truckie1.app.trips
 
 import android.content.Intent
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.widget.BaseAdapter
-import android.widget.Button
-import android.widget.LinearLayout
-import android.widget.ListView
-import android.widget.RadioButton
-import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
+import androidx.activity.ComponentActivity
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import com.truckie1.app.R
 import com.truckie1.app.TruckieApp
+import com.truckie1.app.ui.TripStopsScreen
+import com.truckie1.app.ui.setTruckieContent
 import com.truckie1.flags.FlagKeys
 import com.truckie1.routing.OptimizeResult
 import com.truckie1.trips.ClearanceCalculator
 import com.truckie1.trips.OptimizeMode
 import com.truckie1.trips.TripStop
-import com.truckie1.trips.TripStopSummary
 
-class TripStopsActivity : AppCompatActivity() {
+class TripStopsActivity : ComponentActivity() {
+    private var stops by mutableStateOf<List<TripStop>>(emptyList())
+    private var clearanceSummary by mutableStateOf("")
+    private var showOptimize by mutableStateOf(false)
+    private var optimizeMode by mutableStateOf(OptimizeMode.FASTEST)
+    private var optimizeStatus by mutableStateOf<String?>(null)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val app = application as TruckieApp
@@ -31,23 +32,40 @@ class TripStopsActivity : AppCompatActivity() {
             finish()
             return
         }
-        setContentView(R.layout.activity_trip_stops)
-
-        findViewById<Button>(R.id.addStop).setOnClickListener {
-            startActivity(Intent(this, AddStopActivity::class.java))
-        }
-
-        val optimizePanel = findViewById<LinearLayout>(R.id.optimizePanel)
-        if (OptimizeForVehicleGate.isAvailable(app.featureFlags)) {
-            optimizePanel.visibility = View.VISIBLE
-            findViewById<Button>(R.id.runOptimize).setOnClickListener { runOptimize() }
-        } else {
-            optimizePanel.visibility = View.GONE
+        showOptimize = OptimizeForVehicleGate.isAvailable(app.featureFlags)
+        setTruckieContent {
+            TripStopsScreen(
+                stops = stops,
+                clearanceSummary = clearanceSummary,
+                showOptimize = showOptimize,
+                optimizeMode = optimizeMode,
+                optimizeStatus = optimizeStatus,
+                onAddStop = { startActivity(Intent(this, AddStopActivity::class.java)) },
+                onMoveUp = { index ->
+                    if (index > 0) {
+                        app.tripSession.moveStop(index, index - 1)
+                        bindList()
+                    }
+                },
+                onMoveDown = { index ->
+                    if (index < stops.lastIndex) {
+                        app.tripSession.moveStop(index, index + 1)
+                        bindList()
+                    }
+                },
+                onDelete = { stop ->
+                    app.tripSession.removeStop(stop.id)
+                    bindList()
+                },
+                onModeChange = { optimizeMode = it },
+                onOptimize = { runOptimize() },
+            )
         }
     }
 
     override fun onResume() {
         super.onResume()
+        if (!(application as TruckieApp).featureFlags.isEnabled(FlagKeys.MULTI_STOP)) return
         bindList()
     }
 
@@ -62,30 +80,24 @@ class TripStopsActivity : AppCompatActivity() {
             Toast.makeText(this, getString(R.string.optimize_need_vehicle), Toast.LENGTH_SHORT).show()
             return
         }
-        val stops = app.tripSession.stops()
-        if (stops.isEmpty()) {
+        val currentStops = app.tripSession.stops()
+        if (currentStops.isEmpty()) {
             Toast.makeText(this, getString(R.string.optimize_need_stops), Toast.LENGTH_SHORT).show()
             return
         }
 
-        val mode = if (findViewById<RadioButton>(R.id.modeCheapest).isChecked) {
-            OptimizeMode.CHEAPEST
-        } else {
-            OptimizeMode.FASTEST
-        }
-
         when (
             val result = app.routeOptimizer.optimize(
-                stops = stops,
+                stops = currentStops,
                 vehicle = vehicle,
                 bufferM = app.clearanceBufferM,
-                mode = mode,
+                mode = optimizeMode,
             )
         ) {
             is OptimizeResult.Ok -> {
                 app.tripSession.replaceStops(result.orderedStops)
                 app.tripSession.lastOptimizeMode = result.mode
-                findViewById<TextView>(R.id.optimizeStatus).text = getString(
+                optimizeStatus = getString(
                     R.string.optimize_success,
                     result.mode.name.lowercase().replaceFirstChar { it.titlecase() },
                     result.route.durationSeconds,
@@ -103,39 +115,9 @@ class TripStopsActivity : AppCompatActivity() {
 
     private fun bindList() {
         val app = application as TruckieApp
-        val stops = app.tripSession.stops()
-        val list = findViewById<ListView>(R.id.stopList)
-        val empty = findViewById<TextView>(R.id.emptyStops)
-        val clearance = findViewById<TextView>(R.id.clearanceSummary)
-
-        clearance.text = clearanceText(app, stops)
-
-        if (stops.isEmpty()) {
-            list.visibility = View.GONE
-            empty.visibility = View.VISIBLE
-            return
-        }
-        empty.visibility = View.GONE
-        list.visibility = View.VISIBLE
-        list.adapter = StopRowAdapter(
-            stops = stops,
-            onMoveUp = { index ->
-                if (index > 0) {
-                    app.tripSession.moveStop(index, index - 1)
-                    bindList()
-                }
-            },
-            onMoveDown = { index ->
-                if (index < stops.lastIndex) {
-                    app.tripSession.moveStop(index, index + 1)
-                    bindList()
-                }
-            },
-            onDelete = { stop ->
-                app.tripSession.removeStop(stop.id)
-                bindList()
-            },
-        )
+        val current = app.tripSession.stops()
+        stops = current
+        clearanceSummary = clearanceText(app, current)
     }
 
     private fun clearanceText(app: TruckieApp, stops: List<TripStop>): String {
@@ -155,28 +137,5 @@ class TripStopsActivity : AppCompatActivity() {
             )
         }
         return getString(R.string.trip_eff_clearance, "%.2f".format(effective))
-    }
-
-    private class StopRowAdapter(
-        private val stops: List<TripStop>,
-        private val onMoveUp: (Int) -> Unit,
-        private val onMoveDown: (Int) -> Unit,
-        private val onDelete: (TripStop) -> Unit,
-    ) : BaseAdapter() {
-        override fun getCount(): Int = stops.size
-        override fun getItem(position: Int): TripStop = stops[position]
-        override fun getItemId(position: Int): Long = position.toLong()
-
-        override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
-            val view = convertView ?: LayoutInflater.from(parent.context)
-                .inflate(R.layout.item_trip_stop_row, parent, false)
-            val stop = getItem(position)
-            view.findViewById<TextView>(R.id.stopTitle).text =
-                TripStopSummary.title(position, stop)
-            view.findViewById<Button>(R.id.moveUp).setOnClickListener { onMoveUp(position) }
-            view.findViewById<Button>(R.id.moveDown).setOnClickListener { onMoveDown(position) }
-            view.findViewById<Button>(R.id.deleteStop).setOnClickListener { onDelete(stop) }
-            return view
-        }
     }
 }

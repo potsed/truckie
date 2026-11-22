@@ -1,6 +1,6 @@
 package com.truckie1.app
 
-import androidx.multidex.MultiDexApplication
+import android.app.Application
 import com.truckie1.app.profiles.RoomVehicleProfileRepository
 import com.truckie1.app.profiles.VehicleDatabase
 import com.truckie1.flags.FlagKeys
@@ -13,7 +13,7 @@ import com.truckie1.routing.VehicleTripOptimizer
 import com.truckie1.trips.ClearanceBuffer
 import com.truckie1.trips.TripSession
 
-class TruckieApp : MultiDexApplication() {
+class TruckieApp : Application() {
     val featureFlags = LocalFeatureFlags()
     lateinit var vehicleProfiles: VehicleProfileRepository
         private set

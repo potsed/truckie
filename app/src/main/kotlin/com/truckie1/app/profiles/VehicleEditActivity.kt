@@ -1,16 +1,22 @@
 package com.truckie1.app.profiles
 
 import android.os.Bundle
-import android.widget.Button
-import android.widget.EditText
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
+import androidx.activity.ComponentActivity
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import com.truckie1.app.R
 import com.truckie1.app.TruckieApp
+import com.truckie1.app.ui.VehicleEditFormState
+import com.truckie1.app.ui.VehicleEditScreen
+import com.truckie1.app.ui.setTruckieContent
 import com.truckie1.flags.FlagKeys
 import com.truckie1.profiles.Vehicle
 
-class VehicleEditActivity : AppCompatActivity() {
+class VehicleEditActivity : ComponentActivity() {
+    private var form by mutableStateOf(VehicleEditFormState())
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val app = application as TruckieApp
@@ -19,54 +25,41 @@ class VehicleEditActivity : AppCompatActivity() {
             finish()
             return
         }
-        setContentView(R.layout.activity_vehicle_edit)
 
         val existingRego = intent.getStringExtra(EXTRA_REGO)
         val existing = existingRego?.let { app.vehicleProfiles.findByRego(it) }
         if (existing != null) {
-            bind(existing)
-            findViewById<EditText>(R.id.fieldRego).isEnabled = false
+            form = existing.toFormState(regoEnabled = false)
         }
 
-        findViewById<Button>(R.id.saveVehicle).setOnClickListener { save() }
-    }
-
-    private fun bind(vehicle: Vehicle) {
-        findViewById<EditText>(R.id.fieldRego).setText(vehicle.rego)
-        findViewById<EditText>(R.id.fieldNickname).setText(vehicle.nickname)
-        findViewById<EditText>(R.id.fieldVehicleType).setText(vehicle.vehicleType)
-        findViewById<EditText>(R.id.fieldMake).setText(vehicle.make)
-        findViewById<EditText>(R.id.fieldModel).setText(vehicle.model)
-        findViewById<EditText>(R.id.fieldYear).setText(vehicle.year.toString())
-        findViewById<EditText>(R.id.fieldHeight).setText(vehicle.heightM.toString())
-        findViewById<EditText>(R.id.fieldWidth).setText(vehicle.widthM.toString())
-        findViewById<EditText>(R.id.fieldLength).setText(vehicle.lengthM.toString())
-        findViewById<EditText>(R.id.fieldMass).setText(vehicle.massT.toString())
-        findViewById<EditText>(R.id.fieldTare).setText(vehicle.tareT.toString())
-        findViewById<EditText>(R.id.fieldGvm).setText(vehicle.gvmT.toString())
-        findViewById<EditText>(R.id.fieldGcm).setText(vehicle.gcmT.toString())
-        findViewById<EditText>(R.id.fieldAxles).setText(vehicle.axleCount.toString())
-        findViewById<EditText>(R.id.fieldNetwork).setText(vehicle.networkClass.orEmpty())
+        setTruckieContent {
+            VehicleEditScreen(
+                state = form,
+                onChange = { form = it },
+                onSave = { save() },
+            )
+        }
     }
 
     private fun save() {
+        val state = form
         val result = VehicleFormParser.parse(
             VehicleFormParser.Input(
-                rego = text(R.id.fieldRego),
-                nickname = text(R.id.fieldNickname),
-                vehicleType = text(R.id.fieldVehicleType),
-                make = text(R.id.fieldMake),
-                model = text(R.id.fieldModel),
-                year = text(R.id.fieldYear),
-                heightM = text(R.id.fieldHeight),
-                widthM = text(R.id.fieldWidth),
-                lengthM = text(R.id.fieldLength),
-                massT = text(R.id.fieldMass),
-                tareT = text(R.id.fieldTare),
-                gvmT = text(R.id.fieldGvm),
-                gcmT = text(R.id.fieldGcm),
-                axles = text(R.id.fieldAxles),
-                networkClass = text(R.id.fieldNetwork),
+                rego = state.rego,
+                nickname = state.nickname,
+                vehicleType = state.vehicleType,
+                make = state.make,
+                model = state.model,
+                year = state.year,
+                heightM = state.heightM,
+                widthM = state.widthM,
+                lengthM = state.lengthM,
+                massT = state.massT,
+                tareT = state.tareT,
+                gvmT = state.gvmT,
+                gcmT = state.gcmT,
+                axles = state.axles,
+                networkClass = state.networkClass,
             ),
         )
         when (result) {
@@ -81,9 +74,26 @@ class VehicleEditActivity : AppCompatActivity() {
         }
     }
 
-    private fun text(id: Int): String = findViewById<EditText>(id).text?.toString().orEmpty()
-
     companion object {
         const val EXTRA_REGO = "rego"
     }
 }
+
+private fun Vehicle.toFormState(regoEnabled: Boolean): VehicleEditFormState = VehicleEditFormState(
+    rego = rego,
+    nickname = nickname,
+    vehicleType = vehicleType,
+    make = make,
+    model = model,
+    year = year.toString(),
+    heightM = heightM.toString(),
+    widthM = widthM.toString(),
+    lengthM = lengthM.toString(),
+    massT = massT.toString(),
+    tareT = tareT.toString(),
+    gvmT = gvmT.toString(),
+    gcmT = gcmT.toString(),
+    axles = axleCount.toString(),
+    networkClass = networkClass.orEmpty(),
+    regoEnabled = regoEnabled,
+)

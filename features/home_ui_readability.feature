@@ -4,14 +4,14 @@ Feature: Home UI readability
   So that status text and primary actions are readable
 
   # Bugfix for ActionBar/status-bar gap and low-contrast Material buttons.
-  # Theme/colors apply app-wide; feature flags and navigation behavior stay unchanged.
+  # Compose Material3 theme + edge-to-edge replaces DarkActionBar; flags unchanged.
 
   Scenario: Primary buttons use high-contrast label on filled navy
     Given the Truckie1 light theme colors are defined
     Then button fill "truckie_navy" and label "truckie_on_primary" meet WCAG AA contrast
     And body text "truckie_navy" on background "truckie_sky" meets WCAG AA contrast
 
-  Scenario: Theme keeps ActionBar flush with the status bar
+  Scenario: Theme uses NoActionBar with edge-to-edge insets
     Given the Truckie1 light theme is applied
-    Then status bar color matches the primary ActionBar color
+    Then the window theme is NoActionBar
     And primary button labels use the on-primary color

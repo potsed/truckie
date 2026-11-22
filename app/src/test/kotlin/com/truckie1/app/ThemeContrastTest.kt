@@ -16,6 +16,10 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.pow
 
+/**
+ * Gherkin: home_ui_readability.feature + compose_ui.feature
+ * XML window theme stays high-contrast; ActionBar chrome is gone (NoActionBar).
+ */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28])
 class ThemeContrastTest {
@@ -43,23 +47,17 @@ class ThemeContrastTest {
     }
 
     @Test
-    fun themeMapsPrimaryButtonsToOnPrimaryLabel() {
+    fun themeMapsPrimaryButtonsToOnPrimaryLabelWithoutActionBar() {
         val base = ApplicationProvider.getApplicationContext<Context>()
         val context = ContextThemeWrapper(base, R.style.Theme_Truckie1)
         val theme = context.theme
 
         val primaryColor = resolveThemeColor(theme, com.google.android.material.R.attr.colorPrimary)
         val onPrimaryColor = resolveThemeColor(theme, com.google.android.material.R.attr.colorOnPrimary)
-        val statusBarColor = resolveThemeColor(theme, android.R.attr.statusBarColor)
 
         assertTrue(
             "colorOnPrimary must contrast with colorPrimary",
             contrastRatio(primaryColor, onPrimaryColor) >= 4.5,
-        )
-        assertEquals(
-            "statusBarColor should match primary so ActionBar sits flush under the status bar",
-            primaryColor,
-            statusBarColor,
         )
         assertEquals(
             "Filled buttons use navy primary",
@@ -70,6 +68,15 @@ class ThemeContrastTest {
             "Button labels use on-primary white",
             ContextCompat.getColor(context, R.color.truckie_on_primary),
             onPrimaryColor,
+        )
+
+        val windowActionBar = TypedValue()
+        val resolved = theme.resolveAttribute(androidx.appcompat.R.attr.windowActionBar, windowActionBar, true)
+        assertTrue("Theme must declare windowActionBar", resolved)
+        assertEquals(
+            "NoActionBar must disable the window ActionBar (edge-to-edge Compose chrome)",
+            0,
+            windowActionBar.data,
         )
     }
 
