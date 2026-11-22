@@ -31,4 +31,21 @@
     <string name="flag_off">%1$s is off</string>
     <string name="active_set">Active: %1$s</string>
     <string name="saved_vehicle">Saved %1$s</string>
+    <string name="trip_stops">Trip stops</string>
+    <string name="add_stop">+ Add stop</string>
+    <string name="add_stop_title">Add stop</string>
+    <string name="no_stops_yet">No stops yet. Tap + Add stop.</string>
+    <string name="hint_address">Address</string>
+    <string name="cargo_at_stop">Cargo at this stop</string>
+    <string name="pick_up">Pick up</string>
+    <string name="drop_off">Drop off</string>
+    <string name="hint_cargo_description">Description</string>
+    <string name="add_another_cargo">+ Another cargo</string>
+    <string name="save_stop">Save stop</string>
+    <string name="saved_stop">Saved stop %1$s</string>
+    <string name="move_up">↑</string>
+    <string name="move_down">↓</string>
+    <string name="delete">Del</string>
+    <string name="set_vehicle_for_clearance">Set a vehicle profile to compute clearance</string>
+    <string name="trip_eff_clearance">Eff. clearance: %1$s m</string>
 </resources>

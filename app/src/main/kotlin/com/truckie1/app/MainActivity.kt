@@ -9,8 +9,9 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.truckie1.app.profiles.HomeVehicleSummary
 import com.truckie1.app.profiles.VehicleListActivity
+import com.truckie1.app.trips.HomeTripSummary
+import com.truckie1.app.trips.TripStopsActivity
 import com.truckie1.flags.FlagKeys
-import com.truckie1.trips.ClearanceCalculator
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -19,7 +20,11 @@ class MainActivity : AppCompatActivity() {
 
         findViewById<Button>(R.id.planTrip).setOnClickListener {
             val app = application as TruckieApp
-            toastIfFlag(app, FlagKeys.MULTI_STOP_CARGO, "Trip planner (flagged)")
+            if (app.featureFlags.isEnabled(FlagKeys.MULTI_STOP)) {
+                startActivity(Intent(this, TripStopsActivity::class.java))
+            } else {
+                Toast.makeText(this, getString(R.string.flag_off, FlagKeys.MULTI_STOP), Toast.LENGTH_SHORT).show()
+            }
         }
         findViewById<Button>(R.id.vehicleProfiles).setOnClickListener {
             val app = application as TruckieApp
@@ -49,6 +54,7 @@ class MainActivity : AppCompatActivity() {
         val activeSummary = HomeVehicleSummary.text(app.featureFlags, app.vehicleProfiles)
         val activeView = findViewById<TextView>(R.id.activeVehicle)
         val clearanceView = findViewById<TextView>(R.id.effectiveClearance)
+        val tripView = findViewById<TextView>(R.id.tripSummary)
 
         if (activeSummary == null) {
             activeView.visibility = View.GONE
@@ -59,16 +65,20 @@ class MainActivity : AppCompatActivity() {
             activeView.text = activeSummary
 
             val active = app.vehicleProfiles.activeRego?.let { app.vehicleProfiles.findByRego(it) }
-            val effective = active?.let {
-                ClearanceCalculator.effectiveHeightM(
-                    vehicleHeightM = it.heightM,
-                    cargoHeightsM = emptyList(),
-                    bufferM = app.clearanceBufferM,
-                )
-            }
-            clearanceView.text =
-                effective?.let { "Eff. clearance (empty + buffer): ${"%.2f".format(it)} m" }
-                    ?: "Set a vehicle profile to compute clearance"
+            clearanceView.text = HomeTripSummary.clearanceLine(
+                flags = app.featureFlags,
+                session = app.tripSession,
+                vehicleHeightM = active?.heightM,
+                bufferM = app.clearanceBufferM,
+            ) ?: getString(R.string.set_vehicle_for_clearance)
+        }
+
+        val tripSummary = HomeTripSummary.text(app.featureFlags, app.tripSession)
+        if (tripSummary == null) {
+            tripView.visibility = View.GONE
+        } else {
+            tripView.visibility = View.VISIBLE
+            tripView.text = tripSummary
         }
 
         findViewById<TextView>(R.id.autoStatus).text =
@@ -82,10 +92,8 @@ class MainActivity : AppCompatActivity() {
 
         findViewById<Button>(R.id.vehicleProfiles).visibility =
             if (app.featureFlags.isEnabled(FlagKeys.VEHICLE_PROFILES)) View.VISIBLE else View.GONE
-    }
 
-    private fun toastIfFlag(app: TruckieApp, key: String, message: String) {
-        val text = if (app.featureFlags.isEnabled(key)) message else "$key is off"
-        Toast.makeText(this, text, Toast.LENGTH_SHORT).show()
+        findViewById<Button>(R.id.planTrip).visibility =
+            if (app.featureFlags.isEnabled(FlagKeys.MULTI_STOP)) View.VISIBLE else View.GONE
     }
 }

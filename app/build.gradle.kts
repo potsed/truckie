@@ -13,7 +13,7 @@ android {
         minSdk = 16
         targetSdk = 35
         versionCode = 1
-        versionName = "0.2.0-vehicle-profiles"
+        versionName = "0.3.0-trip-stops-cargo"
         multiDexEnabled = true
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

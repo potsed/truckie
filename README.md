@@ -13,16 +13,18 @@ AU-first (QLD/Brisbane), expandable. Product UI term: **Vehicle** (not Truck).
 | Routing | GraphHopper client stub (`:core-routing`) |
 | Flags | Local feature-flag facade (`:core-flags`) |
 | Profiles | Room by rego (`ff_vehicle_profiles`); make/model/year, H/W/L, mass/TARE/GVM/GCM, axles, network |
+| Trips | In-memory stop list (`ff_multi_stop`); cargo pick-up/drop-off (`ff_stop_cargo`) |
 | minSdk | **16** (Android Auto gated to API **23+**) |
 
 ## Clearance model
 
-Effective clearance height:
+Effective clearance height after each stop:
 
 ```text
-max(vehicleHeight, tallestCargoHeight) + systemBuffer
+max(vehicleHeight, tallestOnBoardCargoHeight) + systemBuffer
 ```
 
+On-board cargo is simulated in stop order (pick-ups add, drop-offs remove by description).
 System buffer is configured in Settings only, clamped to **0.15–1.0 m**.
 Cargo height/width/length/mass live on trip stops (pick up / drop off).
 
