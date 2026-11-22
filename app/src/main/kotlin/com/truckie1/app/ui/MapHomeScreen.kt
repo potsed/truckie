@@ -1,6 +1,7 @@
 package com.truckie1.app.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.AnchoredDraggableDefaults
 import androidx.compose.foundation.gestures.AnchoredDraggableState
@@ -29,14 +30,18 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Place
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -58,6 +63,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -66,6 +72,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
@@ -170,6 +177,11 @@ fun MapHomeScreen(
                 .padding(12.dp),
         )
 
+        val sheetShape = RoundedCornerShape(
+            topStart = RouteSheetPolishCatalog.topCornerRadiusDp.dp,
+            topEnd = RouteSheetPolishCatalog.topCornerRadiusDp.dp,
+        )
+        val contentPad = RouteSheetPolishCatalog.contentHorizontalPaddingDp.dp
         Surface(
             modifier = Modifier
                 .align(Alignment.TopStart)
@@ -189,14 +201,15 @@ fun MapHomeScreen(
                     flingBehavior = flingBehavior,
                 )
                 .nestedScroll(nestedScroll)
-                .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
+                .clip(sheetShape)
                 .testTag("route_drag_sheet")
                 .semantics {
                     contentDescription = "Route drag sheet ${dragState.currentValue}"
                 },
+            shape = sheetShape,
             color = MaterialTheme.colorScheme.surface,
-            tonalElevation = 6.dp,
-            shadowElevation = 8.dp,
+            tonalElevation = RouteSheetPolishCatalog.tonalElevationDp.dp,
+            shadowElevation = RouteSheetPolishCatalog.shadowElevationDp.dp,
         ) {
             Column(
                 modifier = Modifier
@@ -208,25 +221,40 @@ fun MapHomeScreen(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 4.dp),
+                        .padding(top = 8.dp, bottom = 4.dp),
                     contentAlignment = Alignment.Center,
                 ) {
                     BottomSheetDefaults.DragHandle(
                         modifier = Modifier.testTag("sheet_drag_handle"),
+                        width = RouteSheetPolishCatalog.dragHandleWidthDp.dp,
+                        height = RouteSheetPolishCatalog.dragHandleHeightDp.dp,
+                        color = if (RouteSheetPolishCatalog.dragHandleUsesOnSurfaceVariant) {
+                            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.55f)
+                        } else {
+                            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+                        },
                     )
                 }
 
                 if (MapHomeCatalog.showsSummaryStrip(dragState.currentValue)) {
                     Text(
                         text = state.summaryStrip,
-                        style = MaterialTheme.typography.bodyMedium,
+                        style = if (RouteSheetPolishCatalog.summaryUsesTitleSmall) {
+                            MaterialTheme.typography.titleSmall
+                        } else {
+                            MaterialTheme.typography.bodyMedium
+                        },
+                        fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 16.dp)
+                            .padding(horizontal = contentPad)
+                            .padding(
+                                top = RouteSheetPolishCatalog.peekContentVerticalPaddingDp.dp,
+                                bottom = 8.dp,
+                            )
                             .testTag("route_summary_strip"),
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
                 }
 
                 if (MapHomeCatalog.showsCreateRouteForm(dragState.currentValue) ||
@@ -242,8 +270,8 @@ fun MapHomeScreen(
                         modifier = Modifier
                             .fillMaxSize()
                             .verticalScroll(rememberScrollState())
-                            .padding(horizontal = 16.dp)
-                            .padding(bottom = 16.dp),
+                            .padding(horizontal = contentPad)
+                            .padding(bottom = 24.dp),
                     )
                 }
             }
@@ -402,19 +430,26 @@ private fun CreateRouteForm(
     val formatter = remember {
         DateTimeFormatter.ofPattern("EEE d MMM", Locale.ENGLISH)
     }
+    val sectionGap = RouteSheetPolishCatalog.sectionSpacingDp.dp
 
     Text(
         text = stringResource(R.string.create_route_title),
-        style = MaterialTheme.typography.titleLarge,
+        style = if (RouteSheetPolishCatalog.createRouteUsesHeadlineTitle) {
+            MaterialTheme.typography.headlineSmall
+        } else {
+            MaterialTheme.typography.titleLarge
+        },
+        fontWeight = FontWeight.Bold,
         color = MaterialTheme.colorScheme.onSurface,
         modifier = Modifier.testTag("create_route_title"),
     )
-    Spacer(modifier = Modifier.height(12.dp))
+    Spacer(modifier = Modifier.height(sectionGap))
     Text(
         text = stringResource(R.string.route_name_optional),
         style = MaterialTheme.typography.labelLarge,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
+    Spacer(modifier = Modifier.height(8.dp))
     OutlinedTextField(
         value = name,
         onValueChange = { name = it },
@@ -422,34 +457,39 @@ private fun CreateRouteForm(
             .fillMaxWidth()
             .testTag("route_name_field"),
         singleLine = true,
+        shape = RoundedCornerShape(12.dp),
         placeholder = { Text(stringResource(R.string.route_name_hint)) },
         colors = highContrastFieldColors(),
     )
-    Spacer(modifier = Modifier.height(16.dp))
+    Spacer(modifier = Modifier.height(sectionGap))
     Text(
         text = stringResource(R.string.select_date),
         style = MaterialTheme.typography.labelLarge,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
+    Spacer(modifier = Modifier.height(8.dp))
     DateChoiceRow(
         label = stringResource(R.string.date_today, today.format(formatter)),
         selected = dateChoice == RouteDateChoice.TODAY,
         onSelect = { dateChoice = RouteDateChoice.TODAY },
         testTag = "date_today",
+        cardTestTag = "date_today_card",
     )
     DateChoiceRow(
         label = stringResource(R.string.date_tomorrow, today.plusDays(1).format(formatter)),
         selected = dateChoice == RouteDateChoice.TOMORROW,
         onSelect = { dateChoice = RouteDateChoice.TOMORROW },
         testTag = "date_tomorrow",
+        cardTestTag = "date_tomorrow_card",
     )
     DateChoiceRow(
         label = stringResource(R.string.date_pick),
         selected = dateChoice == RouteDateChoice.CUSTOM,
         onSelect = { dateChoice = RouteDateChoice.CUSTOM },
         testTag = "date_custom",
+        cardTestTag = "date_custom_card",
     )
-    Spacer(modifier = Modifier.height(16.dp))
+    Spacer(modifier = Modifier.height(sectionGap))
     TruckiePrimaryButton(
         text = stringResource(R.string.confirm_route),
         onClick = {
@@ -472,26 +512,55 @@ private fun DateChoiceRow(
     selected: Boolean,
     onSelect: () -> Unit,
     testTag: String,
+    cardTestTag: String,
 ) {
+    val shape = RoundedCornerShape(12.dp)
+    val borderColor = if (selected) {
+        MaterialTheme.colorScheme.primary
+    } else {
+        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.22f)
+    }
+    val background = if (selected) {
+        MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
+    } else {
+        MaterialTheme.colorScheme.surface
+    }
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp)
-            .clip(RoundedCornerShape(8.dp))
-            .selectable(selected = selected, onClick = onSelect, role = Role.RadioButton)
-            .background(
-                if (selected) {
-                    MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
+            .clip(shape)
+            .border(
+                width = if (RouteSheetPolishCatalog.dateChoicesUseOutlinedCards) 1.5.dp else 0.dp,
+                color = if (RouteSheetPolishCatalog.dateChoicesUseOutlinedCards) {
+                    borderColor
                 } else {
-                    MaterialTheme.colorScheme.surface
+                    Color.Transparent
                 },
+                shape = shape,
             )
-            .padding(horizontal = 8.dp, vertical = 4.dp)
-            .testTag(testTag),
+            .background(background)
+            .selectable(selected = selected, onClick = onSelect, role = Role.RadioButton)
+            .padding(horizontal = 12.dp, vertical = 10.dp)
+            // Prefer the polished card tag; legacy tag kept as alias for older assertions.
+            .testTag(cardTestTag)
+            .semantics { contentDescription = testTag },
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        Icon(
+            imageVector = Icons.Filled.CalendarToday,
+            contentDescription = null,
+            tint = if (selected) {
+                MaterialTheme.colorScheme.primary
+            } else {
+                MaterialTheme.colorScheme.onSurfaceVariant
+            },
+            modifier = Modifier.size(20.dp),
+        )
+        Spacer(modifier = Modifier.width(12.dp))
         Text(
             text = label,
+            style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.weight(1f),
         )
@@ -509,14 +578,20 @@ private fun AddFindStopsSection(
     var kind by remember { mutableStateOf(StopKind.PICKUP_LOAD) }
     var selectedSuggestion by remember { mutableStateOf<AddressSuggestion?>(null) }
     val suggestions = remember(query) { autocomplete.suggest(query) }
+    val sectionGap = RouteSheetPolishCatalog.sectionSpacingDp.dp
 
     Text(
         text = stringResource(R.string.add_or_find_stops),
-        style = MaterialTheme.typography.titleMedium,
+        style = MaterialTheme.typography.titleLarge,
+        fontWeight = FontWeight.SemiBold,
         color = MaterialTheme.colorScheme.onSurface,
         modifier = Modifier.testTag("add_find_stops_title"),
     )
-    Spacer(modifier = Modifier.height(8.dp))
+    Spacer(modifier = Modifier.height(12.dp))
+    // Stable tag for polish tests (TextField decoration icons are unmerged / fragile).
+    if (RouteSheetPolishCatalog.addFindUsesSearchLeadingIcon) {
+        Spacer(modifier = Modifier.size(1.dp).testTag("add_find_search_icon"))
+    }
     OutlinedTextField(
         value = query,
         onValueChange = {
@@ -527,15 +602,29 @@ private fun AddFindStopsSection(
             .fillMaxWidth()
             .testTag("add_find_stops_field"),
         singleLine = true,
+        shape = RoundedCornerShape(12.dp),
         placeholder = { Text(stringResource(R.string.hint_address)) },
+        leadingIcon = if (RouteSheetPolishCatalog.addFindUsesSearchLeadingIcon) {
+            {
+                Icon(
+                    imageVector = Icons.Filled.Search,
+                    contentDescription = stringResource(R.string.add_or_find_stops),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        } else {
+            null
+        },
         colors = highContrastFieldColors(),
     )
     if (suggestions.isNotEmpty()) {
+        Spacer(modifier = Modifier.height(8.dp))
         suggestions.forEach { suggestion ->
-            Text(
-                text = suggestion.label,
+            val suggestionShape = RoundedCornerShape(10.dp)
+            Surface(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .padding(vertical = 3.dp)
                     .testTag("address_suggestion")
                     .clickable {
                         if (requireVerifiedAddress) {
@@ -551,10 +640,22 @@ private fun AddFindStopsSection(
                             query = ""
                             selectedSuggestion = null
                         }
-                    }
-                    .padding(vertical = 8.dp),
-                color = MaterialTheme.colorScheme.onSurface,
-            )
+                    },
+                shape = suggestionShape,
+                color = if (RouteSheetPolishCatalog.suggestionsUseSurfaceRows) {
+                    MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f)
+                } else {
+                    MaterialTheme.colorScheme.surface
+                },
+                tonalElevation = 1.dp,
+            ) {
+                Text(
+                    text = suggestion.label,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+                )
+            }
         }
     }
     if (requireVerifiedAddress && query.isNotBlank() && suggestions.isEmpty()) {
@@ -563,12 +664,15 @@ private fun AddFindStopsSection(
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier
-                .padding(top = 4.dp)
+                .padding(top = 8.dp)
                 .testTag("verified_address_hint"),
         )
     }
-    Spacer(modifier = Modifier.height(8.dp))
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    Spacer(modifier = Modifier.height(12.dp))
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier.testTag("stop_kind_chip_row"),
+    ) {
         StopKindChip(
             label = stringResource(R.string.stop_kind_pickup_load),
             selected = kind == StopKind.PICKUP_LOAD,
@@ -582,7 +686,7 @@ private fun AddFindStopsSection(
             testTag = "kind_drop_off_unload",
         )
     }
-    Spacer(modifier = Modifier.height(8.dp))
+    Spacer(modifier = Modifier.height(12.dp))
     val canAddFreeText = !requireVerifiedAddress && query.isNotBlank()
     TruckiePrimaryButton(
         text = stringResource(R.string.add_stop_to_route),
@@ -600,6 +704,7 @@ private fun AddFindStopsSection(
             .testTag("add_stop_button"),
         enabled = canAddFreeText,
     )
+    Spacer(modifier = Modifier.height(sectionGap))
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -610,25 +715,51 @@ private fun StopKindChip(
     onClick: () -> Unit,
     testTag: String,
 ) {
-    Surface(
-        onClick = onClick,
-        shape = RoundedCornerShape(20.dp),
-        color = if (selected) {
-            MaterialTheme.colorScheme.primary
-        } else {
-            MaterialTheme.colorScheme.surfaceVariant
-        },
-        modifier = Modifier.testTag(testTag),
-    ) {
-        Text(
-            text = label,
-            color = if (selected) {
-                MaterialTheme.colorScheme.onPrimary
-            } else {
-                MaterialTheme.colorScheme.onSurface
+    if (RouteSheetPolishCatalog.stopKindsUseFilterChips) {
+        FilterChip(
+            selected = selected,
+            onClick = onClick,
+            label = {
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.labelLarge,
+                )
             },
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+            modifier = Modifier.testTag(testTag),
+            colors = FilterChipDefaults.filterChipColors(
+                selectedContainerColor = MaterialTheme.colorScheme.primary,
+                selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
+                containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                labelColor = MaterialTheme.colorScheme.onSurface,
+            ),
+            border = FilterChipDefaults.filterChipBorder(
+                enabled = true,
+                selected = selected,
+                borderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f),
+                selectedBorderColor = MaterialTheme.colorScheme.primary,
+            ),
         )
+    } else {
+        Surface(
+            onClick = onClick,
+            shape = RoundedCornerShape(20.dp),
+            color = if (selected) {
+                MaterialTheme.colorScheme.primary
+            } else {
+                MaterialTheme.colorScheme.surfaceVariant
+            },
+            modifier = Modifier.testTag(testTag),
+        ) {
+            Text(
+                text = label,
+                color = if (selected) {
+                    MaterialTheme.colorScheme.onPrimary
+                } else {
+                    MaterialTheme.colorScheme.onSurface
+                },
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+            )
+        }
     }
 }
 
@@ -636,57 +767,97 @@ private fun StopKindChip(
 private fun StopListSection(stops: List<RouteStop>) {
     Text(
         text = stringResource(R.string.stop_list_title),
-        style = MaterialTheme.typography.titleMedium,
+        style = MaterialTheme.typography.titleLarge,
+        fontWeight = FontWeight.SemiBold,
         color = MaterialTheme.colorScheme.onSurface,
         modifier = Modifier.testTag("stop_list_title"),
     )
-    Spacer(modifier = Modifier.height(8.dp))
+    Spacer(modifier = Modifier.height(12.dp))
     if (stops.isEmpty()) {
-        Text(
-            text = stringResource(R.string.no_route_stops_yet),
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.testTag("stop_list_empty"),
-        )
+        Surface(
+            shape = RoundedCornerShape(12.dp),
+            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f),
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag("stop_list_empty"),
+        ) {
+            Text(
+                text = stringResource(R.string.no_route_stops_yet),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 14.dp, vertical = 16.dp),
+            )
+        }
     } else {
-        stops.forEach { stop ->
+        stops.forEachIndexed { index, stop ->
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 8.dp)
+                    .padding(vertical = 10.dp)
                     .testTag("stop_row_${stop.id}"),
                 verticalAlignment = Alignment.Top,
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(28.dp)
-                        .clip(RoundedCornerShape(14.dp))
-                        .background(MaterialTheme.colorScheme.primary),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text(
-                        text = (stop.order + 1).toString(),
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        style = MaterialTheme.typography.labelMedium,
-                    )
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Box(
+                        modifier = Modifier
+                            .size(32.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primary)
+                            .testTag("stop_timeline_badge_${stop.id}"),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(
+                            text = (stop.order + 1).toString().padStart(2, '0'),
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    }
+                    if (RouteSheetPolishCatalog.stopRowsUseTimelineBadge &&
+                        index < stops.lastIndex
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .padding(top = 4.dp)
+                                .width(2.dp)
+                                .height(28.dp)
+                                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.35f)),
+                        )
+                    }
                 }
-                Spacer(modifier = Modifier.width(12.dp))
+                Spacer(modifier = Modifier.width(14.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = stop.addressLabel,
                         color = MaterialTheme.colorScheme.onSurface,
                         style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Medium,
                     )
-                    Text(
-                        text = when (stop.kind) {
-                            StopKind.PICKUP_LOAD -> stringResource(R.string.stop_kind_pickup_load)
-                            StopKind.DROP_OFF_UNLOAD -> stringResource(R.string.stop_kind_drop_off_unload)
-                        },
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        style = MaterialTheme.typography.bodySmall,
-                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        modifier = Modifier.testTag("stop_kind_label_${stop.id}"),
+                    ) {
+                        Text(
+                            text = when (stop.kind) {
+                                StopKind.PICKUP_LOAD ->
+                                    stringResource(R.string.stop_kind_pickup_load)
+                                StopKind.DROP_OFF_UNLOAD ->
+                                    stringResource(R.string.stop_kind_drop_off_unload)
+                            },
+                            color = MaterialTheme.colorScheme.onSurface,
+                            style = MaterialTheme.typography.labelMedium,
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                        )
+                    }
                 }
             }
-            HorizontalDivider()
+            if (index < stops.lastIndex) {
+                HorizontalDivider(
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
+                )
+            }
         }
     }
 }

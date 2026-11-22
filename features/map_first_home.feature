@@ -45,6 +45,7 @@ Feature: Map-first home with route stop drag sheet
     And the sheet responds to drag gestures via AnchoredDraggable with a Material3 drag handle
     And the peek state shows a summary strip over the map
     And half and full reveal create-route and stop list content
+    # Visual polish tokens: features/route_sheet_polish.feature
 
   Scenario: Map home hides global header and footer chrome
     Given ff_map_home is enabled
