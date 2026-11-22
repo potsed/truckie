@@ -67,6 +67,7 @@ class TruckieApp : Application() {
             featureFlags.setEnabled(FlagKeys.MAP_LOCATION_PUCK, true)
             featureFlags.setEnabled(FlagKeys.ROUTE_START_END, true)
             featureFlags.setEnabled(FlagKeys.NAVIGATE, true)
+            featureFlags.setEnabled(FlagKeys.BRIDGE_MARKERS, true)
         }
     }
 }

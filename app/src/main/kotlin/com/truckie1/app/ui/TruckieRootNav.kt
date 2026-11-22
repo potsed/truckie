@@ -475,6 +475,17 @@ private fun MapHomeRoute(
         .requiresEndpointsOnCreate(app.featureFlags)
     val showNavigate = com.truckie1.app.trips.RouteNavigateCatalog
         .showsNavigateAction(app.featureFlags)
+    val showBridgeMarkers = BridgeMarkersCatalog.shouldShow(
+        flags = app.featureFlags,
+        mapHomeEnabled = true,
+    )
+    val bridges = remember(showBridgeMarkers) {
+        if (showBridgeMarkers) {
+            BridgeMarkersCatalog.loadFromAssets(context)
+        } else {
+            emptyList()
+        }
+    }
 
     MapHomeScreen(
         state = MapHomeUiState(
@@ -575,6 +586,8 @@ private fun MapHomeRoute(
         showNavigateAction = showNavigate,
         showLocationPuck = MapLocationPuck.isEnabled(app.featureFlags),
         locationFollowEnabled = MapLocationFollow.isEnabled(app.featureFlags),
+        bridges = bridges,
+        showBridgeMarkers = showBridgeMarkers,
         modifier = Modifier.fillMaxSize(),
     )
 }

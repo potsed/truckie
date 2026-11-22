@@ -122,6 +122,8 @@ fun MapHomeScreen(
     showNavigateAction: Boolean = false,
     showLocationPuck: Boolean = false,
     locationFollowEnabled: Boolean = false,
+    bridges: List<BridgePoint> = emptyList(),
+    showBridgeMarkers: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
     var followState by remember { mutableStateOf(MapLocationFollow.initial()) }
@@ -178,6 +180,8 @@ fun MapHomeScreen(
             onFollowStateChange = { followState = it },
             recenterToken = recenterToken,
             routePathPoints = state.navigatePathPoints,
+            bridges = bridges,
+            showBridgeMarkers = showBridgeMarkers,
             modifier = Modifier
                 .fillMaxSize()
                 .testTag("map_libre_surface"),

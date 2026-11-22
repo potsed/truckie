@@ -60,6 +60,8 @@ import org.maplibre.android.plugins.annotation.SymbolOptions
  * is owned by the parent overlay.
  *
  * Stop markers use the Annotation plugin [SymbolManager] (not deprecated MarkerOptions).
+ * When [showBridgeMarkers] is true (`ff_bridge_markers`), a separate SymbolManager
+ * draws Australia-first bridge fixtures with optional clearance labels.
  *
  * When the native MapView cannot be created (e.g. Robolectric unit tests),
  * a high-contrast placeholder keeps the Compose tree testable.
@@ -77,6 +79,8 @@ fun MapLibreMap(
     recenterToken: Int = 0,
     /** GraphHopper path points drawn on this same map (Navigate). */
     routePathPoints: List<LatLngPoint> = emptyList(),
+    bridges: List<BridgePoint> = emptyList(),
+    showBridgeMarkers: Boolean = false,
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -290,6 +294,12 @@ fun MapLibreMap(
                         .build()
                     mapHost.bindStops(mapView = view, map = map, style = style, stops = stops)
                     mapHost.bindRoutePath(mapView = view, map = map, style = style, points = routePathPoints)
+                    mapHost.bindBridges(
+                        mapView = view,
+                        map = map,
+                        style = style,
+                        bridges = if (showBridgeMarkers) bridges else emptyList(),
+                    )
                     if (showLocationPuck) {
                         mapHost.ensureLocationComponent(map = map, style = style)
                         mapHost.updatePuck(locationFix, enabled = locationFix != null)
@@ -314,8 +324,8 @@ fun MapLibreMap(
 }
 
 /**
- * Holds [SymbolManager] and MapLibre [org.maplibre.android.location.LocationComponent]
- * across Compose recompositions.
+ * Holds stop + bridge [SymbolManager]s, Navigate [LineManager], and MapLibre
+ * [org.maplibre.android.location.LocationComponent] across Compose recompositions.
  */
 private class MapLibreHost(
     val mapView: MapView,
@@ -323,6 +333,7 @@ private class MapLibreHost(
 ) {
     private var symbolManager: SymbolManager? = null
     private var lineManager: LineManager? = null
+    private var bridgeSymbolManager: SymbolManager? = null
     private var mapRef: MapLibreMap? = null
     private var locationActivated: Boolean = false
     private var followGesturesBound: Boolean = false
@@ -380,6 +391,45 @@ private class MapLibreHost(
                 .withLineColor(MapRoutePathAnnotations.LINE_COLOR_HEX)
                 .withLineWidth(MapRoutePathAnnotations.LINE_WIDTH),
         )
+    }
+
+    fun bindBridges(
+        mapView: MapView,
+        map: MapLibreMap,
+        style: Style,
+        bridges: List<BridgePoint>,
+    ) {
+        mapRef = map
+        BridgeMarkersCatalog.ensureBridgeMarkerImage(style)
+        val manager = bridgeSymbolManager ?: SymbolManager(mapView, map, style).also { created ->
+            created.iconAllowOverlap = true
+            created.iconIgnorePlacement = true
+            created.textAllowOverlap = true
+            bridgeSymbolManager = created
+        }
+        manager.deleteAll()
+        if (bridges.isEmpty()) return
+        val options = bridges.map { bridge ->
+            val label = BridgeMarkersCatalog.clearanceLabel(bridge)
+            val base = SymbolOptions()
+                .withLatLng(LatLng(bridge.latitude, bridge.longitude))
+                .withIconImage(BridgeMarkersCatalog.ICON_ID)
+                .withIconSize(1.0f)
+                .withIconAnchor("bottom")
+            if (label == null) {
+                base
+            } else {
+                base
+                    .withTextField(label)
+                    .withTextSize(11f)
+                    .withTextColor("#0B1F33")
+                    .withTextHaloColor("#FFFFFF")
+                    .withTextHaloWidth(1.2f)
+                    .withTextOffset(arrayOf(0f, -1.35f))
+                    .withTextAnchor("bottom")
+            }
+        }
+        manager.create(options)
     }
 
     fun ensureLocationComponent(map: MapLibreMap, style: Style) {
@@ -506,6 +556,8 @@ private class MapLibreHost(
         symbolManager = null
         runCatching { lineManager?.onDestroy() }
         lineManager = null
+        runCatching { bridgeSymbolManager?.onDestroy() }
+        bridgeSymbolManager = null
         if (locationActivated) {
             runCatching {
                 mapRef?.locationComponent?.isLocationComponentEnabled = false
