@@ -20,7 +20,7 @@ android {
         minSdk = 24
         targetSdk = 35
         versionCode = 1
-        versionName = "0.6.1-fixed-chrome"
+        versionName = "0.7.0-map-home"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -82,7 +82,10 @@ dependencies {
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.lifecycle.runtime.compose)
+    implementation(libs.maplibre.android)
     debugImplementation(libs.androidx.compose.ui.tooling)
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
 
     // Android Auto (Cars App Library) — runtime gated to API 23+
     implementation(libs.androidx.car.app)
@@ -96,7 +99,9 @@ dependencies {
     testImplementation(libs.androidx.test.core)
     testImplementation(libs.androidx.room.testing)
     testImplementation(libs.robolectric)
+    testImplementation(libs.androidx.compose.ui.test.junit4)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.room.testing)
+    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
 }

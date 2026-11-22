@@ -143,34 +143,38 @@ fun TruckieRootApp(
                 .padding(innerPadding),
         ) {
             composable(TruckieRoutes.HOME) {
-                RootScrollBody {
-                    HomeRoute(
-                        app = app,
-                        onPlanTrip = {
-                            navigatePrimary(
-                                navController,
-                                app,
-                                activity,
-                                TruckiePrimaryDestination.PLAN_TRIP,
-                            )
-                        },
-                        onVehicleProfiles = {
-                            navigatePrimary(
-                                navController,
-                                app,
-                                activity,
-                                TruckiePrimaryDestination.VEHICLES,
-                            )
-                        },
-                        onSettings = {
-                            navigatePrimary(
-                                navController,
-                                app,
-                                activity,
-                                TruckiePrimaryDestination.SETTINGS,
-                            )
-                        },
-                    )
+                if (MapHomeCatalog.usesMapHome(app.featureFlags)) {
+                    MapHomeRoute(app = app)
+                } else {
+                    RootScrollBody {
+                        HomeRoute(
+                            app = app,
+                            onPlanTrip = {
+                                navigatePrimary(
+                                    navController,
+                                    app,
+                                    activity,
+                                    TruckiePrimaryDestination.PLAN_TRIP,
+                                )
+                            },
+                            onVehicleProfiles = {
+                                navigatePrimary(
+                                    navController,
+                                    app,
+                                    activity,
+                                    TruckiePrimaryDestination.VEHICLES,
+                                )
+                            },
+                            onSettings = {
+                                navigatePrimary(
+                                    navController,
+                                    app,
+                                    activity,
+                                    TruckiePrimaryDestination.SETTINGS,
+                                )
+                            },
+                        )
+                    }
                 }
             }
             composable(TruckieRoutes.PLAN_TRIP) {
@@ -423,6 +427,51 @@ private fun HomeRoute(
         onPlanTrip = onPlanTrip,
         onVehicleProfiles = onVehicleProfiles,
         onSettings = onSettings,
+    )
+}
+
+/**
+ * MapLibre map-first home + route/stop drag sheet (`ff_map_home`).
+ * Hosted inside the single-activity NavHost; no XML / multi-Activity remount.
+ */
+@Composable
+private fun MapHomeRoute(app: TruckieApp) {
+    var sheetValue by remember { mutableStateOf(RouteSheetValue.Peek) }
+    var route by remember { mutableStateOf(app.routeSession.activeRoute()) }
+    val summary = remember(route) {
+        route?.let { com.truckie1.trips.RouteSummary.strip(it) }
+            ?: com.truckie1.trips.RouteSummary.emptyStrip()
+    }
+
+    MapHomeScreen(
+        state = MapHomeUiState(
+            route = route,
+            sheetValue = sheetValue,
+            summaryStrip = summary,
+        ),
+        onSheetValueChange = { sheetValue = it },
+        onCreateRoute = { name, dateChoice, customDate ->
+            route = app.routeSession.createRoute(
+                name = name,
+                dateChoice = dateChoice,
+                customDate = customDate,
+            )
+            sheetValue = RouteSheetValue.Half
+        },
+        onAddStop = { addressLabel, kind, suggestion ->
+            app.routeSession.addStop(
+                com.truckie1.trips.RouteStop(
+                    id = newStopId(),
+                    addressLabel = addressLabel,
+                    latitude = suggestion?.latitude,
+                    longitude = suggestion?.longitude,
+                    kind = kind,
+                ),
+            )
+            route = app.routeSession.activeRoute()
+        },
+        autocomplete = com.truckie1.app.trips.NoOpAddressAutocomplete,
+        modifier = Modifier.fillMaxSize(),
     )
 }
 

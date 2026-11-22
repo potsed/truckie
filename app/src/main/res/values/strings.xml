@@ -69,4 +69,19 @@
     <string name="blocked_route_default_reason">No height- and weight-safe tour for this vehicle and cargo.</string>
     <string name="edit_stops">Edit stops</string>
     <string name="edit_vehicle">Edit vehicle</string>
+    <!-- Map-first home + route drag sheet (ff_map_home) -->
+    <string name="create_route_title">Create route</string>
+    <string name="route_name_optional">Route name (optional)</string>
+    <string name="route_name_hint">Sunday</string>
+    <string name="select_date">Select date</string>
+    <string name="date_today">Today %1$s</string>
+    <string name="date_tomorrow">Tomorrow %1$s</string>
+    <string name="date_pick">Pick a date</string>
+    <string name="confirm_route">Confirm</string>
+    <string name="add_or_find_stops">Add or find stops</string>
+    <string name="add_stop_to_route">Add stop</string>
+    <string name="stop_list_title">Stops</string>
+    <string name="no_route_stops_yet">No stops yet. Add a pickup/load or drop-off/unload.</string>
+    <string name="stop_kind_pickup_load">Pickup / load</string>
+    <string name="stop_kind_drop_off_unload">Drop-off / unload</string>
 </resources>

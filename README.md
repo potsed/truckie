@@ -10,7 +10,7 @@ AU-first (QLD/Brisbane), expandable. Product UI term: **Vehicle** (not Truck).
 | Language | Kotlin **2.4.21** (AGP **9.5.2**, Gradle **9.7.0**) |
 | UI | Jetpack Compose Material3 (Compose BOM **2024.12.01**) |
 | Modules | `app`, `core-routing`, `core-profiles`, `core-trips`, `core-maps`, `core-flags` |
-| Map | MapLibre stub (`:core-maps`) |
+| Map | MapLibre Native Android (`:core-maps` + `:app` map home, `ff_map_home`) |
 | Routing | GraphHopper client stub (`:core-routing`) |
 | Flags | Local feature-flag facade (`:core-flags`) |
 | Profiles | Room by rego (`ff_vehicle_profiles`); make/model/year, H/W/L, mass/TARE/GVM/GCM, axles, network |

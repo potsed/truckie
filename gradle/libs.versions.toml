@@ -17,6 +17,8 @@ espresso = "3.7.0"
 carApp = "1.7.0"
 room = "2.8.5"
 robolectric = "4.18.1"
+maplibre = "11.8.5"
+lifecycleRuntimeCompose = "2.9.4"
 
 [libraries]
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }
@@ -42,6 +44,10 @@ androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }
 androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
 androidx-room-testing = { module = "androidx.room:room-testing", version.ref = "room" }
 robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
+maplibre-android = { module = "org.maplibre.gl:android-sdk", version.ref = "maplibre" }
+androidx-lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "lifecycleRuntimeCompose" }
+androidx-compose-ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4" }
+androidx-compose-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
