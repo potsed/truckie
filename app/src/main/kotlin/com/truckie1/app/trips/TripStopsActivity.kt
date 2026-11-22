@@ -10,6 +10,8 @@ import androidx.compose.runtime.setValue
 import com.truckie1.app.R
 import com.truckie1.app.TruckieApp
 import com.truckie1.app.ui.TripStopsScreen
+import com.truckie1.app.ui.TruckieHostedScreen
+import com.truckie1.app.ui.navigateToPrimaryDestination
 import com.truckie1.app.ui.setTruckieContent
 import com.truckie1.flags.FlagKeys
 import com.truckie1.routing.OptimizeResult
@@ -23,6 +25,7 @@ class TripStopsActivity : ComponentActivity() {
     private var showOptimize by mutableStateOf(false)
     private var optimizeMode by mutableStateOf(OptimizeMode.FASTEST)
     private var optimizeStatus by mutableStateOf<String?>(null)
+    private var navChromeEnabled by mutableStateOf(false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,39 +36,48 @@ class TripStopsActivity : ComponentActivity() {
             return
         }
         showOptimize = OptimizeForVehicleGate.isAvailable(app.featureFlags)
+        navChromeEnabled = app.featureFlags.isEnabled(FlagKeys.NAV_CHROME)
         setTruckieContent {
-            TripStopsScreen(
-                stops = stops,
-                clearanceSummary = clearanceSummary,
-                showOptimize = showOptimize,
-                optimizeMode = optimizeMode,
-                optimizeStatus = optimizeStatus,
-                onAddStop = { startActivity(Intent(this, AddStopActivity::class.java)) },
-                onMoveUp = { index ->
-                    if (index > 0) {
-                        app.tripSession.moveStop(index, index - 1)
+            TruckieHostedScreen(
+                title = getString(R.string.trip_stops),
+                activitySimpleName = "TripStopsActivity",
+                navChromeEnabled = navChromeEnabled,
+                onNavigate = { navigateToPrimaryDestination(it) },
+            ) {
+                TripStopsScreen(
+                    stops = stops,
+                    clearanceSummary = clearanceSummary,
+                    showOptimize = showOptimize,
+                    optimizeMode = optimizeMode,
+                    optimizeStatus = optimizeStatus,
+                    onAddStop = { startActivity(Intent(this@TripStopsActivity, AddStopActivity::class.java)) },
+                    onMoveUp = { index ->
+                        if (index > 0) {
+                            app.tripSession.moveStop(index, index - 1)
+                            bindList()
+                        }
+                    },
+                    onMoveDown = { index ->
+                        if (index < stops.lastIndex) {
+                            app.tripSession.moveStop(index, index + 1)
+                            bindList()
+                        }
+                    },
+                    onDelete = { stop ->
+                        app.tripSession.removeStop(stop.id)
                         bindList()
-                    }
-                },
-                onMoveDown = { index ->
-                    if (index < stops.lastIndex) {
-                        app.tripSession.moveStop(index, index + 1)
-                        bindList()
-                    }
-                },
-                onDelete = { stop ->
-                    app.tripSession.removeStop(stop.id)
-                    bindList()
-                },
-                onModeChange = { optimizeMode = it },
-                onOptimize = { runOptimize() },
-            )
+                    },
+                    onModeChange = { optimizeMode = it },
+                    onOptimize = { runOptimize() },
+                )
+            }
         }
     }
 
     override fun onResume() {
         super.onResume()
         if (!(application as TruckieApp).featureFlags.isEnabled(FlagKeys.MULTI_STOP)) return
+        navChromeEnabled = (application as TruckieApp).featureFlags.isEnabled(FlagKeys.NAV_CHROME)
         bindList()
     }
 

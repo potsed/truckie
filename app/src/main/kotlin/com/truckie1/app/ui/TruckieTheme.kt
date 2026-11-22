@@ -48,6 +48,7 @@ object ComposeScreenCatalog {
         "TripStopsActivity",
         "AddStopActivity",
         "BlockedRouteActivity",
+        "SettingsActivity",
     )
 
     val deletedLayoutResourceNames: List<String> = listOf(

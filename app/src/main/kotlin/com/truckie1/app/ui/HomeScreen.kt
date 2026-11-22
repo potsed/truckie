@@ -25,43 +25,39 @@ fun HomeScreen(
     onVehicleProfiles: () -> Unit,
     onSettings: () -> Unit,
 ) {
-    TruckieScreen {
-        TruckieTitle(text = stringResource(R.string.home_title))
+    if (state.activeVehicle != null) {
+        TruckieBody(text = state.activeVehicle)
+        if (state.clearanceLine != null) {
+            Spacer(modifier = Modifier.height(4.dp))
+            TruckieBody(text = state.clearanceLine)
+        }
+    }
+    if (state.tripSummary != null) {
         Spacer(modifier = Modifier.height(8.dp))
-        if (state.activeVehicle != null) {
-            TruckieBody(text = state.activeVehicle)
-            if (state.clearanceLine != null) {
-                Spacer(modifier = Modifier.height(4.dp))
-                TruckieBody(text = state.clearanceLine)
-            }
-        }
-        if (state.tripSummary != null) {
-            Spacer(modifier = Modifier.height(8.dp))
-            TruckieBody(text = state.tripSummary)
-        }
-        Spacer(modifier = Modifier.height(24.dp))
-        if (state.showPlanTrip) {
-            TruckiePrimaryButton(
-                text = stringResource(R.string.plan_trip),
-                onClick = onPlanTrip,
-                modifier = Modifier.fillMaxWidth(),
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-        }
-        if (state.showVehicleProfiles) {
-            TruckiePrimaryButton(
-                text = stringResource(R.string.vehicle_profiles),
-                onClick = onVehicleProfiles,
-                modifier = Modifier.fillMaxWidth(),
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-        }
+        TruckieBody(text = state.tripSummary)
+    }
+    Spacer(modifier = Modifier.height(24.dp))
+    if (state.showPlanTrip) {
         TruckiePrimaryButton(
-            text = stringResource(R.string.settings),
-            onClick = onSettings,
+            text = stringResource(R.string.plan_trip),
+            onClick = onPlanTrip,
             modifier = Modifier.fillMaxWidth(),
         )
-        Spacer(modifier = Modifier.height(16.dp))
-        TruckieBody(text = state.autoStatus)
+        Spacer(modifier = Modifier.height(8.dp))
     }
+    if (state.showVehicleProfiles) {
+        TruckiePrimaryButton(
+            text = stringResource(R.string.vehicle_profiles),
+            onClick = onVehicleProfiles,
+            modifier = Modifier.fillMaxWidth(),
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+    }
+    TruckiePrimaryButton(
+        text = stringResource(R.string.settings),
+        onClick = onSettings,
+        modifier = Modifier.fillMaxWidth(),
+    )
+    Spacer(modifier = Modifier.height(16.dp))
+    TruckieBody(text = state.autoStatus)
 }

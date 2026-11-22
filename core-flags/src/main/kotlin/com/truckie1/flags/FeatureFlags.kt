@@ -21,6 +21,8 @@ object FlagKeys {
     const val OFFLINE_MAPS = "ff_offline_maps"
     const val ANDROID_AUTO = "ff_android_auto"
     const val NHVR_OVERLAY = "ff_nhvr_overlay"
+    /** Material3 TopAppBar + bottom NavigationBar across primary screens. */
+    const val NAV_CHROME = "ff_nav_chrome"
 }
 
 /**

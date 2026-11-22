@@ -9,7 +9,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.truckie1.app.R
 import com.truckie1.app.TruckieApp
+import com.truckie1.app.ui.TruckieHostedScreen
 import com.truckie1.app.ui.VehicleListScreen
+import com.truckie1.app.ui.navigateToPrimaryDestination
 import com.truckie1.app.ui.setTruckieContent
 import com.truckie1.flags.FlagKeys
 import com.truckie1.profiles.Vehicle
@@ -17,6 +19,7 @@ import com.truckie1.profiles.Vehicle
 class VehicleListActivity : ComponentActivity() {
     private var vehicles by mutableStateOf<List<Vehicle>>(emptyList())
     private var activeRego by mutableStateOf<String?>(null)
+    private var navChromeEnabled by mutableStateOf(false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -26,31 +29,40 @@ class VehicleListActivity : ComponentActivity() {
             finish()
             return
         }
+        navChromeEnabled = app.featureFlags.isEnabled(FlagKeys.NAV_CHROME)
         setTruckieContent {
-            VehicleListScreen(
-                vehicles = vehicles,
-                activeRego = activeRego,
-                onAdd = { startActivity(Intent(this, VehicleEditActivity::class.java)) },
-                onSelect = { vehicle ->
-                    app.vehicleProfiles.setActive(vehicle.rego)
-                    bindList()
-                    Toast.makeText(this, getString(R.string.active_set, vehicle.rego), Toast.LENGTH_SHORT).show()
-                },
-                onEdit = { vehicle ->
-                    startActivity(
-                        Intent(this, VehicleEditActivity::class.java).putExtra(
-                            VehicleEditActivity.EXTRA_REGO,
-                            vehicle.rego,
-                        ),
-                    )
-                },
-            )
+            TruckieHostedScreen(
+                title = getString(R.string.vehicle_profiles),
+                activitySimpleName = "VehicleListActivity",
+                navChromeEnabled = navChromeEnabled,
+                onNavigate = { navigateToPrimaryDestination(it) },
+            ) {
+                VehicleListScreen(
+                    vehicles = vehicles,
+                    activeRego = activeRego,
+                    onAdd = { startActivity(Intent(this@VehicleListActivity, VehicleEditActivity::class.java)) },
+                    onSelect = { vehicle ->
+                        app.vehicleProfiles.setActive(vehicle.rego)
+                        bindList()
+                        Toast.makeText(this@VehicleListActivity, getString(R.string.active_set, vehicle.rego), Toast.LENGTH_SHORT).show()
+                    },
+                    onEdit = { vehicle ->
+                        startActivity(
+                            Intent(this@VehicleListActivity, VehicleEditActivity::class.java).putExtra(
+                                VehicleEditActivity.EXTRA_REGO,
+                                vehicle.rego,
+                            ),
+                        )
+                    },
+                )
+            }
         }
     }
 
     override fun onResume() {
         super.onResume()
         if (!(application as TruckieApp).featureFlags.isEnabled(FlagKeys.VEHICLE_PROFILES)) return
+        navChromeEnabled = (application as TruckieApp).featureFlags.isEnabled(FlagKeys.NAV_CHROME)
         bindList()
     }
 

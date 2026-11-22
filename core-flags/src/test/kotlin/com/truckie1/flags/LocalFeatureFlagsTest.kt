@@ -29,4 +29,13 @@ class LocalFeatureFlagsTest {
         flags.setEnabled(FlagKeys.ROUTE_OPTIMIZE, true)
         assertTrue(flags.isEnabled(FlagKeys.ROUTE_OPTIMIZE))
     }
+
+    @Test
+    fun navChromeFlagKey() {
+        assertTrue(FlagKeys.NAV_CHROME == "ff_nav_chrome")
+        val flags = LocalFeatureFlags()
+        assertFalse(flags.isEnabled(FlagKeys.NAV_CHROME))
+        flags.setEnabled(FlagKeys.NAV_CHROME, true)
+        assertTrue(flags.isEnabled(FlagKeys.NAV_CHROME))
+    }
 }

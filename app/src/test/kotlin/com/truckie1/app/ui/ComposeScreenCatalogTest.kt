@@ -20,6 +20,7 @@ class ComposeScreenCatalogTest {
                 "TripStopsActivity",
                 "AddStopActivity",
                 "BlockedRouteActivity",
+                "SettingsActivity",
             ),
             ComposeScreenCatalog.activitySimpleNames.toSet(),
         )

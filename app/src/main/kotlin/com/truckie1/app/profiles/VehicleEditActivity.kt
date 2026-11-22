@@ -8,8 +8,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.truckie1.app.R
 import com.truckie1.app.TruckieApp
+import com.truckie1.app.ui.TruckieHostedScreen
 import com.truckie1.app.ui.VehicleEditFormState
 import com.truckie1.app.ui.VehicleEditScreen
+import com.truckie1.app.ui.navigateToPrimaryDestination
 import com.truckie1.app.ui.setTruckieContent
 import com.truckie1.flags.FlagKeys
 import com.truckie1.profiles.Vehicle
@@ -32,12 +34,22 @@ class VehicleEditActivity : ComponentActivity() {
             form = existing.toFormState(regoEnabled = false)
         }
 
+        val navChrome = app.featureFlags.isEnabled(FlagKeys.NAV_CHROME)
         setTruckieContent {
-            VehicleEditScreen(
-                state = form,
-                onChange = { form = it },
-                onSave = { save() },
-            )
+            TruckieHostedScreen(
+                title = getString(R.string.edit_profile),
+                activitySimpleName = "VehicleEditActivity",
+                navChromeEnabled = navChrome,
+                onNavigate = { navigateToPrimaryDestination(it) },
+                onNavigateUp = if (navChrome) ({ finish() }) else null,
+                scrollable = true,
+            ) {
+                VehicleEditScreen(
+                    state = form,
+                    onChange = { form = it },
+                    onSave = { save() },
+                )
+            }
         }
     }
 
