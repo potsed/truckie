@@ -10,11 +10,20 @@ import org.junit.Test
 class StubGraphHopperRouterTest {
     private val vehicle = Vehicle(
         rego = "ABC123",
-        displayName = "Rigid",
+        nickname = "Rigid",
+        vehicleType = "Rigid",
+        make = "Volvo",
+        model = "FM",
+        year = 2019,
         heightM = 3.0,
         widthM = 2.5,
         lengthM = 12.5,
-        grossMassT = 22.5,
+        massT = 22.5,
+        tareT = 8.5,
+        gvmT = 26.0,
+        gcmT = 42.5,
+        axleCount = 3,
+        networkClass = "GML",
     )
     private val trip = Trip(
         id = "t1",

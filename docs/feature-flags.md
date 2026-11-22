@@ -6,7 +6,7 @@ Production defaults are **off** until explicitly enabled for dogfood or release.
 
 | Flag key | Gates | Default |
 | --- | --- | --- |
-| `ff_vehicle_profiles` | Vehicle profile CRUD and active profile binding | off |
+| `ff_vehicle_profiles` | Vehicle profile list/edit (Room by rego), Home active summary | off (on in debug) |
 | `ff_multi_stop_cargo` | Multi-stop trips with cargo H/W/L/mass on stops | off |
 | `ff_bridge_safe_routing` | Height/weight-aware GraphHopper Custom Model routing | off |
 | `ff_optimize_for_vehicle` | Fastest / Cheapest among safe routes | off |

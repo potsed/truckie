@@ -12,6 +12,7 @@ AU-first (QLD/Brisbane), expandable. Product UI term: **Vehicle** (not Truck).
 | Map | MapLibre stub (`:core-maps`) |
 | Routing | GraphHopper client stub (`:core-routing`) |
 | Flags | Local feature-flag facade (`:core-flags`) |
+| Profiles | Room by rego (`ff_vehicle_profiles`); make/model/year, H/W/L, mass/TARE/GVM/GCM, axles, network |
 | minSdk | **16** (Android Auto gated to API **23+**) |
 
 ## Clearance model
