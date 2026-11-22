@@ -13,9 +13,13 @@ Feature: Map-first home with route stop drag sheet
     When ff_map_home is enabled
     Then Home uses the map-first Compose screen with MapLibre
 
-  Scenario: Default camera is Australia Brisbane
+  Scenario: Default camera prefers the driver's current location
     Given map camera defaults for Truckie
-    Then the default latitude and longitude centre on Brisbane Australia
+    And the official Play Services Fused Location Provider stack is used
+    When location permission is granted and Settings can satisfy a fused request
+    Then the map camera centres on the driver's current location
+    When location is unavailable, permission is denied, or Settings resolution is cancelled
+    Then the map camera falls back to Brisbane Australia
     And the default zoom shows a metro overview
 
   Scenario: Drag sheet supports peek half and full
