@@ -124,10 +124,16 @@ fun MapHomeScreen(
     locationFollowEnabled: Boolean = false,
     bridges: List<BridgePoint> = emptyList(),
     showBridgeMarkers: Boolean = false,
+    /**
+     * TEMPORARY / DEV: Jump to sample bridges (Demo mode). Map chrome only.
+     * Gated by [JumpToSampleBridges.shouldShow] / `ff_demo_mode`.
+     */
+    showJumpToSampleBridges: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
     var followState by remember { mutableStateOf(MapLocationFollow.initial()) }
     var recenterToken by remember { mutableStateOf(0) }
+    var jumpToBridgesToken by remember { mutableStateOf(0) }
     val dragState = remember {
         AnchoredDraggableState(initialValue = state.sheetValue)
     }
@@ -179,6 +185,7 @@ fun MapHomeScreen(
             followState = followState,
             onFollowStateChange = { followState = it },
             recenterToken = recenterToken,
+            jumpToBridgesToken = jumpToBridgesToken,
             routePathPoints = state.navigatePathPoints,
             bridges = bridges,
             showBridgeMarkers = showBridgeMarkers,
@@ -299,6 +306,32 @@ fun MapHomeScreen(
             }
         }
 
+        // TEMPORARY / DEV (ff_demo_mode): fly to SEQ sample bridges near Brisbane CBD.
+        if (showJumpToSampleBridges) {
+            MapJumpToSampleBridgesButton(
+                onClick = {
+                    val jump = JumpToSampleBridges.onJump(followState)
+                    followState = jump.followState
+                    jumpToBridgesToken += 1
+                },
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .navigationBarsPadding()
+                    .padding(
+                        end = 16.dp,
+                        bottom = if (
+                            locationFollowEnabled &&
+                            showLocationPuck &&
+                            followState.showsRecenter
+                        ) {
+                            160.dp
+                        } else {
+                            96.dp
+                        },
+                    ),
+            )
+        }
+
         if (locationFollowEnabled && showLocationPuck && followState.showsRecenter) {
             MapRecenterButton(
                 onClick = {
@@ -311,6 +344,30 @@ fun MapHomeScreen(
                     .padding(end = 16.dp, bottom = 96.dp),
             )
         }
+    }
+}
+
+@Composable
+private fun MapJumpToSampleBridgesButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        shape = RoundedCornerShape(24.dp),
+        color = MaterialTheme.colorScheme.secondaryContainer,
+        shadowElevation = 4.dp,
+        modifier = modifier
+            .testTag(JumpToSampleBridges.TEST_TAG)
+            .semantics { contentDescription = JumpToSampleBridges.SHORT_LABEL }
+            .clickable(onClick = onClick),
+    ) {
+        Text(
+            text = stringResource(R.string.map_jump_to_sample_bridges),
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSecondaryContainer,
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+        )
     }
 }
 

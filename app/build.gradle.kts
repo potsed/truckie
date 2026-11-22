@@ -20,7 +20,7 @@ android {
         minSdk = 24
         targetSdk = 35
         versionCode = 1
-        versionName = "0.8.3-bridge-markers-visibility"
+        versionName = "0.8.4-jump-to-sample-bridges"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 

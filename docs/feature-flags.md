@@ -25,6 +25,7 @@ XML screen layouts were removed; do not add new AppCompat/XML screens.
 | `ff_route_start_end` | Create route requires verified start + end (same place = round trip) on the map-home sheet | off (on in debug) |
 | `ff_navigate` | Navigate: GraphHopper path always in-app on MapLibre; Settings may pick installed app for post-route handoff only | off (on in debug) |
 | `ff_bridge_markers` | Low-bridge markers on MapLibre home (Australia-first sample JSON asset; SymbolManager + optional clearance label) | off (on in debug) |
+| `ff_demo_mode` | Demo mode — Settings toggle; temporary dogfood affordances (Jump to sample bridges). Fuller demo dataset later, not yet | off (on in debug) |
 
 ## Rules
 
@@ -65,3 +66,7 @@ XML screen layouts were removed; do not add new AppCompat/XML screens.
     `assets/bridges/au_sample_bridges.json` only **seeds** an empty cache. Optional short
     clearance labels appear when `clearanceHeightM` is present. Requires map home to be
     the active surface; does not change create-route or vehicle UI.
+13. Demo mode (`ff_demo_mode`) is a Settings switch for temporary dogfood affordances.
+    Today it gates **Jump to sample bridges** on map-home chrome (also needs
+    `ff_bridge_markers`). A fuller demo dataset (prefilled routes/data) may come later —
+    not in scope yet. Production defaults remain off.

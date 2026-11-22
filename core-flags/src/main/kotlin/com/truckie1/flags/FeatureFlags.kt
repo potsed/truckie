@@ -38,6 +38,11 @@ object FlagKeys {
     const val NAVIGATE = "ff_navigate"
     /** Low-bridge markers on MapLibre home (Australia-first sample/fixture asset). */
     const val BRIDGE_MARKERS = "ff_bridge_markers"
+    /**
+     * Demo mode — temporary dogfood affordances (e.g. Jump to sample bridges).
+     * May later gate a fuller demo dataset; that is out of scope for the jump control.
+     */
+    const val DEMO_MODE = "ff_demo_mode"
 }
 
 /**

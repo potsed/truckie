@@ -79,6 +79,8 @@ class TruckieApp : Application() {
             featureFlags.setEnabled(FlagKeys.ROUTE_START_END, true)
             featureFlags.setEnabled(FlagKeys.NAVIGATE, true)
             featureFlags.setEnabled(FlagKeys.BRIDGE_MARKERS, true)
+            // Demo mode: temporary dogfood affordances (Jump to sample bridges).
+            featureFlags.setEnabled(FlagKeys.DEMO_MODE, true)
         }
     }
 }
