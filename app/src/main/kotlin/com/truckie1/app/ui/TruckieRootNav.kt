@@ -217,7 +217,13 @@ fun TruckieRootApp(
             }
             composable(TruckieRoutes.SETTINGS) {
                 RootScrollBody {
-                    SettingsScreen(bufferM = app.clearanceBufferM)
+                    SettingsScreen(
+                        bufferM = app.clearanceBufferM,
+                        showNavigationAppPicker = com.truckie1.app.settings.NavigationAppPreference
+                            .showsInSettings(app.featureFlags),
+                        navigationAppStore = app.navigationAppStore,
+                        navigationAppQuery = app.navigationAppQuery,
+                    )
                 }
             }
             composable(TruckieRoutes.ADD_STOP) {
@@ -455,26 +461,59 @@ private fun MapHomeRoute(
     app: TruckieApp,
     onNavigatePrimary: (TruckiePrimaryDestination) -> Unit,
 ) {
+    val context = LocalContext.current
     var sheetValue by remember { mutableStateOf(RouteSheetValue.Peek) }
     var route by remember { mutableStateOf(app.routeSession.activeRoute()) }
+    var navigatePathPoints by remember {
+        mutableStateOf(app.routeNavigateSession.activePath()?.points.orEmpty())
+    }
     val summary = remember(route) {
         route?.let { com.truckie1.trips.RouteSummary.strip(it) }
             ?: com.truckie1.trips.RouteSummary.emptyStrip()
     }
+    val requireStartEnd = com.truckie1.app.trips.RouteStartEndCatalog
+        .requiresEndpointsOnCreate(app.featureFlags)
+    val showNavigate = com.truckie1.app.trips.RouteNavigateCatalog
+        .showsNavigateAction(app.featureFlags)
 
     MapHomeScreen(
         state = MapHomeUiState(
             route = route,
             sheetValue = sheetValue,
             summaryStrip = summary,
+            navigatePathPoints = navigatePathPoints,
         ),
         onSheetValueChange = { sheetValue = it },
-        onCreateRoute = { name, dateChoice, customDate ->
+        onCreateRoute = { input ->
+            val start = if (requireStartEnd) {
+                when (
+                    val built = com.truckie1.app.trips.VerifiedRouteEndpointBuilder.build(input.start)
+                ) {
+                    is com.truckie1.app.trips.VerifiedRouteEndpointBuilder.Result.Ok -> built.endpoint
+                    is com.truckie1.app.trips.VerifiedRouteEndpointBuilder.Result.Err -> return@MapHomeScreen
+                }
+            } else {
+                null
+            }
+            val end = if (requireStartEnd) {
+                when (
+                    val built = com.truckie1.app.trips.VerifiedRouteEndpointBuilder.build(input.end)
+                ) {
+                    is com.truckie1.app.trips.VerifiedRouteEndpointBuilder.Result.Ok -> built.endpoint
+                    is com.truckie1.app.trips.VerifiedRouteEndpointBuilder.Result.Err -> return@MapHomeScreen
+                }
+            } else {
+                null
+            }
             route = app.routeSession.createRoute(
-                name = name,
-                dateChoice = dateChoice,
-                customDate = customDate,
+                name = input.name,
+                dateChoice = input.dateChoice,
+                customDate = input.customDate,
+                start = start,
+                end = end,
             )
+            app.routeNavigateSession.clear()
+            navigatePathPoints = emptyList()
             sheetValue = RouteSheetValue.Half
         },
         onAddStop = { addressLabel, kind, suggestion ->
@@ -498,6 +537,31 @@ private fun MapHomeRoute(
                 }
             }
         },
+        onNavigateRoute = {
+            val selection = app.navigationAppStore.selection { pkg ->
+                app.navigationAppQuery.list().firstOrNull { it.packageName == pkg }?.label
+            }
+            when (
+                val result = app.routeNavigateSession.start(
+                    flags = app.featureFlags,
+                    route = route,
+                    selection = selection,
+                )
+            ) {
+                is com.truckie1.app.trips.RouteNavigateSession.Result.Ready -> {
+                    navigatePathPoints = result.path.points
+                    result.externalHandoff?.let { handoff ->
+                        val intent = com.truckie1.app.settings.ExternalNavigationHandoff.buildIntent(
+                            packageName = handoff.packageName,
+                            latitude = handoff.destination.latitude,
+                            longitude = handoff.destination.longitude,
+                        )
+                        runCatching { context.startActivity(intent) }
+                    }
+                }
+                else -> Unit
+            }
+        },
         onNavigatePrimary = onNavigatePrimary,
         canNavigatePrimary = { destination ->
             NavChromeCatalog.canNavigate(destination, app.featureFlags)
@@ -507,6 +571,8 @@ private fun MapHomeRoute(
         ),
         requireVerifiedAddress = com.truckie1.app.trips.VerifiedAddressCatalog
             .requiresVerifiedSuggestion(app.featureFlags),
+        requireStartEnd = requireStartEnd,
+        showNavigateAction = showNavigate,
         showLocationPuck = MapLocationPuck.isEnabled(app.featureFlags),
         locationFollowEnabled = MapLocationFollow.isEnabled(app.featureFlags),
         modifier = Modifier.fillMaxSize(),

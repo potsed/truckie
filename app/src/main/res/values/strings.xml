@@ -87,4 +87,18 @@
     <string name="stop_kind_drop_off_unload">Drop-off / unload</string>
     <string name="map_home_menu">Open navigation menu</string>
     <string name="map_recenter">Recenter on my location</string>
+    <!-- Create route start/end (ff_route_start_end) -->
+    <string name="route_start_label">Start</string>
+    <string name="route_end_label">End</string>
+    <string name="route_start_hint">Search start address…</string>
+    <string name="route_end_hint">Search end address…</string>
+    <string name="route_round_trip">Round trip (same start and end)</string>
+    <string name="route_endpoints_required">Choose verified start and end addresses</string>
+    <!-- Navigate (ff_navigate) — GraphHopper in-app; optional external handoff -->
+    <string name="navigate_route">Navigate</string>
+    <string name="navigate_handoff">Open in %1$s</string>
+    <string name="navigate_need_endpoints">Set start and end before navigating</string>
+    <string name="settings_nav_app_label">Navigation handoff app</string>
+    <string name="settings_nav_app_note">GraphHopper always calculates the route in Truckie. An external app is optional handoff after the constrained path is ready.</string>
+    <string name="settings_nav_app_in_app">Truckie (in-app map)</string>
 </resources>

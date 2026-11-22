@@ -16,6 +16,8 @@ class RouteSession {
         dateChoice: RouteDateChoice,
         today: LocalDate = LocalDate.now(),
         customDate: LocalDate? = null,
+        start: RouteEndpoint? = null,
+        end: RouteEndpoint? = null,
     ): Route {
         val date = when (dateChoice) {
             RouteDateChoice.TODAY -> today
@@ -29,6 +31,8 @@ class RouteSession {
             name = name?.trim()?.takeIf { it.isNotEmpty() },
             dateEpochDay = date.toEpochDay(),
             status = RouteStatus.DRAFT,
+            start = start,
+            end = end,
             stops = emptyList(),
         )
         active = route

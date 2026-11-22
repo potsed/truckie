@@ -3,6 +3,8 @@ package com.truckie1.trips
 /**
  * Domain for map-first home (Phase A): a [Route] has ordered [RouteStop]s.
  * Stop kind is pickup/load or drop-off/unload (not legacy “trip” wording in new UI).
+ *
+ * A route also has verified [start] and [end] endpoints (same place = round trip).
  */
 enum class StopKind {
     PICKUP_LOAD,
@@ -21,6 +23,23 @@ enum class RouteDateChoice {
     CUSTOM,
 }
 
+/**
+ * Verified place used as a route start or end (formatted address + lat/lng).
+ */
+data class RouteEndpoint(
+    val addressLabel: String,
+    val latitude: Double,
+    val longitude: Double,
+) {
+    init {
+        require(addressLabel.isNotBlank()) { "addressLabel must not be blank" }
+    }
+
+    /** Same place when coordinates match (labels may differ slightly). */
+    fun samePlaceAs(other: RouteEndpoint): Boolean =
+        latitude == other.latitude && longitude == other.longitude
+}
+
 data class RouteStop(
     val id: String,
     val addressLabel: String,
@@ -35,8 +54,21 @@ data class Route(
     val name: String? = null,
     val dateEpochDay: Long,
     val status: RouteStatus = RouteStatus.DRAFT,
+    val start: RouteEndpoint? = null,
+    val end: RouteEndpoint? = null,
     val stops: List<RouteStop> = emptyList(),
-)
+) {
+    val hasEndpoints: Boolean
+        get() = start != null && end != null
+
+    /** Same start and end place is a valid round trip. */
+    val isRoundTrip: Boolean
+        get() {
+            val s = start ?: return false
+            val e = end ?: return false
+            return s.samePlaceAs(e)
+        }
+}
 
 /** Peek summary strip text for the route drag sheet. */
 object RouteSummary {
@@ -45,7 +77,17 @@ object RouteSummary {
         val pickups = route.stops.count { it.kind == StopKind.PICKUP_LOAD }
         val dropoffs = route.stops.count { it.kind == StopKind.DROP_OFF_UNLOAD }
         val label = route.name?.takeIf { it.isNotBlank() } ?: "Untitled route"
-        return "$label · $total stops · $pickups pickup/load · $dropoffs drop-off/unload"
+        val endpoints = when {
+            route.isRoundTrip -> {
+                val place = route.start!!.addressLabel
+                " · round trip · $place"
+            }
+            route.hasEndpoints -> {
+                " · ${route.start!!.addressLabel} → ${route.end!!.addressLabel}"
+            }
+            else -> ""
+        }
+        return "$label$endpoints · $total stops · $pickups pickup/load · $dropoffs drop-off/unload"
     }
 
     fun emptyStrip(): String = "No active route · 0 stops"

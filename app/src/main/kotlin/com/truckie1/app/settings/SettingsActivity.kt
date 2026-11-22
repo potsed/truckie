@@ -30,7 +30,12 @@ class SettingsActivity : ComponentActivity() {
                 navChromeEnabled = false,
                 onNavigate = { navigateToPrimaryDestination(it) },
             ) {
-                SettingsScreen(bufferM = app.clearanceBufferM)
+                SettingsScreen(
+                    bufferM = app.clearanceBufferM,
+                    showNavigationAppPicker = NavigationAppPreference.showsInSettings(app.featureFlags),
+                    navigationAppStore = app.navigationAppStore,
+                    navigationAppQuery = app.navigationAppQuery,
+                )
             }
         }
     }

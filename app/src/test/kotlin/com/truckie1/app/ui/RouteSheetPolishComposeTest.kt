@@ -41,7 +41,7 @@ class RouteSheetPolishComposeTest {
                     RouteSheetBody(
                         route = null,
                         sheetValue = RouteSheetValue.Half,
-                        onCreateRoute = { _, _, _ -> },
+                        onCreateRoute = { _ -> },
                         onAddStop = { _, _, _ -> },
                         modifier = Modifier
                             .fillMaxSize()
@@ -85,7 +85,7 @@ class RouteSheetPolishComposeTest {
                     RouteSheetBody(
                         route = route,
                         sheetValue = RouteSheetValue.Full,
-                        onCreateRoute = { _, _, _ -> },
+                        onCreateRoute = { _ -> },
                         onAddStop = { _, _, _ -> },
                         modifier = Modifier
                             .fillMaxSize()

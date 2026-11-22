@@ -22,6 +22,8 @@ XML screen layouts were removed; do not add new AppCompat/XML screens.
 | `ff_map_home` | MapLibre map-first home + route/stop drag sheet (peek/half/full) | off (on in debug) |
 | `ff_address_autocomplete` | Verified address autocomplete (Nominatim AU default) for map-home stops | off (on in debug) |
 | `ff_map_location_puck` | Blue my-location puck on MapLibre (same Fused fix as camera; subtle LocationComponent pulse; follow mode + Recenter when panned) | off (on in debug) |
+| `ff_route_start_end` | Create route requires verified start + end (same place = round trip) on the map-home sheet | off (on in debug) |
+| `ff_navigate` | Navigate: GraphHopper path always in-app on MapLibre; Settings may pick installed app for post-route handoff only | off (on in debug) |
 
 ## Rules
 
@@ -48,3 +50,10 @@ XML screen layouts were removed; do not add new AppCompat/XML screens.
    fix. Hidden when permission is denied or a fix is unavailable. With `ff_map_home` +
    `ff_map_location_puck`, **follow mode** keeps the puck centred (camera tracks) until
    the driver pans away; a **Recenter** control then restores follow.
+10. Route start/end (`ff_route_start_end`) requires verified autocomplete suggestions for
+    Create route start and end. Same place (or round-trip checkbox) is a valid round trip.
+11. Navigate (`ff_navigate`) always calculates a GraphHopper path in-app (stub until live)
+    with truck preferences (bridges, weight, tolls, soft non-residential through-routes with
+    minimised residential penetration, Fastest/Cheapest among safe). Draws on the same
+    MapLibre map. Settings key `navigation_app_package` defaults to `com.truckie1.in_app`;
+    an installed nav app is optional **post-route** handoff only.

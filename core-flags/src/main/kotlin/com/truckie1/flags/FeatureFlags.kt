@@ -29,6 +29,13 @@ object FlagKeys {
     const val ADDRESS_AUTOCOMPLETE = "ff_address_autocomplete"
     /** Blue my-location puck on the MapLibre map (updates with Fused Location). */
     const val MAP_LOCATION_PUCK = "ff_map_location_puck"
+    /** Create route requires verified start + end (same place = round trip). */
+    const val ROUTE_START_END = "ff_route_start_end"
+    /**
+     * Home Navigate: GraphHopper path drawn on the same MapLibre map
+     * (stub path until live GraphHopper HTTP). No external maps intents.
+     */
+    const val NAVIGATE = "ff_navigate"
 }
 
 /**
