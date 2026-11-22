@@ -14,6 +14,10 @@ Feature flag: **`ff_map_home`** (on in debug). Gherkin: [`features/map_first_hom
 
 Hosted in **MainActivity** Compose **NavHost** only (no new XML / AppCompat screens). Enabling `ff_map_home` also forces the single-activity chrome host.
 
+**Chrome:** map home suppresses the global TopAppBar + bottom NavigationBar (map + drag sheet own the viewport). Trip / Vehicles / Settings keep chrome. A map overlay menu opens those destinations.
+
+**Sheet drag:** peek / half / full via `AnchoredDraggable` + Material3 `BottomSheetDefaults.DragHandle` and nested-scroll bridging (not click-only).
+
 ## Domain
 
 `Route` → `RouteStop[]` with `StopKind.PICKUP_LOAD` \| `DROP_OFF_UNLOAD` (`:core-trips` `RouteSession`).

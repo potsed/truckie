@@ -33,6 +33,20 @@ class MapHomeCatalogTest {
     }
 
     @Test
+    fun sheetRespondsToDragGesturesWithMaterial3HandleAndNestedScroll() {
+        assertTrue(MapHomeCatalog.usesDragGestures)
+        assertTrue(MapHomeCatalog.usesMaterial3DragHandle)
+        assertTrue(MapHomeCatalog.usesNestedScrollBridge)
+        val offsets = MapHomeCatalog.sheetAnchorOffsets(1000f)
+        assertEquals(880f, offsets.getValue(RouteSheetValue.Peek), 0.1f)
+        assertEquals(500f, offsets.getValue(RouteSheetValue.Half), 0.1f)
+        assertEquals(80f, offsets.getValue(RouteSheetValue.Full), 0.1f)
+        // Dragging up decreases Y (sheet expands); Peek Y > Half Y > Full Y.
+        assertTrue(offsets.getValue(RouteSheetValue.Peek) > offsets.getValue(RouteSheetValue.Half))
+        assertTrue(offsets.getValue(RouteSheetValue.Half) > offsets.getValue(RouteSheetValue.Full))
+    }
+
+    @Test
     fun peekShowsSummaryWhileHalfAndFullRevealRouteContent() {
         assertTrue(MapHomeCatalog.showsSummaryStrip(RouteSheetValue.Peek))
         assertTrue(MapHomeCatalog.showsSummaryStrip(RouteSheetValue.Half))
@@ -52,7 +66,30 @@ class MapHomeCatalogTest {
         assertEquals("MainActivity", MapHomeCatalog.hostActivitySimpleName)
         assertTrue(MapHomeCatalog.hostedInNavHost)
         assertTrue(MapHomeCatalog.keepsHighContrastChrome)
+        assertTrue(MapHomeCatalog.hidesGlobalHeaderFooter)
         assertEquals("MapLibre", MapHomeCatalog.mapEngineName)
+    }
+
+    @Test
+    fun mapHomeSuppressesGlobalChromeWhileOtherPrimaryRoutesKeepIt() {
+        assertFalse(
+            NavChromeCatalog.showGlobalChromeForRoute(TruckieRoutes.HOME, mapHomeEnabled = true),
+        )
+        assertFalse(
+            NavChromeCatalog.showTopBarForRoute(TruckieRoutes.HOME, mapHomeEnabled = true),
+        )
+        assertFalse(
+            NavChromeCatalog.showBottomBarForRoute(TruckieRoutes.HOME, mapHomeEnabled = true),
+        )
+        assertTrue(
+            NavChromeCatalog.showGlobalChromeForRoute(TruckieRoutes.PLAN_TRIP, mapHomeEnabled = true),
+        )
+        assertTrue(
+            NavChromeCatalog.showBottomBarForRoute(TruckieRoutes.VEHICLES, mapHomeEnabled = true),
+        )
+        assertTrue(
+            NavChromeCatalog.showGlobalChromeForRoute(TruckieRoutes.HOME, mapHomeEnabled = false),
+        )
     }
 
     @Test

@@ -84,4 +84,5 @@
     <string name="no_route_stops_yet">No stops yet. Add a pickup/load or drop-off/unload.</string>
     <string name="stop_kind_pickup_load">Pickup / load</string>
     <string name="stop_kind_drop_off_unload">Drop-off / unload</string>
+    <string name="map_home_menu">Open navigation menu</string>
 </resources>

@@ -31,8 +31,15 @@ Feature: Map-first home with route stop drag sheet
   Scenario: Drag sheet supports peek half and full
     Given ff_map_home is enabled
     Then the route sheet exposes peek, half, and full anchors
+    And the sheet responds to drag gestures via AnchoredDraggable with a Material3 drag handle
     And the peek state shows a summary strip over the map
     And half and full reveal create-route and stop list content
+
+  Scenario: Map home hides global header and footer chrome
+    Given ff_map_home is enabled
+    Then the map home destination has no TopAppBar or bottom NavigationBar
+    And Trip Vehicles and Settings still show global chrome when opened
+    And a map overlay menu reaches those destinations
 
   Scenario: Create route with optional name and date
     Given ff_map_home is enabled

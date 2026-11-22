@@ -112,6 +112,25 @@ object NavChromeCatalog {
         return base in TruckieRoutes.primaryRoutes
     }
 
+    /**
+     * Map-first home owns the full viewport (map + drag sheet). Suppress global
+     * TopAppBar / NavigationBar so they do not compete with the sheet.
+     * Non-map primary screens keep chrome.
+     */
+    fun showGlobalChromeForRoute(route: String?, mapHomeEnabled: Boolean): Boolean {
+        val base = TruckieRoutes.baseRoute(route) ?: return true
+        if (mapHomeEnabled && base == TruckieRoutes.HOME) return false
+        return true
+    }
+
+    fun showBottomBarForRoute(route: String?, mapHomeEnabled: Boolean): Boolean {
+        if (!showGlobalChromeForRoute(route, mapHomeEnabled)) return false
+        return showBottomBarForRoute(route)
+    }
+
+    fun showTopBarForRoute(route: String?, mapHomeEnabled: Boolean): Boolean =
+        showGlobalChromeForRoute(route, mapHomeEnabled)
+
     fun selectedForActivity(activitySimpleName: String): TruckiePrimaryDestination? = when (activitySimpleName) {
         "MainActivity" -> TruckiePrimaryDestination.HOME
         "TripStopsActivity",
