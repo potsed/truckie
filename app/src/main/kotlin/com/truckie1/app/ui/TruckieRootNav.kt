@@ -479,9 +479,9 @@ private fun MapHomeRoute(
         flags = app.featureFlags,
         mapHomeEnabled = true,
     )
-    val bridges = remember(showBridgeMarkers) {
+    val bridges = remember(showBridgeMarkers, app.bridgePackRepository) {
         if (showBridgeMarkers) {
-            BridgeMarkersCatalog.loadFromAssets(context)
+            app.bridgePackRepository.loadActive().bridges
         } else {
             emptyList()
         }

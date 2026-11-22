@@ -58,8 +58,9 @@ XML screen layouts were removed; do not add new AppCompat/XML screens.
     minimised residential penetration, Fastest/Cheapest among safe). Draws on the same
     MapLibre map. Settings key `navigation_app_package` defaults to `com.truckie1.in_app`;
     an installed nav app is optional **post-route** handoff only.
-12. Bridge markers (`ff_bridge_markers`) draw Australia-first sample/fixture bridges on the
-    map-first home via a separate Annotation **SymbolManager**. Points load from
-    `assets/bridges/au_sample_bridges.json` (not live GraphHopper / OSM / NHVR). Optional
-    short clearance labels appear when `clearanceHeightM` is present. Requires map home
-    to be the active surface; does not change create-route or vehicle UI.
+12. Bridge markers (`ff_bridge_markers`) draw Australia-first bridges on the map-first home
+    via a separate Annotation **SymbolManager**. Long-term source is a **downloadable
+    updatable pack** (`BridgePackRepository`: versioned cache + refresh). The baked-in
+    `assets/bridges/au_sample_bridges.json` only **seeds** an empty cache. Optional short
+    clearance labels appear when `clearanceHeightM` is present. Requires map home to be
+    the active surface; does not change create-route or vehicle UI.

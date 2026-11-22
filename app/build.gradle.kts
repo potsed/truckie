@@ -20,7 +20,7 @@ android {
         minSdk = 24
         targetSdk = 35
         versionCode = 1
-        versionName = "0.8.1-bridge-markers"
+        versionName = "0.8.2-bridge-pack"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
