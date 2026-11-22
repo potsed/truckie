@@ -15,7 +15,7 @@ AU-first (QLD/Brisbane), expandable. Product UI term: **Vehicle** (not Truck).
 | Flags | Local feature-flag facade (`:core-flags`) |
 | Profiles | Room by rego (`ff_vehicle_profiles`); make/model/year, H/W/L, mass/TARE/GVM/GCM, axles, network |
 | Trips | In-memory stop list (`ff_multi_stop`); cargo pick-up/drop-off (`ff_stop_cargo`); optimize Fastest/Cheapest (`ff_route_optimize`) |
-| minSdk | **21** (Compose; Android Auto gated to API **23+**) |
+| minSdk | **24** (Compose Material3 1.5 / BOM 2026.11; Android Auto gated in code) |
 
 ## Clearance model
 
@@ -31,7 +31,7 @@ Cargo height/width/length/mass live on trip stops (pick up / drop off).
 
 ## Build
 
-Requires JDK 17+ (21 OK) and an Android SDK (`platforms;android-35`, `build-tools;36.0.0`).
+Requires JDK 17+ (21 OK) and an Android SDK (`platforms;android-37.2`, `build-tools;36.0.0`).
 
 ### Play Store artifact (primary): AAB
 

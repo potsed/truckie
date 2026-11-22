@@ -3,7 +3,7 @@ package com.truckie1.maps
 /**
  * MapLibre Native Android will render vector tiles / offline packs.
  * Phase 0 exposes a stub so :app can assemble without the native SDK
- * (MapLibre's current minSdk may still exceed Truckie1's phone minSdk 21).
+ * (MapLibre's current minSdk may still exceed Truckie1's phone minSdk 24).
  */
 interface MapEngine {
     val engineName: String

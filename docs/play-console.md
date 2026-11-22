@@ -20,8 +20,9 @@ Local dogfood can still use a debug APK (`./scripts/build-apk.sh`). Play accepts
 
 ## Target / compile SDK
 
-- Keep `targetSdk` / `compileSdk` at the **current Play requirement** (scaffold uses 35).
-- Bump when Play raises the floor; track in release notes.
+- `compileSdk` is **37.2** (`platforms;android-37.2`) so AndroidX AAR metadata checks pass; raise it when dependencies require a newer platform.
+- `minSdk` is **24** (Compose Material3 1.5 / BOM 2026.11 floor); `targetSdk` stays at **35** until you intentionally opt into newer runtime behavior.
+- Bump `targetSdk` when Play raises the floor; track in release notes.
 
 ## Privacy & declarations
 

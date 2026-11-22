@@ -1,9 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
-
-    <!-- Cars App Library declares minSdk 23; phone app is minSdk 21 with Auto gated in code. -->
-    <uses-sdk tools:overrideLibrary="androidx.car.app,androidx.car.app.projected" />
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET" />
 
