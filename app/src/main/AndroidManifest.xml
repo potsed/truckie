@@ -25,6 +25,16 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".profiles.VehicleListActivity"
+            android:exported="false"
+            android:parentActivityName=".MainActivity" />
+
+        <activity
+            android:name=".profiles.VehicleEditActivity"
+            android:exported="false"
+            android:parentActivityName=".profiles.VehicleListActivity" />
+
         <!-- Android Auto service: declared for Phase 1+; gated in code to API 23+ -->
         <service
             android:name=".auto.TruckieCarAppService"
