@@ -14,8 +14,11 @@ import java.util.Locale
 
 /**
  * Low-bridge markers for MapLibre map home (`ff_bridge_markers`).
- * Australia-first sample/fixture points from a local JSON asset — not a live
- * GraphHopper / OSM / NHVR pack. Gherkin: features/bridge_markers.feature
+ *
+ * Long-term data source is a **downloadable, updatable** [BridgePackRepository]
+ * (versioned cache → SymbolManager). The baked-in sample asset is **bootstrap
+ * only** when the cache is empty. Gherkin: features/bridge_markers.feature,
+ * features/bridge_pack.feature.
  */
 data class BridgePoint(
     val id: String,

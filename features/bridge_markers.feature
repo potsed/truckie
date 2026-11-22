@@ -4,9 +4,10 @@ Feature: Bridge markers on home map
   So that I can see clearance constraints before planning a route
 
   # Product toggle: ff_bridge_markers
-  # Australia-first sample/fixture points from a local asset (not live GraphHopper).
+  # Long-term data: downloadable updatable AU pack (see bridge_pack.feature).
+  # Baked-in sample asset is bootstrap only when the pack cache is empty.
   # Out of scope: Phase C vehicle UI, create-route changes, global header/footer,
-  # live OSM/NHVR pack ingestion, GraphHopper Custom Model routing.
+  # live OSM/NHVR pack ingest host, GraphHopper Custom Model routing.
 
   Scenario: Bridge markers are feature-flagged
     Given the feature flag ff_bridge_markers is off
