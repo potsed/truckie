@@ -52,7 +52,8 @@ class ThemeContrastTest {
         val context = ContextThemeWrapper(base, R.style.Theme_Truckie1)
         val theme = context.theme
 
-        val primaryColor = resolveThemeColor(theme, com.google.android.material.R.attr.colorPrimary)
+        // Material 1.14+ no longer exposes colorPrimary on material.R; AppCompat owns the attr.
+        val primaryColor = resolveThemeColor(theme, androidx.appcompat.R.attr.colorPrimary)
         val onPrimaryColor = resolveThemeColor(theme, com.google.android.material.R.attr.colorOnPrimary)
 
         assertTrue(

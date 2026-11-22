@@ -15,7 +15,7 @@ Thanks for helping build safer vehicle navigation.
 ## Local setup
 
 1. JDK 17+ (21 recommended).
-2. Android SDK with `platforms;android-35` and `build-tools;35.0.0`.
+2. Android SDK with `platforms;android-37.2` and `build-tools;36.0.0`.
 3. Clone, then:
 
 ```bash

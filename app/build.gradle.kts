@@ -6,12 +6,18 @@ plugins {
 
 android {
     namespace = "com.truckie1.app"
-    compileSdk = 35
+    // AndroidX (core-ktx 1.19+, Compose BOM 2026.11+) requires compileSdk ≥ 37.1;
+    // Studio recommends 37.2. Platform package: platforms;android-37.2
+    compileSdk {
+        version = release(37) {
+            minorApiLevel = 2
+        }
+    }
 
     defaultConfig {
         applicationId = "com.truckie1.app"
-        // Compose requires API 21+; Android Auto remains gated to API 23+ in code.
-        minSdk = 21
+        // Compose BOM 2026.11 / Material3 1.5 declare minSdk 24 (Material 1.14+ / Cars App need 23+).
+        minSdk = 24
         targetSdk = 35
         versionCode = 1
         versionName = "0.5.0-compose-ui"
