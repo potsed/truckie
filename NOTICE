@@ -1,0 +1,15 @@
+Truckie1
+Copyright 2026 Daniel E. Smith and contributors
+
+This product is licensed under the Apache License, Version 2.0.
+See the LICENSE file for the full license text.
+
+This product includes or will include software developed by third parties.
+Attribution for map data, routing, and UI libraries will be maintained in
+docs/licenses.md as dependencies are integrated.
+
+Planned / stubbed components (Phase 0):
+- MapLibre Native Android (BSD-2-Clause) — map render stub in :core-maps
+- GraphHopper (Apache-2.0) — routing client stub in :core-routing
+- OpenStreetMap data (ODbL) — used via routing/map pipelines
+- AndroidX / Jetpack libraries (Apache-2.0)

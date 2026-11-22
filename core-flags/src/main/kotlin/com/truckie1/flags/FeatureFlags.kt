@@ -1,0 +1,34 @@
+package com.truckie1.flags
+
+/**
+ * Feature-flag facade. Every user-facing capability must be gated.
+ */
+interface FeatureFlags {
+    fun isEnabled(key: String): Boolean
+}
+
+object FlagKeys {
+    const val VEHICLE_PROFILES = "ff_vehicle_profiles"
+    const val MULTI_STOP_CARGO = "ff_multi_stop_cargo"
+    const val BRIDGE_SAFE_ROUTING = "ff_bridge_safe_routing"
+    const val OPTIMIZE_FOR_VEHICLE = "ff_optimize_for_vehicle"
+    const val TOLLS = "ff_tolls"
+    const val OFFLINE_MAPS = "ff_offline_maps"
+    const val ANDROID_AUTO = "ff_android_auto"
+    const val NHVR_OVERLAY = "ff_nhvr_overlay"
+}
+
+/**
+ * Local in-memory flags. Production defaults are off.
+ */
+class LocalFeatureFlags(
+    initial: Map<String, Boolean> = emptyMap(),
+) : FeatureFlags {
+    private val overrides = initial.toMutableMap()
+
+    override fun isEnabled(key: String): Boolean = overrides[key] == true
+
+    fun setEnabled(key: String, enabled: Boolean) {
+        overrides[key] = enabled
+    }
+}

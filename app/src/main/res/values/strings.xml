@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Truckie1</string>
+    <string name="home_title">Truckie1</string>
+    <string name="plan_trip">Plan trip</string>
+    <string name="vehicle_profiles">Vehicle profiles</string>
+    <string name="settings">Settings</string>
+    <string name="clearance_buffer_label">Clearance buffer (0.15–1.0 m)</string>
+    <string name="auto_unavailable">Android Auto requires API 23+</string>
+</resources>

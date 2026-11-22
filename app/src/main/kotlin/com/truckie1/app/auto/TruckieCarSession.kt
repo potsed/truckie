@@ -1,0 +1,23 @@
+package com.truckie1.app.auto
+
+import android.content.Intent
+import androidx.car.app.Screen
+import androidx.car.app.Session
+import androidx.car.app.model.Action
+import androidx.car.app.model.MessageTemplate
+import androidx.car.app.model.Template
+
+class TruckieCarSession : Session() {
+    override fun onCreateScreen(intent: Intent): Screen = TruckieCarHomeScreen(carContext)
+}
+
+class TruckieCarHomeScreen(
+    carContext: androidx.car.app.CarContext,
+) : Screen(carContext) {
+    override fun onGetTemplate(): Template {
+        return MessageTemplate.Builder("Truckie1 navigation (scaffold)")
+            .setTitle("Truckie1")
+            .setHeaderAction(Action.APP_ICON)
+            .build()
+    }
+}
