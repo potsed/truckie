@@ -1,0 +1,115 @@
+# --- Gradle ---
+.gradle/
+**/build/
+!gradle/wrapper/gradle-wrapper.jar
+gradle-app.setting
+.gradletasknamecache
+**/captures/
+
+# --- Android / local machine ---
+local.properties
+*.apk
+*.aab
+*.ap_
+*.dex
+*.class
+bin/
+gen/
+out/
+.externalNativeBuild/
+.cxx/
+*.so
+*.hprof
+*.log
+lint/reports/
+lint-results*
+**/lint-results*
+**/test-results/
+**/reports/
+**/jacoco/
+*.gcno
+*.gcda
+
+# --- Kotlin ---
+.kotlin/
+**/.kotlin/
+*.kotlin_module
+
+# --- IDE (prefer ignoring; do not commit .idea) ---
+.idea/
+*.iml
+*.iws
+*.ipr
+.project
+.classpath
+.settings/
+.vscode/
+*.sublime-workspace
+*.sublime-project
+.fleet/
+
+# --- Keystores / secrets (never commit secrets) ---
+*.jks
+*.keystore
+!debug.keystore.example
+secrets.properties
+*.pem
+*.p12
+google-services.json
+**/keystore.properties
+
+# --- OS: macOS ---
+.DS_Store
+.AppleDouble
+.LSOverride
+.Spotlight-V100
+.Trashes
+._*
+.DocumentRevisions-V100
+.fseventsd
+.TemporaryItems
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# --- OS: Windows ---
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+$RECYCLE.BIN/
+*.stackdump
+[Dd]esktop.ini
+*.lnk
+
+# --- OS: Linux ---
+*~
+.directory
+.fuse_hidden*
+.nfs*
+.Trash-*
+
+# --- Editors / swap / temp (OS-agnostic) ---
+*.swp
+*.swo
+*.swn
+*.bak
+*.tmp
+*.temp
+*.orig
+*.rej
+.#*
+\#*\#
+
+# --- Misc tooling ---
+*.pid
+*.seed
+*.pid.lock
+.cache/
+*.tsbuildinfo
+node_modules/
