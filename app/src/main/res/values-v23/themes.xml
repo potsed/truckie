@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.Truckie1" parent="Theme.Material3.Light.NoActionBar">
+    <style name="Theme.Truckie" parent="Theme.Material3.Light.NoActionBar">
         <item name="colorPrimary">@color/truckie_navy</item>
         <item name="colorOnPrimary">@color/truckie_on_primary</item>
         <item name="colorSecondary">@color/truckie_amber</item>

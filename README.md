@@ -1,4 +1,4 @@
-# Truckie1
+# Truckie
 
 Android navigation for vehicles with height, width, length, and mass constraints.
 AU-first (QLD/Brisbane), expandable. Product UI term: **Vehicle** (not Truck).

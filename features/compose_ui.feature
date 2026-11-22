@@ -1,13 +1,13 @@
 Feature: Jetpack Compose UI
   As a driver
-  I want every Truckie1 screen rendered with Jetpack Compose Material3
+  I want every Truckie screen rendered with Jetpack Compose Material3
   So that UI is readable, edge-to-edge, and free of obsolete XML/AppCompat screen debt
 
   # Platform UI stack (not a product toggle). Existing product flags still gate entry points.
   # High-contrast Home intent from PR #6: white labels on navy fills; no DarkActionBar strip.
 
   Scenario: Compose Material3 theme keeps high-contrast primary actions
-    Given the Truckie1 Compose Material3 color scheme is defined
+    Given the Truckie Compose Material3 color scheme is defined
     Then primary container "navy" and on-primary "white" meet WCAG AA contrast
     And body text "navy" on background "sky" meets WCAG AA contrast
 

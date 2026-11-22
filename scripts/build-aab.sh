@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build Truckie1 Android App Bundle for Play Console upload.
+# Build Truckie Android App Bundle for Play Console upload.
 # Artifacts stay under */build/ — never commit *.aab / *.apk (source-only repo).
 set -euo pipefail
 

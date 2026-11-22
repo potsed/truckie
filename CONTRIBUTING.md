@@ -1,4 +1,4 @@
-# Contributing to Truckie1
+# Contributing to Truckie
 
 Thanks for helping build safer vehicle navigation.
 

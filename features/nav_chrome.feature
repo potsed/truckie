@@ -8,7 +8,7 @@ Feature: Compose header and footer navigation
   # Audience: owner-operators — emphasize Trip (pickups/dropoffs + optimize) over Settings.
 
   Scenario: Primary destinations are trip-first for drivers
-    Given nav chrome is catalogued for Truckie1
+    Given nav chrome is catalogued for Truckie
     Then the primary destinations are Home, Trip, Vehicles, and Settings
     And Trip is ordered immediately after Home before Vehicles and Settings
     And each destination has a high-contrast label for the navy/sky theme

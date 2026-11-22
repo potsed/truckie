@@ -49,7 +49,7 @@ class ThemeContrastTest {
     @Test
     fun themeMapsPrimaryButtonsToOnPrimaryLabelWithoutActionBar() {
         val base = ApplicationProvider.getApplicationContext<Context>()
-        val context = ContextThemeWrapper(base, R.style.Theme_Truckie1)
+        val context = ContextThemeWrapper(base, R.style.Theme_Truckie)
         val theme = context.theme
 
         // Material 1.14+ no longer exposes colorPrimary on material.R; AppCompat owns the attr.

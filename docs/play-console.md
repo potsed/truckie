@@ -1,4 +1,4 @@
-# Play Console — high-level requirements (Truckie1)
+# Play Console — high-level requirements (Truckie)
 
 Primary store artifact: **Android App Bundle (`.aab`)**, not APK.
 
