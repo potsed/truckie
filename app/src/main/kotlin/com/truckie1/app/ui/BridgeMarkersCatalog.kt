@@ -102,7 +102,8 @@ object BridgeMarkersCatalog {
 
     fun ensureBridgeMarkerImage(style: Style, context: Context) {
         if (style.getImage(ICON_ID) != null) return
-        style.addImage(ICON_ID, createBridgeMarkerBitmap(context = context))
+        // Explicit non-SDF — coloured W5-8 must not be treated as a template icon.
+        style.addImage(ICON_ID, createBridgeMarkerBitmap(context = context), /* sdf = */ false)
     }
 
     /**

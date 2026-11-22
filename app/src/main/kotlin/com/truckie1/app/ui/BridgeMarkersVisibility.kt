@@ -18,8 +18,17 @@ object BridgeMarkersVisibility {
     /** MapLibreHost loads OpenFreeMap style once; recompositions only rebind annotations. */
     const val loadsStyleOnce: Boolean = true
 
+    /** Concurrent AndroidView updates must enqueue, not start a second setStyle. */
+    const val coalescesConcurrentStyleLoads: Boolean = true
+
     /** When style is (re)created, SymbolManagers / LineManager are rebuilt for that style. */
     const val recreatesManagersOnNewStyle: Boolean = true
+
+    /** If map.style !== the Style managers were bound to, drop and recreate them. */
+    const val recreatesManagersWhenStyleIdentityDrifts: Boolean = true
+
+    /** If a manager's layer id is missing from the live style, recreate that manager. */
+    const val recreatesManagersWhenLayerMissing: Boolean = true
 
     /**
      * Relative SymbolManager scale for the W5-8 PNG (~96px intrinsic).

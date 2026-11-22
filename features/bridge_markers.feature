@@ -29,7 +29,16 @@ Feature: Bridge markers on home map
     And the MapLibre style has loaded once
     When location updates cause Compose to recompose the map
     Then the style is not reloaded
+    And concurrent AndroidView updates coalesce into a single setStyle
     And SymbolManagers are rebound on the live style so bridge markers remain visible
+    And if the live style identity drifts or a manager layer is missing, managers are recreated
+
+  Scenario: Jump to sample bridges still shows W5-8 markers
+    Given ff_bridge_markers and ff_demo_mode are enabled
+    And the pack has seeded SEQ bridges near Brisbane CBD
+    When the driver taps Jump to sample bridges
+    Then the camera is over Brisbane CBD
+    And W5-8 SymbolManager icons remain visible (not orphaned by style reload races)
 
   Scenario: Markers use SymbolManager with optional clearance labels
     Given ff_bridge_markers is enabled
