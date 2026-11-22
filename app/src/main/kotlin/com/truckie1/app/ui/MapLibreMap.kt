@@ -13,6 +13,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -30,9 +31,11 @@ import com.truckie1.maps.MapCameraTarget
 import com.truckie1.trips.RouteStop
 import org.maplibre.android.MapLibre
 import org.maplibre.android.camera.CameraPosition
+import org.maplibre.android.camera.CameraUpdateFactory
 import org.maplibre.android.geometry.LatLng
 import org.maplibre.android.location.LocationComponentActivationOptions
 import org.maplibre.android.location.LocationComponentOptions
+import org.maplibre.android.location.OnCameraTrackingChangedListener
 import org.maplibre.android.location.modes.CameraMode
 import org.maplibre.android.location.modes.RenderMode
 import org.maplibre.android.maps.MapLibreMap
@@ -49,6 +52,10 @@ import org.maplibre.android.plugins.annotation.SymbolOptions
  * When [showLocationPuck] is true (`ff_map_location_puck`), a standard blue
  * LocationComponent puck is shown at the same fused fix the camera uses.
  *
+ * When [locationFollowEnabled] is true, follow mode keeps the puck centred and
+ * moves the camera with location updates until the driver pans away; Recenter
+ * is owned by the parent overlay.
+ *
  * Stop markers use the Annotation plugin [SymbolManager] (not deprecated MarkerOptions).
  *
  * When the native MapView cannot be created (e.g. Robolectric unit tests),
@@ -61,12 +68,18 @@ fun MapLibreMap(
     locationProvider: CurrentLocationProvider? = null,
     settingsEnsurer: LocationSettingsEnsurer? = null,
     showLocationPuck: Boolean = false,
+    locationFollowEnabled: Boolean = false,
+    followState: MapFollowState = MapLocationFollow.initial(),
+    onFollowStateChange: (MapFollowState) -> Unit = {},
+    recenterToken: Int = 0,
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val provider = locationProvider ?: remember { FusedCurrentLocationProvider(context) }
     val ensurer = settingsEnsurer ?: remember { PlayServicesLocationSettingsEnsurer(context) }
     val hostHolder = remember { mutableStateOf<MapLibreHost?>(null) }
+    val followStateRef = remember { mutableStateOf(followState) }
+    SideEffect { followStateRef.value = followState }
 
     var cameraTarget by remember { mutableStateOf(MapCameraTarget.fallback()) }
     var locationFix by remember { mutableStateOf<LocationFix?>(null) }
@@ -74,20 +87,45 @@ fun MapLibreMap(
         mutableStateOf(FusedCurrentLocationProvider.hasLocationPermission(context))
     }
 
+    fun publishFollow(next: MapFollowState) {
+        if (next != followStateRef.value) {
+            followStateRef.value = next
+            onFollowStateChange(next)
+        }
+    }
+
     fun onLocationReady(fix: LocationFix?) {
         val permitted = FusedCurrentLocationProvider.hasLocationPermission(context)
         hasPermission = permitted
+        val followActive = locationFollowEnabled && showLocationPuck
         if (showLocationPuck) {
             val resolved = MapLocationPuck.resolve(fix = fix, hasLocationPermission = permitted)
             cameraTarget = resolved.camera
             locationFix = resolved.puck
             hostHolder.value?.updatePuck(resolved.puck, enabled = resolved.puck != null)
+            if (followActive) {
+                val withFix = MapLocationFollow.onLocationFixChanged(
+                    followStateRef.value,
+                    hasLocationFix = resolved.puck != null,
+                )
+                publishFollow(withFix)
+                if (withFix.shouldMoveCameraWithLocation && resolved.puck != null) {
+                    hostHolder.value?.applyFollowCamera(
+                        target = resolved.camera,
+                        animate = false,
+                    )
+                } else if (withFix.isFollowing && resolved.puck == null) {
+                    hostHolder.value?.applyCamera(resolved.camera)
+                }
+            } else {
+                hostHolder.value?.applyCamera(cameraTarget)
+            }
         } else {
             cameraTarget = MapCameraTarget.resolve(fix?.latitude, fix?.longitude)
             locationFix = null
             hostHolder.value?.updatePuck(null, enabled = false)
+            hostHolder.value?.applyCamera(cameraTarget)
         }
-        hostHolder.value?.applyCamera(cameraTarget)
     }
 
     fun fetchAfterSettingsReady() {
@@ -137,6 +175,23 @@ fun MapLibreMap(
         }
     }
 
+    // One-shot Recenter animation when the parent increments [recenterToken].
+    LaunchedEffect(recenterToken) {
+        if (recenterToken <= 0) return@LaunchedEffect
+        if (!locationFollowEnabled || !showLocationPuck) return@LaunchedEffect
+        val fix = locationFix ?: return@LaunchedEffect
+        val target = MapCameraTarget.resolve(fix.latitude, fix.longitude)
+        cameraTarget = target
+        hostHolder.value?.applyFollowCamera(target = target, animate = true)
+    }
+
+    LaunchedEffect(followState.isFollowing, locationFollowEnabled) {
+        if (!locationFollowEnabled || !showLocationPuck) return@LaunchedEffect
+        if (!followState.isFollowing) {
+            hostHolder.value?.setCameraFollowing(false)
+        }
+    }
+
     DisposableEffect(provider) {
         onDispose { provider.stopUpdates() }
     }
@@ -158,6 +213,8 @@ fun MapLibreMap(
 
     if (mapHost == null) {
         val label = when {
+            locationFix != null && showLocationPuck && followState.isFollowing ->
+                "MapLibre · following location"
             locationFix != null && showLocationPuck -> "MapLibre · location puck"
             cameraTarget.usedFallback -> "MapLibre · Brisbane fallback"
             else -> "MapLibre · current location"
@@ -230,6 +287,17 @@ fun MapLibreMap(
                     if (showLocationPuck) {
                         mapHost.ensureLocationComponent(map = map, style = style)
                         mapHost.updatePuck(locationFix, enabled = locationFix != null)
+                        if (locationFollowEnabled) {
+                            mapHost.bindFollowGestures(
+                                map = map,
+                                onUserPanAway = {
+                                    publishFollow(
+                                        MapLocationFollow.onUserPan(followStateRef.value),
+                                    )
+                                },
+                            )
+                            mapHost.setCameraFollowing(followStateRef.value.isFollowing)
+                        }
                     } else {
                         mapHost.updatePuck(null, enabled = false)
                     }
@@ -250,6 +318,8 @@ private class MapLibreHost(
     private var symbolManager: SymbolManager? = null
     private var mapRef: MapLibreMap? = null
     private var locationActivated: Boolean = false
+    private var followGesturesBound: Boolean = false
+    private var ignoreTrackingDismiss: Boolean = false
 
     fun bindStops(
         mapView: MapView,
@@ -315,6 +385,31 @@ private class MapLibreHost(
         locationActivated = true
     }
 
+    fun bindFollowGestures(map: MapLibreMap, onUserPanAway: () -> Unit) {
+        mapRef = map
+        if (followGesturesBound) return
+        map.addOnCameraMoveStartedListener { reason ->
+            if (reason == MapLibreMap.OnCameraMoveStartedListener.REASON_API_GESTURE) {
+                setCameraFollowing(false)
+                onUserPanAway()
+            }
+        }
+        if (locationActivated) {
+            map.locationComponent.addOnCameraTrackingChangedListener(
+                object : OnCameraTrackingChangedListener {
+                    override fun onCameraTrackingDismissed() {
+                        if (ignoreTrackingDismiss) return
+                        setCameraFollowing(false)
+                        onUserPanAway()
+                    }
+
+                    override fun onCameraTrackingChanged(currentMode: Int) = Unit
+                },
+            )
+        }
+        followGesturesBound = true
+    }
+
     fun updatePuck(fix: LocationFix?, enabled: Boolean) {
         val map = mapRef ?: return
         if (!locationActivated) return
@@ -339,6 +434,39 @@ private class MapLibreHost(
         }
     }
 
+    fun applyFollowCamera(target: MapCameraTarget, animate: Boolean) {
+        val map = mapRef ?: return
+        val latLng = LatLng(target.latitude, target.longitude)
+        ignoreTrackingDismiss = true
+        runCatching {
+            if (animate) {
+                map.animateCamera(
+                    CameraUpdateFactory.newLatLngZoom(latLng, target.zoom),
+                    RECENTER_ANIMATION_MS,
+                )
+            } else {
+                map.cameraPosition = CameraPosition.Builder()
+                    .target(latLng)
+                    .zoom(target.zoom)
+                    .build()
+            }
+            setCameraFollowing(true)
+        }
+        mapView.postDelayed({ ignoreTrackingDismiss = false }, RECENTER_ANIMATION_MS.toLong() + 50L)
+    }
+
+    fun setCameraFollowing(following: Boolean) {
+        if (!locationActivated) return
+        val map = mapRef ?: return
+        runCatching {
+            map.locationComponent.cameraMode = if (following) {
+                CameraMode.TRACKING
+            } else {
+                CameraMode.NONE
+            }
+        }
+    }
+
     fun onStart() {
         mapRef?.locationComponent?.takeIf { locationActivated }?.onStart()
     }
@@ -357,7 +485,12 @@ private class MapLibreHost(
             }
             locationActivated = false
         }
+        followGesturesBound = false
         mapRef = null
+    }
+
+    companion object {
+        const val RECENTER_ANIMATION_MS: Int = 750
     }
 }
 

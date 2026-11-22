@@ -33,6 +33,21 @@ Feature: Map-first home with route stop drag sheet
     When location permission is denied or a fix is unavailable
     Then the blue location indicator is hidden
 
+  Scenario: Follow mode keeps the puck centred until the driver pans away
+    Given ff_map_home and ff_map_location_puck are enabled
+    And location permission is granted with a current fix
+    Then follow mode is on by default while location is centred
+    And the blue my-location puck stays locked at map centre
+    And the map camera moves as the driver moves so the puck remains centred
+    And the Recenter control is hidden while following
+    When the driver pans the map so location is no longer centred
+    Then follow mode exits
+    And a Recenter control is shown on the map overlay
+    When the driver taps Recenter
+    Then the camera animates back onto the current location
+    And follow mode is re-enabled
+    And the Recenter control is hidden while centred and following
+
   Scenario: Map style renders a street basemap
     Given MapLibre map home is shown
     Then the style URL is OpenFreeMap Liberty street tiles
