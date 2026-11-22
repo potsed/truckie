@@ -44,8 +44,9 @@
     <string name="add_stop">+ Add stop</string>
     <string name="add_stop_title">Add stop</string>
     <string name="no_stops_yet">No stops yet. Tap + Add stop.</string>
-    <!-- Ready for verified autocomplete (provider lands later; no fake geocoder in nav chrome). -->
+    <!-- Verified autocomplete (ff_address_autocomplete); Nominatim AU default. -->
     <string name="hint_address">Search address…</string>
+    <string name="verified_address_hint">Choose a verified suggestion — free-text addresses are not allowed.</string>
     <string name="cargo_at_stop">Cargo at this stop</string>
     <string name="pick_up">Pick up</string>
     <string name="drop_off">Drop off</string>

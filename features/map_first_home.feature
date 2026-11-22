@@ -51,7 +51,7 @@ Feature: Map-first home with route stop drag sheet
     Given an active route on the map home sheet
     When the driver adds stops via the add-or-find stops UI
     Then each stop is pickup/load or drop-off/unload
-    And address autocomplete may be a NoOp stub until a provider ships
+    And address autocomplete is NoOp unless ff_address_autocomplete is on
     And the stop list and summary strip update
 
   Scenario: Map home stays Compose-only on the single-activity NavHost

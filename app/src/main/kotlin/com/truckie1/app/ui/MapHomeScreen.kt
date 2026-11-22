@@ -105,6 +105,7 @@ fun MapHomeScreen(
     onNavigatePrimary: (TruckiePrimaryDestination) -> Unit = {},
     canNavigatePrimary: (TruckiePrimaryDestination) -> Boolean = { true },
     autocomplete: AddressAutocomplete = NoOpAddressAutocomplete,
+    requireVerifiedAddress: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
     val dragState = remember {
@@ -235,6 +236,7 @@ fun MapHomeScreen(
                         onCreateRoute = onCreateRoute,
                         onAddStop = onAddStop,
                         autocomplete = autocomplete,
+                        requireVerifiedAddress = requireVerifiedAddress,
                         modifier = Modifier
                             .fillMaxSize()
                             .verticalScroll(rememberScrollState())
@@ -366,6 +368,7 @@ internal fun RouteSheetBody(
     onCreateRoute: (name: String?, dateChoice: RouteDateChoice, customDate: LocalDate?) -> Unit,
     onAddStop: (addressLabel: String, kind: StopKind, suggestion: AddressSuggestion?) -> Unit,
     autocomplete: AddressAutocomplete = NoOpAddressAutocomplete,
+    requireVerifiedAddress: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier.testTag("route_sheet_body")) {
@@ -376,6 +379,7 @@ internal fun RouteSheetBody(
                 AddFindStopsSection(
                     autocomplete = autocomplete,
                     onAddStop = onAddStop,
+                    requireVerifiedAddress = requireVerifiedAddress,
                 )
                 Spacer(modifier = Modifier.height(12.dp))
             }
@@ -497,9 +501,11 @@ private fun DateChoiceRow(
 private fun AddFindStopsSection(
     autocomplete: AddressAutocomplete,
     onAddStop: (addressLabel: String, kind: StopKind, suggestion: AddressSuggestion?) -> Unit,
+    requireVerifiedAddress: Boolean = false,
 ) {
     var query by remember { mutableStateOf("") }
     var kind by remember { mutableStateOf(StopKind.PICKUP_LOAD) }
+    var selectedSuggestion by remember { mutableStateOf<AddressSuggestion?>(null) }
     val suggestions = remember(query) { autocomplete.suggest(query) }
 
     Text(
@@ -511,7 +517,10 @@ private fun AddFindStopsSection(
     Spacer(modifier = Modifier.height(8.dp))
     OutlinedTextField(
         value = query,
-        onValueChange = { query = it },
+        onValueChange = {
+            query = it
+            selectedSuggestion = null
+        },
         modifier = Modifier
             .fillMaxWidth()
             .testTag("add_find_stops_field"),
@@ -525,15 +534,36 @@ private fun AddFindStopsSection(
                 text = suggestion.label,
                 modifier = Modifier
                     .fillMaxWidth()
+                    .testTag("address_suggestion")
                     .clickable {
-                        query = suggestion.label
-                        onAddStop(suggestion.label, kind, suggestion)
-                        query = ""
+                        if (requireVerifiedAddress) {
+                            if (suggestion.isVerified) {
+                                onAddStop(suggestion.label, kind, suggestion)
+                                query = ""
+                                selectedSuggestion = null
+                            }
+                        } else {
+                            query = suggestion.label
+                            selectedSuggestion = suggestion
+                            onAddStop(suggestion.label, kind, suggestion)
+                            query = ""
+                            selectedSuggestion = null
+                        }
                     }
                     .padding(vertical = 8.dp),
                 color = MaterialTheme.colorScheme.onSurface,
             )
         }
+    }
+    if (requireVerifiedAddress && query.isNotBlank() && suggestions.isEmpty()) {
+        Text(
+            text = stringResource(R.string.verified_address_hint),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier
+                .padding(top = 4.dp)
+                .testTag("verified_address_hint"),
+        )
     }
     Spacer(modifier = Modifier.height(8.dp))
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -551,19 +581,22 @@ private fun AddFindStopsSection(
         )
     }
     Spacer(modifier = Modifier.height(8.dp))
+    val canAddFreeText = !requireVerifiedAddress && query.isNotBlank()
     TruckiePrimaryButton(
         text = stringResource(R.string.add_stop_to_route),
         onClick = {
+            if (requireVerifiedAddress) return@TruckiePrimaryButton
             val label = query.trim()
             if (label.isNotEmpty()) {
-                onAddStop(label, kind, null)
+                onAddStop(label, kind, selectedSuggestion)
                 query = ""
+                selectedSuggestion = null
             }
         },
         modifier = Modifier
             .fillMaxWidth()
             .testTag("add_stop_button"),
-        enabled = query.isNotBlank(),
+        enabled = canAddFreeText,
     )
 }
 

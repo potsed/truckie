@@ -47,4 +47,13 @@ class LocalFeatureFlagsTest {
         flags.setEnabled(FlagKeys.MAP_HOME, true)
         assertTrue(flags.isEnabled(FlagKeys.MAP_HOME))
     }
+
+    @Test
+    fun addressAutocompleteFlagKey() {
+        assertTrue(FlagKeys.ADDRESS_AUTOCOMPLETE == "ff_address_autocomplete")
+        val flags = LocalFeatureFlags()
+        assertFalse(flags.isEnabled(FlagKeys.ADDRESS_AUTOCOMPLETE))
+        flags.setEnabled(FlagKeys.ADDRESS_AUTOCOMPLETE, true)
+        assertTrue(flags.isEnabled(FlagKeys.ADDRESS_AUTOCOMPLETE))
+    }
 }

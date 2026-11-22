@@ -478,22 +478,35 @@ private fun MapHomeRoute(
             sheetValue = RouteSheetValue.Half
         },
         onAddStop = { addressLabel, kind, suggestion ->
-            app.routeSession.addStop(
-                com.truckie1.trips.RouteStop(
+            val requireVerified = com.truckie1.app.trips.VerifiedAddressCatalog
+                .requiresVerifiedSuggestion(app.featureFlags)
+            when (
+                val built = com.truckie1.app.trips.VerifiedRouteStopBuilder.build(
                     id = newStopId(),
-                    addressLabel = addressLabel,
-                    latitude = suggestion?.latitude,
-                    longitude = suggestion?.longitude,
                     kind = kind,
-                ),
-            )
-            route = app.routeSession.activeRoute()
+                    suggestion = suggestion,
+                    freeTextLabel = addressLabel,
+                    requireVerified = requireVerified,
+                )
+            ) {
+                is com.truckie1.app.trips.VerifiedRouteStopBuilder.Result.Ok -> {
+                    app.routeSession.addStop(built.stop)
+                    route = app.routeSession.activeRoute()
+                }
+                is com.truckie1.app.trips.VerifiedRouteStopBuilder.Result.Err -> {
+                    // Verified mode: ignore free-text-only / incomplete attempts.
+                }
+            }
         },
         onNavigatePrimary = onNavigatePrimary,
         canNavigatePrimary = { destination ->
             NavChromeCatalog.canNavigate(destination, app.featureFlags)
         },
-        autocomplete = com.truckie1.app.trips.NoOpAddressAutocomplete,
+        autocomplete = com.truckie1.app.trips.VerifiedAddressCatalog.autocompleteFor(
+            app.featureFlags,
+        ),
+        requireVerifiedAddress = com.truckie1.app.trips.VerifiedAddressCatalog
+            .requiresVerifiedSuggestion(app.featureFlags),
         modifier = Modifier.fillMaxSize(),
     )
 }
