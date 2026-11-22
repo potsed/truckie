@@ -23,6 +23,8 @@ object FlagKeys {
     const val NHVR_OVERLAY = "ff_nhvr_overlay"
     /** Material3 TopAppBar + bottom NavigationBar across primary screens. */
     const val NAV_CHROME = "ff_nav_chrome"
+    /** MapLibre map-first home + route/stop drag sheet (Phase A). */
+    const val MAP_HOME = "ff_map_home"
 }
 
 /**

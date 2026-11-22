@@ -38,4 +38,13 @@ class LocalFeatureFlagsTest {
         flags.setEnabled(FlagKeys.NAV_CHROME, true)
         assertTrue(flags.isEnabled(FlagKeys.NAV_CHROME))
     }
+
+    @Test
+    fun mapHomeFlagKey() {
+        assertTrue(FlagKeys.MAP_HOME == "ff_map_home")
+        val flags = LocalFeatureFlags()
+        assertFalse(flags.isEnabled(FlagKeys.MAP_HOME))
+        flags.setEnabled(FlagKeys.MAP_HOME, true)
+        assertTrue(flags.isEnabled(FlagKeys.MAP_HOME))
+    }
 }

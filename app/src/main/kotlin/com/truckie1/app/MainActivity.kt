@@ -40,7 +40,9 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val app = application as TruckieApp
-        navChromeEnabled = app.featureFlags.isEnabled(FlagKeys.NAV_CHROME)
+        // Map-first home requires the single-activity NavHost; treat as chrome-on.
+        navChromeEnabled = app.featureFlags.isEnabled(FlagKeys.NAV_CHROME) ||
+            app.featureFlags.isEnabled(FlagKeys.MAP_HOME)
         pendingRoute = resolveStartRoute(intent)
         setTruckieContent {
             if (navChromeEnabled) {

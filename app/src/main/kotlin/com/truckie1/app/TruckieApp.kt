@@ -5,12 +5,13 @@ import com.truckie1.app.profiles.RoomVehicleProfileRepository
 import com.truckie1.app.profiles.VehicleDatabase
 import com.truckie1.flags.FlagKeys
 import com.truckie1.flags.LocalFeatureFlags
-import com.truckie1.maps.MapLibreStubEngine
+import com.truckie1.maps.MapLibreNativeEngine
 import com.truckie1.profiles.VehicleProfileRepository
 import com.truckie1.routing.DefaultTourCandidates
 import com.truckie1.routing.StubGraphHopperRouter
 import com.truckie1.routing.VehicleTripOptimizer
 import com.truckie1.trips.ClearanceBuffer
+import com.truckie1.trips.RouteSession
 import com.truckie1.trips.TripSession
 
 class TruckieApp : Application() {
@@ -18,7 +19,8 @@ class TruckieApp : Application() {
     lateinit var vehicleProfiles: VehicleProfileRepository
         private set
     val tripSession = TripSession()
-    val mapEngine = MapLibreStubEngine()
+    val routeSession = RouteSession()
+    val mapEngine = MapLibreNativeEngine()
     val router = StubGraphHopperRouter()
 
     /**
@@ -49,6 +51,7 @@ class TruckieApp : Application() {
             featureFlags.setEnabled(FlagKeys.STOP_CARGO, true)
             featureFlags.setEnabled(FlagKeys.ROUTE_OPTIMIZE, true)
             featureFlags.setEnabled(FlagKeys.NAV_CHROME, true)
+            featureFlags.setEnabled(FlagKeys.MAP_HOME, true)
         }
     }
 }

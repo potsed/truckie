@@ -19,6 +19,7 @@ XML screen layouts were removed; do not add new AppCompat/XML screens.
 | `ff_android_auto` | Android Auto surfaces (requires API 23+) | off |
 | `ff_nhvr_overlay` | NHVR / state restriction overlays | off |
 | `ff_nav_chrome` | Material3 TopAppBar + bottom NavigationBar (Home, Plan trip, Vehicles, Settings) | off (on in debug) |
+| `ff_map_home` | MapLibre map-first home + route/stop drag sheet (peek/half/full) | off (on in debug) |
 
 ## Rules
 
@@ -33,3 +34,6 @@ XML screen layouts were removed; do not add new AppCompat/XML screens.
    `NavigationBar` **once** on `MainActivity` around a Compose NavHost (global fixed
    chrome; content scrolls in between). Plan trip / Vehicles tabs still require
    `ff_multi_stop` / `ff_vehicle_profiles`.
+7. Map home (`ff_map_home`) replaces list-first Home with MapLibre + route drag sheet
+   inside the same NavHost. Enabling map home also forces the single-activity chrome
+   host. Address autocomplete stays a NoOp stub until a verified provider ships.
