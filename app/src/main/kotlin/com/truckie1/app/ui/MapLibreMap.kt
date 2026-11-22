@@ -184,12 +184,12 @@ fun MapLibreMap(
         }
     }
 
-    // One-shot Recenter animation when the parent increments [recenterToken].
+    // One-shot Recenter: pan onto fix + restore default closer zoom, then follow.
     LaunchedEffect(recenterToken) {
         if (recenterToken <= 0) return@LaunchedEffect
         if (!locationFollowEnabled || !showLocationPuck) return@LaunchedEffect
         val fix = locationFix ?: return@LaunchedEffect
-        val target = MapCameraTarget.resolve(fix.latitude, fix.longitude)
+        val target = MapLocationFollow.cameraTargetForRecenter(fix.latitude, fix.longitude)
         cameraTarget = target
         hostHolder.value?.applyFollowCamera(target = target, animate = true)
     }

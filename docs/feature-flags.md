@@ -50,7 +50,8 @@ XML screen layouts were removed; do not add new AppCompat/XML screens.
    indicator at the driver's Fused Location fix and centres the camera on that same
    fix. Hidden when permission is denied or a fix is unavailable. With `ff_map_home` +
    `ff_map_location_puck`, **follow mode** keeps the puck centred (camera tracks) until
-   the driver pans away; a **Recenter** control then restores follow.
+   the driver pans away; a **Recenter** control then restores follow and resets zoom to
+   the default closer zoom (`MapCameraDefaults.ZOOM`).
 10. Route start/end (`ff_route_start_end`) requires verified autocomplete suggestions for
     Create route start and end. Same place (or round-trip checkbox) is a valid round trip.
 11. Navigate (`ff_navigate`) always calculates a GraphHopper path in-app (stub until live)

@@ -45,6 +45,7 @@ Feature: Map-first home with route stop drag sheet
     And a Recenter control is shown on the map overlay
     When the driver taps Recenter
     Then the camera animates back onto the current location
+    And zoom is reset to the default closer zoom used when first centering on the puck
     And follow mode is re-enabled
     And the Recenter control is hidden while centred and following
 
