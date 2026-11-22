@@ -9,6 +9,8 @@ class LocalFeatureFlagsTest {
     fun defaultsOff() {
         val flags = LocalFeatureFlags()
         assertFalse(flags.isEnabled(FlagKeys.VEHICLE_PROFILES))
+        assertFalse(flags.isEnabled(FlagKeys.MULTI_STOP))
+        assertFalse(flags.isEnabled(FlagKeys.STOP_CARGO))
         assertFalse(flags.isEnabled(FlagKeys.ANDROID_AUTO))
     }
 

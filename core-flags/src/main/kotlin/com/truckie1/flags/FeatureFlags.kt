@@ -9,7 +9,8 @@ interface FeatureFlags {
 
 object FlagKeys {
     const val VEHICLE_PROFILES = "ff_vehicle_profiles"
-    const val MULTI_STOP_CARGO = "ff_multi_stop_cargo"
+    const val MULTI_STOP = "ff_multi_stop"
+    const val STOP_CARGO = "ff_stop_cargo"
     const val BRIDGE_SAFE_ROUTING = "ff_bridge_safe_routing"
     const val OPTIMIZE_FOR_VEHICLE = "ff_optimize_for_vehicle"
     const val TOLLS = "ff_tolls"
