@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.Truckie1" parent="Theme.Truckie1.Base">
+        <!-- Navy status bar with light icons; matches ActionBar (no pale inset strip). -->
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+</resources>
