@@ -92,4 +92,13 @@ class LocalFeatureFlagsTest {
         flags.setEnabled(FlagKeys.BRIDGE_MARKERS, true)
         assertTrue(flags.isEnabled(FlagKeys.BRIDGE_MARKERS))
     }
+
+    @Test
+    fun demoModeFlagKey() {
+        assertTrue(FlagKeys.DEMO_MODE == "ff_demo_mode")
+        val flags = LocalFeatureFlags()
+        assertFalse(flags.isEnabled(FlagKeys.DEMO_MODE))
+        flags.setEnabled(FlagKeys.DEMO_MODE, true)
+        assertTrue(flags.isEnabled(FlagKeys.DEMO_MODE))
+    }
 }

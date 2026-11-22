@@ -223,6 +223,8 @@ fun TruckieRootApp(
                             .showsInSettings(app.featureFlags),
                         navigationAppStore = app.navigationAppStore,
                         navigationAppQuery = app.navigationAppQuery,
+                        featureFlags = app.featureFlags,
+                        showDemoModeSwitch = DemoModeCatalog.showsInSettings,
                     )
                 }
             }
@@ -479,6 +481,11 @@ private fun MapHomeRoute(
         flags = app.featureFlags,
         mapHomeEnabled = true,
     )
+    // TEMPORARY / DEV: Jump control requires Demo mode + bridge markers.
+    val showJumpToSampleBridges = JumpToSampleBridges.shouldShow(
+        flags = app.featureFlags,
+        mapHomeEnabled = true,
+    )
     val bridges = remember(showBridgeMarkers, app.bridgePackRepository) {
         if (showBridgeMarkers) {
             app.bridgePackRepository.loadActive().bridges
@@ -588,6 +595,7 @@ private fun MapHomeRoute(
         locationFollowEnabled = MapLocationFollow.isEnabled(app.featureFlags),
         bridges = bridges,
         showBridgeMarkers = showBridgeMarkers,
+        showJumpToSampleBridges = showJumpToSampleBridges,
         modifier = Modifier.fillMaxSize(),
     )
 }

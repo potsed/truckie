@@ -35,6 +35,8 @@ class SettingsActivity : ComponentActivity() {
                     showNavigationAppPicker = NavigationAppPreference.showsInSettings(app.featureFlags),
                     navigationAppStore = app.navigationAppStore,
                     navigationAppQuery = app.navigationAppQuery,
+                    featureFlags = app.featureFlags,
+                    showDemoModeSwitch = com.truckie1.app.ui.DemoModeCatalog.showsInSettings,
                 )
             }
         }

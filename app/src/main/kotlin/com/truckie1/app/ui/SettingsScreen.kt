@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -27,6 +28,7 @@ import com.truckie1.app.settings.InstalledNavigationAppQuery
 import com.truckie1.app.settings.NavigationAppPreference
 import com.truckie1.app.settings.NavigationAppSelection
 import com.truckie1.app.settings.NavigationAppStore
+import com.truckie1.flags.LocalFeatureFlags
 
 @Composable
 fun SettingsScreen(
@@ -34,6 +36,8 @@ fun SettingsScreen(
     showNavigationAppPicker: Boolean = false,
     navigationAppStore: NavigationAppStore? = null,
     navigationAppQuery: InstalledNavigationAppQuery? = null,
+    featureFlags: LocalFeatureFlags? = null,
+    showDemoModeSwitch: Boolean = false,
 ) {
     TruckieBody(text = stringResource(R.string.clearance_buffer_label))
     Spacer(modifier = Modifier.height(8.dp))
@@ -41,11 +45,50 @@ fun SettingsScreen(
     Spacer(modifier = Modifier.height(16.dp))
     TruckieBody(text = stringResource(R.string.settings_stub_note))
 
+    if (showDemoModeSwitch && featureFlags != null) {
+        Spacer(modifier = Modifier.height(24.dp))
+        DemoModeSwitchSection(flags = featureFlags)
+    }
+
     if (showNavigationAppPicker && navigationAppStore != null && navigationAppQuery != null) {
         Spacer(modifier = Modifier.height(24.dp))
         NavigationAppPickerSection(
             store = navigationAppStore,
             query = navigationAppQuery,
+        )
+    }
+}
+
+@Composable
+private fun DemoModeSwitchSection(flags: LocalFeatureFlags) {
+    var enabled by remember { mutableStateOf(DemoModeCatalog.isEnabled(flags)) }
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp)
+            .testTag("settings_demo_mode_row"),
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = stringResource(R.string.settings_demo_mode_label),
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onBackground,
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = stringResource(R.string.settings_demo_mode_note),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onBackground,
+            )
+        }
+        Switch(
+            checked = enabled,
+            onCheckedChange = { checked ->
+                enabled = checked
+                DemoModeCatalog.setEnabled(flags, enabled = checked)
+            },
+            modifier = Modifier.testTag(DemoModeCatalog.SETTINGS_TEST_TAG),
         )
     }
 }

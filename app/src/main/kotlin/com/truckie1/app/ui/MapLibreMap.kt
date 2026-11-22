@@ -78,6 +78,11 @@ fun MapLibreMap(
     followState: MapFollowState = MapLocationFollow.initial(),
     onFollowStateChange: (MapFollowState) -> Unit = {},
     recenterToken: Int = 0,
+    /**
+     * TEMPORARY / DEV: one-shot fly to SEQ sample bridges when parent increments
+     * ([JumpToSampleBridges] / `ff_demo_mode`).
+     */
+    jumpToBridgesToken: Int = 0,
     /** GraphHopper path points drawn on this same map (Navigate). */
     routePathPoints: List<LatLngPoint> = emptyList(),
     bridges: List<BridgePoint> = emptyList(),
@@ -193,6 +198,17 @@ fun MapLibreMap(
         val target = MapLocationFollow.cameraTargetForRecenter(fix.latitude, fix.longitude)
         cameraTarget = target
         hostHolder.value?.applyFollowCamera(target = target, animate = true)
+    }
+
+    // TEMPORARY / DEV: fly to Brisbane CBD sample bridge cluster (Demo mode).
+    LaunchedEffect(jumpToBridgesToken) {
+        if (jumpToBridgesToken <= 0) return@LaunchedEffect
+        val jump = JumpToSampleBridges.onJump(followStateRef.value)
+        cameraTarget = jump.cameraTarget
+        hostHolder.value?.applyJumpCamera(
+            target = jump.cameraTarget,
+            animationDurationMs = jump.animationDurationMs,
+        )
     }
 
     LaunchedEffect(followState.isFollowing, locationFollowEnabled) {
@@ -620,6 +636,27 @@ private class MapLibreHost(
                 CameraMode.NONE
             }
         }
+    }
+
+    /**
+     * TEMPORARY / DEV: animate to SEQ sample bridges; leave TRACKING so follow
+     * does not override the demo fly.
+     */
+    fun applyJumpCamera(target: MapCameraTarget, animationDurationMs: Long) {
+        val map = mapRef ?: return
+        val latLng = LatLng(target.latitude, target.longitude)
+        ignoreTrackingDismiss = true
+        runCatching {
+            setCameraFollowing(false)
+            map.animateCamera(
+                CameraUpdateFactory.newLatLngZoom(latLng, target.zoom),
+                animationDurationMs.toInt(),
+            )
+        }
+        mapView.postDelayed(
+            { ignoreTrackingDismiss = false },
+            animationDurationMs + 50L,
+        )
     }
 
     fun onStart() {
