@@ -25,6 +25,8 @@ object FlagKeys {
     const val NAV_CHROME = "ff_nav_chrome"
     /** MapLibre map-first home + route/stop drag sheet (Phase A). */
     const val MAP_HOME = "ff_map_home"
+    /** Verified address autocomplete (Nominatim AU default) for route stops (Phase B). */
+    const val ADDRESS_AUTOCOMPLETE = "ff_address_autocomplete"
 }
 
 /**

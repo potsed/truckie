@@ -52,6 +52,7 @@ class TruckieApp : Application() {
             featureFlags.setEnabled(FlagKeys.ROUTE_OPTIMIZE, true)
             featureFlags.setEnabled(FlagKeys.NAV_CHROME, true)
             featureFlags.setEnabled(FlagKeys.MAP_HOME, true)
+            featureFlags.setEnabled(FlagKeys.ADDRESS_AUTOCOMPLETE, true)
         }
     }
 }
