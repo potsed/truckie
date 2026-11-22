@@ -21,8 +21,13 @@ object BridgeMarkersVisibility {
     /** When style is (re)created, SymbolManagers / LineManager are rebuilt for that style. */
     const val recreatesManagersOnNewStyle: Boolean = true
 
-    /** Slightly larger than 1.0 so amber triangles read at neighbourhood zoom. */
-    const val iconSize: Float = 1.35f
+    /**
+     * Relative SymbolManager scale for the W5-8 PNG (~96px intrinsic).
+     * ~1.15 reads as a sensible road-sign size at street-neighbourhood zoom.
+     */
+    const val iconSize: Float = 1.15f
+
+    const val usesAuRoadSignW58: Boolean = true
 
     fun nearBrisbaneFallback(bridges: List<BridgePoint>): List<BridgePoint> =
         bridges.filter { bridge ->

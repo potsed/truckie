@@ -35,6 +35,7 @@ Feature: Bridge markers on home map
     Given ff_bridge_markers is enabled
     And sample bridges include a height clearance
     Then bridge markers use SymbolManager not deprecated MarkerOptions
+    And the marker icon is the AU W5-8 low-bridge road sign
     And a short clearance label is shown when height data is present
     And bridges without height show a marker without a clearance label
 

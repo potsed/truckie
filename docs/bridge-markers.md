@@ -10,6 +10,7 @@ Feature flag: **`ff_bridge_markers`** (on in debug). Gherkin: [`features/bridge_
 | **Data (long-term)** | Downloadable, updatable AU **bridge pack** — versioned manifest + JSON body, local cache under app files, refresh when remote version is newer |
 | **Data (bootstrap)** | Baked-in sample `app/src/main/assets/bridges/au_sample_bridges.json` seeds the cache when empty (and re-seeds when the bootstrap version advances) — **not** the long-term source of truth |
 | **Rendering** | Annotation plugin **SymbolManager** (not deprecated MarkerOptions); separate manager from stop markers; style loaded **once** so recompositions do not orphan markers |
+| **Icon** | Australian road sign **W5-8** (low level bridge) — Wikimedia Commons public-domain SVG, rasterised to `res/drawable/au_road_sign_w5_8.png` (~96px @ iconSize ≈ 1.15) |
 | **Label** | Short clearance text (e.g. `4.3 m`) when `clearanceHeightM` is present; marker-only otherwise |
 | **Where to look** | Sample pack clusters around **Brisbane CBD / SEQ** (within ~2 km of the fallback camera). Zoom out slightly or pan if your GPS fix is farther away. |
 | **Out of scope** | Live CDN hosting, full OSM/NHVR pack ingest, GraphHopper Custom Model, Phase C vehicle UI, create-route changes, global chrome |

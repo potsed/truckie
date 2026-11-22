@@ -2,10 +2,13 @@ package com.truckie1.app.ui
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Path
+import androidx.core.content.ContextCompat
+import com.truckie1.app.R
 import com.truckie1.flags.FeatureFlags
 import com.truckie1.flags.FlagKeys
 import org.json.JSONArray
@@ -14,6 +17,9 @@ import java.util.Locale
 
 /**
  * Low-bridge markers for MapLibre map home (`ff_bridge_markers`).
+ *
+ * Icon: Australian road sign **W5-8** (low level bridge) — Wikimedia Commons
+ * public-domain SVG rasterised for SymbolManager (`au_road_sign_w5_8`).
  *
  * Long-term data source is a **downloadable, updatable** [BridgePackRepository]
  * (versioned cache → SymbolManager). The baked-in sample asset is **bootstrap
@@ -29,15 +35,21 @@ data class BridgePoint(
 )
 
 object BridgeMarkersCatalog {
-    const val ICON_ID: String = "truckie_bridge_marker"
+    const val ICON_ID: String = "truckie_bridge_marker_w5_8"
     const val ASSET_PATH: String = "bridges/au_sample_bridges.json"
+    /** Source SVG kept in assets for provenance (Wikimedia Commons, PD). */
+    const val W5_8_SVG_ASSET: String = "bridges/AU_road_sign_W5-8.svg"
     const val REGION: String = "AU"
 
     /** Catalog: Studio must not see deprecated MarkerOptions / addMarker. */
     const val usesSymbolManager: Boolean = true
     const val usesDeprecatedMarkerApi: Boolean = false
+    const val usesAuRoadSignW58: Boolean = true
 
-    /** Warning amber — distinct from navy stop markers and blue location puck. */
+    /** Intrinsic raster size registered with MapLibre (dp-ish at xxhdpi). */
+    const val DEFAULT_ICON_PX: Int = 96
+
+    /** Warning amber — fallback triangle only if W5-8 drawable is missing. */
     const val MARKER_COLOR_HEX: String = "#C47B16"
 
     fun isEnabled(flags: FeatureFlags): Boolean = flags.isEnabled(FlagKeys.BRIDGE_MARKERS)
@@ -88,12 +100,52 @@ object BridgeMarkersCatalog {
         }.getOrDefault(emptyList())
     }
 
-    fun ensureBridgeMarkerImage(style: Style) {
+    fun ensureBridgeMarkerImage(style: Style, context: Context) {
         if (style.getImage(ICON_ID) != null) return
-        style.addImage(ICON_ID, createBridgeMarkerBitmap())
+        style.addImage(ICON_ID, createBridgeMarkerBitmap(context = context))
     }
 
-    fun createBridgeMarkerBitmap(sizePx: Int = 64): Bitmap {
+    /**
+     * Prefer bundled AU W5-8 road-sign PNG (from Wikimedia SVG); fall back to a
+     * procedural diamond if the drawable is unavailable (tests / mispackaged APK).
+     */
+    fun createBridgeMarkerBitmap(
+        sizePx: Int = DEFAULT_ICON_PX,
+        context: Context? = null,
+    ): Bitmap {
+        val fromDrawable = context?.let { loadW58FromDrawable(it, sizePx) }
+        if (fromDrawable != null) return fromDrawable
+        return createFallbackDiamondBitmap(sizePx)
+    }
+
+    private fun loadW58FromDrawable(context: Context, sizePx: Int): Bitmap? =
+        runCatching {
+            val drawable = ContextCompat.getDrawable(context, R.drawable.au_road_sign_w5_8)
+                ?: return@runCatching null
+            val bitmap = Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888)
+            val canvas = Canvas(bitmap)
+            drawable.setBounds(0, 0, sizePx, sizePx)
+            drawable.draw(canvas)
+            bitmap
+        }.getOrNull() ?: runCatching {
+            // Decode the raw PNG resource if drawable inflation fails in unit tests.
+            val opts = BitmapFactory.Options().apply { inScaled = false }
+            val raw = BitmapFactory.decodeResource(
+                context.resources,
+                R.drawable.au_road_sign_w5_8,
+                opts,
+            ) ?: return@runCatching null
+            if (raw.width == sizePx && raw.height == sizePx) {
+                raw
+            } else {
+                Bitmap.createScaledBitmap(raw, sizePx, sizePx, true).also {
+                    if (it !== raw) raw.recycle()
+                }
+            }
+        }.getOrNull()
+
+    /** Procedural yellow diamond — last-resort stand-in for W5-8. */
+    fun createFallbackDiamondBitmap(sizePx: Int = DEFAULT_ICON_PX): Bitmap {
         val bitmap = Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
         val amber = Color.parseColor(MARKER_COLOR_HEX)
@@ -102,28 +154,29 @@ object BridgeMarkersCatalog {
             style = Paint.Style.FILL
         }
         val stroke = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.WHITE
+            color = Color.parseColor("#1A1A1A")
             style = Paint.Style.STROKE
-            strokeWidth = sizePx * 0.07f
+            strokeWidth = sizePx * 0.06f
         }
+        val cx = sizePx / 2f
+        val cy = sizePx / 2f
+        val r = sizePx * 0.42f
         val path = Path().apply {
-            moveTo(sizePx * 0.5f, sizePx * 0.12f)
-            lineTo(sizePx * 0.88f, sizePx * 0.82f)
-            lineTo(sizePx * 0.12f, sizePx * 0.82f)
+            moveTo(cx, cy - r)
+            lineTo(cx + r, cy)
+            lineTo(cx, cy + r)
+            lineTo(cx - r, cy)
             close()
         }
         canvas.drawPath(path, fill)
         canvas.drawPath(path, stroke)
-        // Small bridge-like bar inside the triangle for recognition at map scale.
-        val bar = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.WHITE
-            style = Paint.Style.STROKE
-            strokeWidth = sizePx * 0.06f
-            strokeCap = Paint.Cap.ROUND
-        }
-        canvas.drawLine(sizePx * 0.34f, sizePx * 0.58f, sizePx * 0.66f, sizePx * 0.58f, bar)
-        canvas.drawLine(sizePx * 0.38f, sizePx * 0.58f, sizePx * 0.38f, sizePx * 0.70f, bar)
-        canvas.drawLine(sizePx * 0.62f, sizePx * 0.58f, sizePx * 0.62f, sizePx * 0.70f, bar)
         return bitmap
     }
+
+    @Deprecated(
+        "Use createBridgeMarkerBitmap(sizePx, context) with W5-8 drawable",
+        ReplaceWith("createBridgeMarkerBitmap(sizePx, context)"),
+    )
+    fun createBridgeMarkerBitmapLegacyTriangle(sizePx: Int = 64): Bitmap =
+        createFallbackDiamondBitmap(sizePx)
 }

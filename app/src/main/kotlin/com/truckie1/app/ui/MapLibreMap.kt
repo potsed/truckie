@@ -444,7 +444,7 @@ private class MapLibreHost(
         bridges: List<BridgePoint>,
     ) {
         mapRef = map
-        BridgeMarkersCatalog.ensureBridgeMarkerImage(style)
+        BridgeMarkersCatalog.ensureBridgeMarkerImage(style, context)
         val manager = bridgeSymbolManager ?: SymbolManager(mapView, map, style).also { created ->
             created.iconAllowOverlap = true
             created.iconIgnorePlacement = true
@@ -455,11 +455,12 @@ private class MapLibreHost(
         if (bridges.isEmpty()) return
         val options = bridges.map { bridge ->
             val label = BridgeMarkersCatalog.clearanceLabel(bridge)
+            // W5-8 is a diamond road sign — centre on the bridge point (not a pin tip).
             val base = SymbolOptions()
                 .withLatLng(LatLng(bridge.latitude, bridge.longitude))
                 .withIconImage(BridgeMarkersCatalog.ICON_ID)
                 .withIconSize(BridgeMarkersVisibility.iconSize)
-                .withIconAnchor("bottom")
+                .withIconAnchor("center")
             if (label == null) {
                 base
             } else {
@@ -469,7 +470,7 @@ private class MapLibreHost(
                     .withTextColor("#0B1F33")
                     .withTextHaloColor("#FFFFFF")
                     .withTextHaloWidth(1.4f)
-                    .withTextOffset(arrayOf(0f, -1.45f))
+                    .withTextOffset(arrayOf(0f, -1.6f))
                     .withTextAnchor("bottom")
             }
         }
