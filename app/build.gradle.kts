@@ -20,7 +20,7 @@ android {
         minSdk = 24
         targetSdk = 35
         versionCode = 1
-        versionName = "0.8.2-bridge-pack"
+        versionName = "0.8.3-bridge-markers-visibility"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 

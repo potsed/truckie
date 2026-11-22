@@ -24,7 +24,20 @@ class CachedBridgePackRepository(
 
     override fun loadActive(): BridgePack {
         val cached = readCache()
-        if (cached != null) return cached
+        if (cached != null) {
+            // Advance baked-in sample: re-seed when bootstrap stamp is newer than cache.
+            val cachedVersion = cached.manifest.version
+            if (cachedVersion.endsWith("-sample") &&
+                BridgePackVersions.isNewer(bootstrapVersion, cachedVersion)
+            ) {
+                return seedFromBundled()
+            }
+            return cached
+        }
+        return seedFromBundled()
+    }
+
+    private fun seedFromBundled(): BridgePack {
         val bridges = BridgeMarkersCatalog.loadFromAssets(context)
         val pack = BridgePack(
             manifest = BridgePackManifest(
@@ -38,8 +51,7 @@ class CachedBridgePackRepository(
         if (bridges.isNotEmpty()) {
             writeCache(pack.manifest, bridges)
         }
-        // After seeding, subsequent reads should report CACHE; first load still
-        // exposes BUNDLED_SAMPLE so callers know bootstrap ran.
+        // First load exposes BUNDLED_SAMPLE; later loads read CACHE.
         return pack
     }
 
@@ -134,6 +146,6 @@ class CachedBridgePackRepository(
         const val MANIFEST_FILE: String = "manifest.json"
         const val BRIDGES_FILE: String = "bridges.json"
         /** Version stamped when seeding from the baked-in AU sample asset. */
-        const val BOOTSTRAP_VERSION: String = "0.1.0-sample"
+        const val BOOTSTRAP_VERSION: String = "0.2.0-sample"
     }
 }

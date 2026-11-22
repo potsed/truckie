@@ -58,6 +58,29 @@ class BridgePackRepositoryTest {
     }
 
     @Test
+    fun newerBootstrapSampleReseedsStaleCache() {
+        val context = RuntimeEnvironment.getApplication()
+        val dir = File(context.filesDir, "bridge_packs_reseed_${System.nanoTime()}")
+        val stale = CachedBridgePackRepository(
+            context = context,
+            cacheDir = dir,
+            bootstrapVersion = "0.1.0-sample",
+        )
+        stale.loadActive()
+        assertEquals("0.1.0-sample", stale.cachedVersion())
+
+        val newer = CachedBridgePackRepository(
+            context = context,
+            cacheDir = dir,
+            bootstrapVersion = CachedBridgePackRepository.BOOTSTRAP_VERSION,
+        )
+        val reseeded = newer.loadActive()
+        assertEquals(BridgePackSource.BUNDLED_SAMPLE, reseeded.source)
+        assertEquals(CachedBridgePackRepository.BOOTSTRAP_VERSION, reseeded.manifest.version)
+        assertTrue(reseeded.bridges.size >= 3)
+    }
+
+    @Test
     fun refreshUpdatesCacheWhenRemoteIsNewer() {
         val payload = """
             [

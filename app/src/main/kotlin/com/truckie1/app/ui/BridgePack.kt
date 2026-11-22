@@ -74,7 +74,9 @@ object BridgePackVersions {
     }
 
     private fun parse(version: String): List<Int>? {
-        val parts = version.trim().split('.')
+        // Allow bootstrap stamps like "0.2.0-sample".
+        val numeric = version.trim().substringBefore('-')
+        val parts = numeric.split('.')
         if (parts.isEmpty()) return null
         return parts.map { it.toIntOrNull() ?: return null }
     }
