@@ -1,5 +1,6 @@
 package com.truckie1.app
 
+import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -12,10 +13,16 @@ import com.truckie1.app.ui.HomeScreen
 import com.truckie1.app.ui.HomeUiState
 import com.truckie1.app.ui.TruckieHostedScreen
 import com.truckie1.app.ui.TruckiePrimaryDestination
+import com.truckie1.app.ui.TruckieRootApp
+import com.truckie1.app.ui.TruckieRoutes
 import com.truckie1.app.ui.navigateToPrimaryDestination
 import com.truckie1.app.ui.setTruckieContent
 import com.truckie1.flags.FlagKeys
 
+/**
+ * Launcher Activity. With [FlagKeys.NAV_CHROME] on, this is the **single** host for
+ * global fixed TopAppBar + bottom NavigationBar around a Compose NavHost.
+ */
 class MainActivity : ComponentActivity() {
     private var uiState by mutableStateOf(
         HomeUiState(
@@ -28,50 +35,70 @@ class MainActivity : ComponentActivity() {
         ),
     )
     private var navChromeEnabled by mutableStateOf(false)
+    private var pendingRoute by mutableStateOf(TruckieRoutes.HOME)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        navChromeEnabled = (application as TruckieApp).featureFlags.isEnabled(FlagKeys.NAV_CHROME)
+        val app = application as TruckieApp
+        navChromeEnabled = app.featureFlags.isEnabled(FlagKeys.NAV_CHROME)
+        pendingRoute = resolveStartRoute(intent)
         setTruckieContent {
-            TruckieHostedScreen(
-                title = getString(R.string.home_title),
-                activitySimpleName = "MainActivity",
-                navChromeEnabled = navChromeEnabled,
-                onNavigate = { navigateToPrimaryDestination(it) },
-            ) {
-                HomeScreen(
-                    state = uiState,
-                    onPlanTrip = {
-                        navigateToPrimaryDestination(TruckiePrimaryDestination.PLAN_TRIP)
-                    },
-                    onVehicleProfiles = {
-                        navigateToPrimaryDestination(TruckiePrimaryDestination.VEHICLES)
-                    },
-                    onSettings = {
-                        if (navChromeEnabled) {
-                            navigateToPrimaryDestination(TruckiePrimaryDestination.SETTINGS)
-                        } else {
-                            val app = application as TruckieApp
+            if (navChromeEnabled) {
+                TruckieRootApp(
+                    app = app,
+                    activity = this@MainActivity,
+                    startRoute = pendingRoute,
+                )
+            } else {
+                TruckieHostedScreen(
+                    title = getString(R.string.home_title),
+                    activitySimpleName = "MainActivity",
+                    navChromeEnabled = false,
+                    onNavigate = { navigateToPrimaryDestination(it) },
+                ) {
+                    HomeScreen(
+                        state = uiState,
+                        onPlanTrip = {
+                            navigateToPrimaryDestination(TruckiePrimaryDestination.PLAN_TRIP)
+                        },
+                        onVehicleProfiles = {
+                            navigateToPrimaryDestination(TruckiePrimaryDestination.VEHICLES)
+                        },
+                        onSettings = {
                             Toast.makeText(
                                 this@MainActivity,
                                 "Buffer ${app.clearanceBufferM} m (Settings range 0.15–1.0)",
                                 Toast.LENGTH_SHORT,
                             ).show()
-                        }
-                    },
-                )
+                        },
+                    )
+                }
             }
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-        bindHome()
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        pendingRoute = resolveStartRoute(intent)
     }
 
-    private fun bindHome() {
+    override fun onResume() {
+        super.onResume()
         val app = application as TruckieApp
         navChromeEnabled = app.featureFlags.isEnabled(FlagKeys.NAV_CHROME)
+        if (!navChromeEnabled) {
+            bindHomeLegacy()
+        }
+    }
+
+    private fun resolveStartRoute(intent: Intent?): String {
+        val extra = intent?.getStringExtra(EXTRA_ROUTE)?.takeIf { it.isNotBlank() }
+        return extra ?: TruckieRoutes.HOME
+    }
+
+    private fun bindHomeLegacy() {
+        val app = application as TruckieApp
         val activeSummary = HomeVehicleSummary.text(app.featureFlags, app.vehicleProfiles)
         val active = app.vehicleProfiles.activeRego?.let { app.vehicleProfiles.findByRego(it) }
         val clearanceLine = if (activeSummary == null) {
@@ -97,5 +124,9 @@ class MainActivity : ComponentActivity() {
             showPlanTrip = app.featureFlags.isEnabled(FlagKeys.MULTI_STOP),
             showVehicleProfiles = app.featureFlags.isEnabled(FlagKeys.VEHICLE_PROFILES),
         )
+    }
+
+    companion object {
+        const val EXTRA_ROUTE = "truckie_route"
     }
 }

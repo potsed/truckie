@@ -10,16 +10,18 @@ import androidx.compose.runtime.setValue
 import com.truckie1.app.R
 import com.truckie1.app.TruckieApp
 import com.truckie1.app.ui.TruckieHostedScreen
+import com.truckie1.app.ui.TruckieRoutes
 import com.truckie1.app.ui.VehicleListScreen
 import com.truckie1.app.ui.navigateToPrimaryDestination
+import com.truckie1.app.ui.redirectToChromeHostIfEnabled
 import com.truckie1.app.ui.setTruckieContent
 import com.truckie1.flags.FlagKeys
 import com.truckie1.profiles.Vehicle
 
+/** Legacy multi-activity host when `ff_nav_chrome` is off. */
 class VehicleListActivity : ComponentActivity() {
     private var vehicles by mutableStateOf<List<Vehicle>>(emptyList())
     private var activeRego by mutableStateOf<String?>(null)
-    private var navChromeEnabled by mutableStateOf(false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,12 +31,15 @@ class VehicleListActivity : ComponentActivity() {
             finish()
             return
         }
-        navChromeEnabled = app.featureFlags.isEnabled(FlagKeys.NAV_CHROME)
+        if (redirectToChromeHostIfEnabled(TruckieRoutes.VEHICLES)) {
+            finish()
+            return
+        }
         setTruckieContent {
             TruckieHostedScreen(
                 title = getString(R.string.vehicle_profiles),
                 activitySimpleName = "VehicleListActivity",
-                navChromeEnabled = navChromeEnabled,
+                navChromeEnabled = false,
                 onNavigate = { navigateToPrimaryDestination(it) },
             ) {
                 VehicleListScreen(
@@ -62,7 +67,6 @@ class VehicleListActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         if (!(application as TruckieApp).featureFlags.isEnabled(FlagKeys.VEHICLE_PROFILES)) return
-        navChromeEnabled = (application as TruckieApp).featureFlags.isEnabled(FlagKeys.NAV_CHROME)
         bindList()
     }
 

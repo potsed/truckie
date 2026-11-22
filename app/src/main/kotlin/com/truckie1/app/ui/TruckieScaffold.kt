@@ -43,7 +43,8 @@ fun ComponentActivity.setTruckieContent(content: @Composable () -> Unit) {
 }
 
 /**
- * Chooses Material3 TopAppBar + bottom nav (`ff_nav_chrome`) or legacy padded screen.
+ * Legacy host used when `ff_nav_chrome` is off (multi-Activity).
+ * With the flag on, [TruckieRootApp] owns global fixed chrome + NavHost instead.
  */
 @Composable
 fun TruckieHostedScreen(

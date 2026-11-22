@@ -118,4 +118,61 @@ class NavChromeCatalogTest {
         assertTrue(NavChromeCatalog.topBarUsesStatusBarInsets)
         assertTrue(NavChromeCatalog.bottomBarUsesNavigationBarInsets)
     }
+
+    @Test
+    fun chromeIsGlobalFixedAtSingleActivityRoot() {
+        assertTrue(NavChromeCatalog.chromeHostedOnceAtRoot)
+        assertTrue(NavChromeCatalog.usesSingleActivityNavHost)
+        assertTrue(NavChromeCatalog.headerPinnedAtRoot)
+        assertTrue(NavChromeCatalog.footerPinnedAtRoot)
+        assertTrue(NavChromeCatalog.contentOnlyScrollsBetweenBars)
+        assertEquals("MainActivity", NavChromeCatalog.rootHostActivitySimpleName)
+    }
+
+    @Test
+    fun chromeIsComposeOnlyNoXmlOrActionBar() {
+        assertTrue(NavChromeCatalog.composeOnlyChrome)
+        assertFalse(NavChromeCatalog.allowsXmlLayouts)
+        assertFalse(NavChromeCatalog.allowsAppCompatActionBar)
+        assertFalse(ComposeScreenCatalog.usesActionBar)
+    }
+
+    @Test
+    fun primaryRoutesMapToTripFirstDestinations() {
+        assertEquals(
+            TruckiePrimaryDestination.HOME,
+            NavChromeCatalog.destinationForRoute(TruckieRoutes.HOME),
+        )
+        assertEquals(
+            TruckiePrimaryDestination.PLAN_TRIP,
+            NavChromeCatalog.destinationForRoute(TruckieRoutes.PLAN_TRIP),
+        )
+        assertEquals(
+            TruckiePrimaryDestination.VEHICLES,
+            NavChromeCatalog.destinationForRoute(TruckieRoutes.VEHICLES),
+        )
+        assertEquals(
+            TruckiePrimaryDestination.SETTINGS,
+            NavChromeCatalog.destinationForRoute(TruckieRoutes.SETTINGS),
+        )
+        assertEquals(
+            TruckieRoutes.HOME,
+            NavChromeCatalog.routeFor(TruckiePrimaryDestination.HOME),
+        )
+        assertEquals(
+            TruckieRoutes.PLAN_TRIP,
+            NavChromeCatalog.routeFor(TruckiePrimaryDestination.PLAN_TRIP),
+        )
+    }
+
+    @Test
+    fun bottomBarShownOnlyOnPrimaryRootRoutes() {
+        assertTrue(NavChromeCatalog.showBottomBarForRoute(TruckieRoutes.HOME))
+        assertTrue(NavChromeCatalog.showBottomBarForRoute(TruckieRoutes.PLAN_TRIP))
+        assertTrue(NavChromeCatalog.showBottomBarForRoute(TruckieRoutes.VEHICLES))
+        assertTrue(NavChromeCatalog.showBottomBarForRoute(TruckieRoutes.SETTINGS))
+        assertFalse(NavChromeCatalog.showBottomBarForRoute(TruckieRoutes.ADD_STOP))
+        assertFalse(NavChromeCatalog.showBottomBarForRoute(TruckieRoutes.VEHICLE_EDIT))
+        assertFalse(NavChromeCatalog.showBottomBarForRoute(TruckieRoutes.BLOCKED_ROUTE))
+    }
 }

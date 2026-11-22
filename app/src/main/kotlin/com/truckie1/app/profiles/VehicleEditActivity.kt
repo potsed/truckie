@@ -9,13 +9,16 @@ import androidx.compose.runtime.setValue
 import com.truckie1.app.R
 import com.truckie1.app.TruckieApp
 import com.truckie1.app.ui.TruckieHostedScreen
+import com.truckie1.app.ui.TruckieRoutes
 import com.truckie1.app.ui.VehicleEditFormState
 import com.truckie1.app.ui.VehicleEditScreen
 import com.truckie1.app.ui.navigateToPrimaryDestination
+import com.truckie1.app.ui.redirectToChromeHostIfEnabled
 import com.truckie1.app.ui.setTruckieContent
 import com.truckie1.flags.FlagKeys
 import com.truckie1.profiles.Vehicle
 
+/** Legacy host when `ff_nav_chrome` is off; redirects into root NavHost when on. */
 class VehicleEditActivity : ComponentActivity() {
     private var form by mutableStateOf(VehicleEditFormState())
 
@@ -29,19 +32,21 @@ class VehicleEditActivity : ComponentActivity() {
         }
 
         val existingRego = intent.getStringExtra(EXTRA_REGO)
+        if (redirectToChromeHostIfEnabled(TruckieRoutes.vehicleEdit(existingRego))) {
+            finish()
+            return
+        }
         val existing = existingRego?.let { app.vehicleProfiles.findByRego(it) }
         if (existing != null) {
             form = existing.toFormState(regoEnabled = false)
         }
 
-        val navChrome = app.featureFlags.isEnabled(FlagKeys.NAV_CHROME)
         setTruckieContent {
             TruckieHostedScreen(
                 title = getString(R.string.edit_profile),
                 activitySimpleName = "VehicleEditActivity",
-                navChromeEnabled = navChrome,
+                navChromeEnabled = false,
                 onNavigate = { navigateToPrimaryDestination(it) },
-                onNavigateUp = if (navChrome) ({ finish() }) else null,
                 scrollable = true,
             ) {
                 VehicleEditScreen(

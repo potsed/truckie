@@ -12,8 +12,8 @@ import com.truckie1.app.trips.TripStopsActivity
 import com.truckie1.flags.FlagKeys
 
 /**
- * Cross-activity navigation for primary bottom-bar destinations.
- * Keeps domain Activities; does not introduce a single-activity NavHost.
+ * Cross-activity navigation for the legacy (`ff_nav_chrome` off) multi-Activity path.
+ * With chrome on, [TruckieRootApp] navigates inside a single-activity NavHost instead.
  */
 fun Activity.navigateToPrimaryDestination(destination: TruckiePrimaryDestination) {
     val app = application as TruckieApp

@@ -6,24 +6,28 @@ import com.truckie1.app.R
 import com.truckie1.app.TruckieApp
 import com.truckie1.app.ui.SettingsScreen
 import com.truckie1.app.ui.TruckieHostedScreen
+import com.truckie1.app.ui.TruckieRoutes
 import com.truckie1.app.ui.navigateToPrimaryDestination
+import com.truckie1.app.ui.redirectToChromeHostIfEnabled
 import com.truckie1.app.ui.setTruckieContent
-import com.truckie1.flags.FlagKeys
 
 /**
- * Settings stub: clearance buffer readout until full settings land.
- * Primary destination under `ff_nav_chrome`.
+ * Legacy Settings host when `ff_nav_chrome` is off.
+ * With chrome on, [com.truckie1.app.MainActivity] NavHost owns Settings.
  */
 class SettingsActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val app = application as TruckieApp
-        val navChrome = app.featureFlags.isEnabled(FlagKeys.NAV_CHROME)
+        if (redirectToChromeHostIfEnabled(TruckieRoutes.SETTINGS)) {
+            finish()
+            return
+        }
         setTruckieContent {
             TruckieHostedScreen(
                 title = getString(R.string.settings),
                 activitySimpleName = "SettingsActivity",
-                navChromeEnabled = navChrome,
+                navChromeEnabled = false,
                 onNavigate = { navigateToPrimaryDestination(it) },
             ) {
                 SettingsScreen(bufferM = app.clearanceBufferM)
