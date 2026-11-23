@@ -90,8 +90,8 @@ class TruckieApp : Application() {
             featureFlags.setEnabled(FlagKeys.BRIDGE_PASSAGE, true)
             // OSS AU low-bridges pack refresh (ATNA-50) — local-first when newer.
             featureFlags.setEnabled(FlagKeys.AU_LOW_BRIDGES_PACK, true)
-            // Demo mode: temporary dogfood affordances (Jump to sample bridges).
-            featureFlags.setEnabled(FlagKeys.DEMO_MODE, true)
+            // Demo mode stays off by default (even in debug) — opt-in via Settings.
+            // Do not set FlagKeys.DEMO_MODE here; see DemoModeCatalog.ENABLED_BY_DEFAULT_IN_DEBUG.
         }
         // AU bridge pack: local-first (bundled sample → disk cache). loadActive
         // never networks; refresh only when a newer remote version is advertised.

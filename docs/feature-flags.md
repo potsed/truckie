@@ -32,7 +32,7 @@ XML screen layouts were removed; do not add new AppCompat/XML screens.
 | `ff_bcc_road_height_restrictions` | BCC Road Height Restrictions GIS (ATNA-46): show Brisbane Open Data under-4.6 m local pack entries; off keeps curated CBD samples | off (on in debug) |
 | `ff_vehicle_height_bridge_filter` | Home-map W5-8 conflicts only (ATNA-47): show low bridges where clearance &lt; vehicle height + system buffer; no usable height → show all low | off (on in debug) |
 | `ff_bridge_passage` | Bridge over vs under (ATNA-48): model under/over/both/unknown; height conflicts block under-paths only (OK to drive over deck) | off (on in debug) |
-| `ff_demo_mode` | Demo mode — Settings toggle; temporary dogfood affordances (Jump to sample bridges). Fuller demo dataset later, not yet | off (on in debug) |
+| `ff_demo_mode` | Demo mode — Settings toggle; temporary dogfood affordances (Jump to sample bridges). Fuller demo dataset later, not yet | **off** (including debug — Settings opt-in only) |
 | `ff_map_heading_up` | Orient map to driving direction — map-chrome lock control (like Recenter); while following, MapLibre `TRACKING_GPS` course-up (off = north-up `TRACKING`) | off (on in debug) |
 | `ff_au_low_bridges_pack` | Consume public AU low-bridges JSON pack (ATNA-50) local-first from GitHub Release when newer | off (on in debug) |
 
@@ -112,7 +112,8 @@ XML screen layouts were removed; do not add new AppCompat/XML screens.
 20. Demo mode (`ff_demo_mode`) is a Settings switch for temporary dogfood affordances.
     Today it gates **Jump to sample bridges** on map-home chrome (also needs
     `ff_bridge_markers`). A fuller demo dataset (prefilled routes/data) may come later —
-    not in scope yet. Production defaults remain off.
+    not in scope yet. Defaults **off** in production **and** debug — Settings opt-in only
+    (`DemoModeCatalog.ENABLED_BY_DEFAULT_IN_DEBUG = false`).
 21. Map heading-up (`ff_map_heading_up`) is a **map-chrome orientation lock** (same overlay
     pattern as Recenter — not a Settings switch). Requires `ff_map_home` +
     `ff_map_location_puck` follow. Locked → course-up (`TRACKING_GPS` + GPS puck);
