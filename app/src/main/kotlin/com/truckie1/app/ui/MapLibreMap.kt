@@ -26,6 +26,8 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.truckie1.app.TruckieApp
+import com.truckie1.flags.LocalFeatureFlags
 import com.truckie1.maps.MapCameraDefaults
 import com.truckie1.maps.MapCameraTarget
 import com.truckie1.routing.LatLngPoint
@@ -540,8 +542,10 @@ private class MapLibreHost(
         }
         manager.deleteAll()
         if (bridges.isEmpty()) return
+        val flags = (context.applicationContext as? TruckieApp)?.featureFlags
+            ?: LocalFeatureFlags()
         val options = bridges.map { bridge ->
-            val label = BridgeMarkersCatalog.clearanceLabel(bridge)
+            val label = BridgeMarkersCatalog.clearanceLabel(bridge, flags)
             // W5-8 is a diamond road sign — centre on the bridge point (not a pin tip).
             val base = SymbolOptions()
                 .withLatLng(LatLng(bridge.latitude, bridge.longitude))

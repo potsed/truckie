@@ -6,7 +6,7 @@ import com.truckie1.maps.MapCameraTarget
 
 /**
  * TEMPORARY / DEV map-chrome control: fly the MapLibre camera to the SEQ sample
- * bridge cluster near Brisbane CBD (`au_sample_bridges.json` / pack 0.3.0-sample).
+ * bridge cluster near Brisbane CBD (`au_sample_bridges.json` / pack 0.4.0-sample).
  *
  * Gated by [DemoModeCatalog] (`ff_demo_mode`) **and** [BridgeMarkersCatalog]
  * (`ff_bridge_markers`) on map-home. Remove when the full AU pack (or better

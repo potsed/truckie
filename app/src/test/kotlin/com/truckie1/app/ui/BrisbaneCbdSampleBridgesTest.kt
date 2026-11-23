@@ -12,7 +12,7 @@ import org.robolectric.annotation.Config
  * Gherkin: features/bridge_markers.feature, features/jump_to_sample_bridges.feature
  *
  * Demo sample points must sit on real Brisbane CBD crossings (not mid-river /
- * mid-block). Clearance labels remain plausible mock values for dogfood.
+ * mid-block). Clearances are verified published road heights or omitted (ATNA-42).
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28])
@@ -93,14 +93,19 @@ class BrisbaneCbdSampleBridgesTest {
     }
 
     @Test
-    fun clearanceLabelsRemainOptionalPlausibleMocks() {
+    fun clearanceLabelsAreVerifiedOrOmittedNotMocked() {
         val context = RuntimeEnvironment.getApplication()
         val bridges = BridgeMarkersCatalog.loadFromAssets(context)
         val withHeight = bridges.filter { it.clearanceHeightM != null }
         assertTrue(withHeight.isNotEmpty())
         withHeight.forEach { bridge ->
+            assertEquals(
+                "${bridge.id} must be verified when height is present",
+                BridgeClearanceStatus.VERIFIED,
+                bridge.clearanceStatus,
+            )
             val h = bridge.clearanceHeightM!!
-            assertTrue("${bridge.id} mock clearance $h out of demo range", h in 3.5..6.0)
+            assertTrue("${bridge.id} verified clearance $h out of signed range", h in 2.0..5.3)
             assertEquals(
                 "%.1f m".format(java.util.Locale.US, h),
                 BridgeMarkersCatalog.clearanceLabel(bridge),

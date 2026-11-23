@@ -20,7 +20,7 @@ android {
         minSdk = 24
         targetSdk = 35
         versionCode = 1
-        versionName = "0.8.7-cbd-samples-local-packs"
+        versionName = "0.8.8-verified-cbd-clearances"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
