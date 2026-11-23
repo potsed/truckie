@@ -20,7 +20,7 @@ android {
         minSdk = 24
         targetSdk = 35
         versionCode = 1
-        versionName = "0.8.14-au-low-bridges-pack"
+        versionName = "0.8.15-demo-mode-off-default"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 

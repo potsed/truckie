@@ -13,6 +13,15 @@ import org.junit.Test
 class DemoModeCatalogTest {
 
     @Test
+    fun demoModeDefaultsOffIncludingDebugDogfood() {
+        // Gherkin: Demo mode defaults off — not auto-enabled in debug.
+        assertFalse(DemoModeCatalog.DEFAULT_ENABLED)
+        assertFalse(DemoModeCatalog.ENABLED_BY_DEFAULT_IN_DEBUG)
+        val flags = LocalFeatureFlags()
+        assertFalse(DemoModeCatalog.isEnabled(flags))
+    }
+
+    @Test
     fun demoModeFlagKeyIsFfDemoMode() {
         assertEquals("ff_demo_mode", FlagKeys.DEMO_MODE)
         assertEquals("ff_demo_mode", DemoModeCatalog.FLAG_KEY)
