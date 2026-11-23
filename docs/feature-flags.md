@@ -30,6 +30,7 @@ XML screen layouts were removed; do not add new AppCompat/XML screens.
 | `ff_w5_8_low_only` | W5-8 only for low / restricted clearances (ATNA-45): AU W5-8 diamond only when verified ≤ 4.6 m or QR published underbridge | off (on in debug) |
 | `ff_tmr_structure_clearances` | TMR Structure Clearances in Queensland (ATNA-46): show published TMR spatial pack entries; off hides TMR rows only | off (on in debug) |
 | `ff_bcc_road_height_restrictions` | BCC Road Height Restrictions GIS (ATNA-46): show Brisbane Open Data under-4.6 m local pack entries; off keeps curated CBD samples | off (on in debug) |
+| `ff_vehicle_height_bridge_filter` | Home-map W5-8 conflicts only (ATNA-47): show low bridges where clearance &lt; vehicle height + system buffer; no usable height → show all low | off (on in debug) |
 | `ff_demo_mode` | Demo mode — Settings toggle; temporary dogfood affordances (Jump to sample bridges). Fuller demo dataset later, not yet | off (on in debug) |
 
 ## Rules
@@ -96,7 +97,12 @@ XML screen layouts were removed; do not add new AppCompat/XML screens.
     when the flag is off. Bootstrap `0.6.0-sample` re-seeds older `-sample` caches.
     Physical roadside signs override digital packs; the clearance buffer covers pack lag
     versus signs as well as vehicle variance. NHVR national / other states = ATNA-43.
-18. Demo mode (`ff_demo_mode`) is a Settings switch for temporary dogfood affordances.
+18. Vehicle-height bridge filter (`ff_vehicle_height_bridge_filter`, ATNA-47): when on
+    and an active vehicle has a usable height, home-map W5-8 symbols show only
+    conflicts (`clearance < vehicleHeight + ClearanceBuffer`). Keeps W5-8 low-only
+    rules; never invents heights. No active vehicle / no usable height → show all
+    low-pack markers (`show_all_low`) so Demo Jump still works.
+19. Demo mode (`ff_demo_mode`) is a Settings switch for temporary dogfood affordances.
     Today it gates **Jump to sample bridges** on map-home chrome (also needs
     `ff_bridge_markers`). A fuller demo dataset (prefilled routes/data) may come later —
     not in scope yet. Production defaults remain off.

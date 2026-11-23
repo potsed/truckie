@@ -68,6 +68,12 @@ object FlagKeys {
      * May later gate a fuller demo dataset; that is out of scope for the jump control.
      */
     const val DEMO_MODE = "ff_demo_mode"
+    /**
+     * Home-map W5-8 symbols filtered by active vehicle height + system buffer
+     * (ATNA-47): show only structures the vehicle cannot clear. When no usable
+     * vehicle height, falls back to all low-pack markers.
+     */
+    const val VEHICLE_HEIGHT_BRIDGE_FILTER = "ff_vehicle_height_bridge_filter"
 }
 
 /**
