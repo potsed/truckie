@@ -164,4 +164,13 @@ class LocalFeatureFlagsTest {
         flags.setEnabled(FlagKeys.BRIDGE_PASSAGE, true)
         assertTrue(flags.isEnabled(FlagKeys.BRIDGE_PASSAGE))
     }
+
+    @Test
+    fun auLowBridgesPackFlagKey() {
+        assertTrue(FlagKeys.AU_LOW_BRIDGES_PACK == "ff_au_low_bridges_pack")
+        val flags = LocalFeatureFlags()
+        assertFalse(flags.isEnabled(FlagKeys.AU_LOW_BRIDGES_PACK))
+        flags.setEnabled(FlagKeys.AU_LOW_BRIDGES_PACK, true)
+        assertTrue(flags.isEnabled(FlagKeys.AU_LOW_BRIDGES_PACK))
+    }
 }

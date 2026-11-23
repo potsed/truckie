@@ -20,7 +20,7 @@ android {
         minSdk = 24
         targetSdk = 35
         versionCode = 1
-        versionName = "0.8.13-bridge-passage"
+        versionName = "0.8.14-au-low-bridges-pack"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 

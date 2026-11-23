@@ -156,6 +156,23 @@ class CachedBridgePackRepository(
             if (bridge.passage != BridgePassage.UNKNOWN) {
                 obj.put("passage", bridge.passage.wireName())
             }
+            if (bridge.state != null) obj.put("state", bridge.state)
+            if (bridge.lga != null) obj.put("lga", bridge.lga)
+            if (bridge.roadUnder != null) obj.put("roadUnder", bridge.roadUnder)
+            if (bridge.roadOver != null) obj.put("roadOver", bridge.roadOver)
+            if (bridge.weightRestriction != null) {
+                obj.put("weightRestriction", bridge.weightRestriction)
+            }
+            if (bridge.signageNote != null) obj.put("signageNote", bridge.signageNote)
+            bridge.source?.let { src ->
+                obj.put(
+                    "source",
+                    JSONObject()
+                        .put("name", src.name)
+                        .put("url", src.url)
+                        .put("retrievedAt", src.retrievedAt),
+                )
+            }
             array.put(obj)
         }
         File(cacheDir, BRIDGES_FILE).writeText(array.toString())

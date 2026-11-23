@@ -1,6 +1,6 @@
 # Bridge markers on home map
 
-Feature flags: **`ff_bridge_markers`** (on in debug), **`ff_verified_cbd_clearances`** (on in debug; ATNA-42), **`ff_queensland_rail_clearances`** (on in debug; ATNA-44), **`ff_w5_8_low_only`** (on in debug; ATNA-45), **`ff_tmr_structure_clearances`** / **`ff_bcc_road_height_restrictions`** (on in debug; ATNA-46), **`ff_vehicle_height_bridge_filter`** (on in debug; ATNA-47), **`ff_bridge_passage`** (on in debug; ATNA-48). Gherkin: [`features/bridge_markers.feature`](../features/bridge_markers.feature), [`features/bridge_pack.feature`](../features/bridge_pack.feature), [`features/verified_cbd_clearances.feature`](../features/verified_cbd_clearances.feature), [`features/queensland_rail_clearances.feature`](../features/queensland_rail_clearances.feature), [`features/low_bridge_w5_8.feature`](../features/low_bridge_w5_8.feature), [`features/qld_tmr_bcc_clearances.feature`](../features/qld_tmr_bcc_clearances.feature), [`features/vehicle_height_bridge_filter.feature`](../features/vehicle_height_bridge_filter.feature), [`features/bridge_passage.feature`](../features/bridge_passage.feature).
+Feature flags: **`ff_bridge_markers`** (on in debug), **`ff_verified_cbd_clearances`** (on in debug; ATNA-42), **`ff_queensland_rail_clearances`** (on in debug; ATNA-44), **`ff_w5_8_low_only`** (on in debug; ATNA-45), **`ff_tmr_structure_clearances`** / **`ff_bcc_road_height_restrictions`** (on in debug; ATNA-46), **`ff_vehicle_height_bridge_filter`** (on in debug; ATNA-47), **`ff_bridge_passage`** (on in debug; ATNA-48), **`ff_au_low_bridges_pack`** (on in debug; ATNA-50 — OSS JSON source pack). Gherkin: [`features/bridge_markers.feature`](../features/bridge_markers.feature), [`features/bridge_pack.feature`](../features/bridge_pack.feature), [`features/au_low_bridges_pack.feature`](../features/au_low_bridges_pack.feature), [`features/verified_cbd_clearances.feature`](../features/verified_cbd_clearances.feature), [`features/queensland_rail_clearances.feature`](../features/queensland_rail_clearances.feature), [`features/low_bridge_w5_8.feature`](../features/low_bridge_w5_8.feature), [`features/qld_tmr_bcc_clearances.feature`](../features/qld_tmr_bcc_clearances.feature), [`features/vehicle_height_bridge_filter.feature`](../features/vehicle_height_bridge_filter.feature), [`features/bridge_passage.feature`](../features/bridge_passage.feature).
 
 ## Behaviour
 
@@ -13,7 +13,7 @@ Feature flags: **`ff_bridge_markers`** (on in debug), **`ff_verified_cbd_clearan
 | **Rendering** | Annotation plugin **SymbolManager** (not deprecated MarkerOptions); separate manager from stop markers; style loaded **once** (concurrent AndroidView updates coalesce — no second `setStyle`); managers recreate if style identity drifts or the manager layer is missing from the live style |
 | **Icon** | Australian road sign **W5-8** (low level bridge) — Wikimedia Commons public-domain SVG, rasterised to `res/drawable/au_road_sign_w5_8.png` (~96px @ iconSize ≈ 1.15). **Only** on qualifying low bridges when `ff_w5_8_low_only` is on (ATNA-45) — not every pack bridge. |
 | **Label** | Short clearance text (e.g. `3.8 m`) only for **verified** published road heights when `ff_verified_cbd_clearances` is on. Unknown / not_applicable / high open spans get **no W5-8** (and no invented height). **Must** set `text-font` to **Noto Sans Regular** (OpenFreeMap glyph host); MapLibre’s default Open Sans stack 404s and hides the whole symbol. `textOptional=true` keeps icons if glyphs fail. |
-| **Build check** | Debug `versionName` (Android App info / Settings) — passage builds are `0.8.13-bridge-passage` or newer. Prior: `0.8.12-vehicle-height-bridge-filter`, `0.8.11-qld-tmr-bcc-clearances`, `0.8.10-w5-8-low-only`. |
+| **Build check** | Debug `versionName` (Android App info / Settings) — AU low-bridges pack builds are `0.8.14-au-low-bridges-pack` or newer. Prior: `0.8.13-bridge-passage`, `0.8.12-vehicle-height-bridge-filter`, `0.8.11-qld-tmr-bcc-clearances`. |
 | **Where to look** | Demo samples snap onto real **Brisbane CBD crossings** (Story, Victoria, Captain Cook / M3, Goodwill, William Jolly, Go Between, Kurilpa) within ~2 km of the fallback camera. With **`ff_queensland_rail_clearances`**, SEQ **road-under-rail** markers from the QR railbridges page also appear. With **`ff_tmr_structure_clearances`** / **`ff_bcc_road_height_restrictions`**, statewide TMR Structure Clearances and Brisbane local under-4.6 m GIS rows appear. With **Demo mode** on (`ff_demo_mode`, Settings), use **Jump to sample bridges** on the map chrome to fly to the CBD cluster. |
 | **Out of scope** | Live CDN hosting, full NHVR national / other-state pack ingest (ATNA-43 / remaining ATNA-11), GraphHopper Custom Model, Phase C vehicle UI, create-route changes, global chrome |
 
@@ -98,10 +98,12 @@ Merge keeps existing QR + CBD verified rows; de-dupes by id, `clearanceSourceId`
 1. **Cold start / empty cache** — seed from bundled `au_sample_bridges.json`, stamp bootstrap version (`0.7.0-sample`), write `filesDir/bridge_packs/{manifest,bridges}.json`.
 2. **Later loads** — read the on-device cache only (`BridgePackSource.CACHE`). Never re-fetch just because the map recomposed.
 3. **App update with newer sample** — if cache version ends with `-sample` and bundled `BOOTSTRAP_VERSION` is newer, re-seed from assets (still no network). Devices on `0.6.0-sample` (or older) re-seed to include passage over/under.
-4. **Remote refresh** — call `refresh(manifest)` only when a pack host exists; download runs **iff** `BridgePackVersions.isNewer(remote, cached)`. Failures keep the disk fallback.
+4. **Remote refresh** — with **`ff_au_low_bridges_pack`**, Truckie refreshes from the public [au-low-bridges-dataset](https://github.com/potsed/au-low-bridges-dataset) GitHub Release JSON (`AuLowBridgesPack.REMOTE_VERSION` = `0.1.0` / `DOWNLOAD_URL`). Download runs **iff** `BridgePackVersions.isNewer(remote, cached)` (a public non-`-sample` pack always replaces a bootstrap `-sample` cache). Failures keep the disk fallback. **JSON only** — shared full schema (required `clearanceHeightM` + `source{name,url,retrievedAt}`; `roadUnder`/`roadOver`/`passage`/`state`/`lga`/weight/signage when known).
 
 ## Pack API
 
+- `AuLowBridgesPack` — OSS source-pack constants + flag gate + `UrlBridgePackDownloader` when enabled
+- `BridgeSource` — required citation object on OSS rows (`name`, `url`, `retrievedAt`)
 - `BridgePackRepository` / `CachedBridgePackRepository` — `loadActive()`, `cachedVersion()`, `refresh(manifest)`
 - `BridgePackLifecycle` — local-first contracts (`isLocalFirst`, `loadActiveUsesNetwork = false`, …)
 - `VerifiedCbdClearances` — flag gate, provenance loader, label policy
@@ -111,7 +113,7 @@ Merge keeps existing QR + CBD verified rows; de-dupes by id, `clearanceSourceId`
 - `VehicleHeightBridgeFilter` — active-vehicle conflict filter (`clearance < height + buffer`); fallback `show_all_low`
 - `BridgePassage` / `BridgePassageFilter` — under/over/both/unknown; conflicts block under-paths only
 - `ClearanceBuffer` — Settings buffer; rationale includes pack lag vs roadside signs
-- `BridgePackDownloader` — injectable; production uses `NoOpBridgePackDownloader` until a pack host URL is configured; tests use `FixedPayloadBridgePackDownloader` / `CountingBridgePackDownloader`
+- `BridgePackDownloader` — injectable; `NoOpBridgePackDownloader` when `ff_au_low_bridges_pack` is off; `UrlBridgePackDownloader` when on; tests use `FixedPayloadBridgePackDownloader` / `CountingBridgePackDownloader`
 - Cache files: `filesDir/bridge_packs/manifest.json` + `bridges.json`
 
 ## Catalog

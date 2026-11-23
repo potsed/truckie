@@ -131,6 +131,9 @@ class BridgePackRepositoryTest {
         assertTrue(BridgePackVersions.isNewer("2.0.0", "1.9.9"))
         assertFalse(BridgePackVersions.isNewer("1.0.0", "1.1.0"))
         assertFalse(BridgePackVersions.isNewer("1.1.0", "1.1.0"))
+        // Public OSS pack replaces bootstrap -sample regardless of numeric order.
+        assertTrue(BridgePackVersions.isNewer("0.1.0", "0.7.0-sample"))
+        assertFalse(BridgePackVersions.isNewer("0.7.0-sample", "0.1.0"))
     }
 
     @Test

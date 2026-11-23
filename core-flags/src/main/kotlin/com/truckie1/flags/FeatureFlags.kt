@@ -80,6 +80,12 @@ object FlagKeys {
      * over the deck. Never invents clearances.
      */
     const val BRIDGE_PASSAGE = "ff_bridge_passage"
+    /**
+     * Consume the public AU low-bridges JSON pack (ATNA-50) as Truckie's source
+     * pack — local-first refresh from GitHub Release assets when newer.
+     * Shared full schema with potsed/au-low-bridges (no thinner parallel).
+     */
+    const val AU_LOW_BRIDGES_PACK = "ff_au_low_bridges_pack"
 }
 
 /**
