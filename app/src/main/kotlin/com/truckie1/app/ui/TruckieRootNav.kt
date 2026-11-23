@@ -488,7 +488,7 @@ private fun MapHomeRoute(
     )
     val bridges = remember(showBridgeMarkers, app.bridgePackRepository, app.featureFlags) {
         if (showBridgeMarkers) {
-            val visible = QueenslandRailClearances.visibleBridges(
+            val visible = QldOpenClearances.visibleBridges(
                 bridges = app.bridgePackRepository.loadActive().bridges,
                 flags = app.featureFlags,
             )

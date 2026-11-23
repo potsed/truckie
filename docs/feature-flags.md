@@ -28,6 +28,8 @@ XML screen layouts were removed; do not add new AppCompat/XML screens.
 | `ff_verified_cbd_clearances` | Verified CBD sample clearances (ATNA-42): labels only for published road heights; unknown / not_applicable omit invented mocks | off (on in debug) |
 | `ff_queensland_rail_clearances` | Queensland Rail SEQ road-under-rail clearances (ATNA-44): show published QR railbridges pack entries; off keeps BCC CBD samples only | off (on in debug) |
 | `ff_w5_8_low_only` | W5-8 only for low / restricted clearances (ATNA-45): AU W5-8 diamond only when verified ≤ 4.6 m or QR published underbridge | off (on in debug) |
+| `ff_tmr_structure_clearances` | TMR Structure Clearances in Queensland (ATNA-46): show published TMR spatial pack entries; off hides TMR rows only | off (on in debug) |
+| `ff_bcc_road_height_restrictions` | BCC Road Height Restrictions GIS (ATNA-46): show Brisbane Open Data under-4.6 m local pack entries; off keeps curated CBD samples | off (on in debug) |
 | `ff_demo_mode` | Demo mode — Settings toggle; temporary dogfood affordances (Jump to sample bridges). Fuller demo dataset later, not yet | off (on in debug) |
 
 ## Rules
@@ -84,8 +86,17 @@ XML screen layouts were removed; do not add new AppCompat/XML screens.
 15. W5-8 low-only (`ff_w5_8_low_only`, ATNA-45): when on, only qualifying low bridges
     get the AU W5-8 symbol — verified height ≤ 4.6 m (`LowBridgeW58.LOW_CLEARANCE_MAX_M`,
     matching QR’s Low clearance &lt;4.6 m band) or QR published underbridges. Unknown /
-    not_applicable / high open spans do not get W5-8 or invented heights.
-16. Demo mode (`ff_demo_mode`) is a Settings switch for temporary dogfood affordances.
+    not_applicable / high open spans do not get W5-8 or invented heights. TMR/BCC GIS
+    rows above 4.6 m stay in the pack for routing but do not get W5-8.
+16. TMR Structure Clearances (`ff_tmr_structure_clearances`, ATNA-46) show published TMR
+    spatial clearances from data.qld Structure Clearances (StateRoadInformation layers
+    21/22; source URL + retrieval date in pack meta). When off, TMR rows are hidden.
+17. BCC road height restrictions (`ff_bcc_road_height_restrictions`, ATNA-46) show Brisbane
+    Open Data GIS/CSV under-4.6 m local rows. Curated CBD `-sample` river crossings remain
+    when the flag is off. Bootstrap `0.6.0-sample` re-seeds older `-sample` caches.
+    Physical roadside signs override digital packs; the clearance buffer covers pack lag
+    versus signs as well as vehicle variance. NHVR national / other states = ATNA-43.
+18. Demo mode (`ff_demo_mode`) is a Settings switch for temporary dogfood affordances.
     Today it gates **Jump to sample bridges** on map-home chrome (also needs
     `ff_bridge_markers`). A fuller demo dataset (prefilled routes/data) may come later —
     not in scope yet. Production defaults remain off.

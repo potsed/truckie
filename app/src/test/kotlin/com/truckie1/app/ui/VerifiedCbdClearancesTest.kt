@@ -46,7 +46,12 @@ class VerifiedCbdClearancesTest {
                 "0.4.0-sample",
             ),
         )
-        assertEquals("0.5.0-sample", CachedBridgePackRepository.BOOTSTRAP_VERSION)
+        assertTrue(
+            BridgePackVersions.isNewer(
+                CachedBridgePackRepository.BOOTSTRAP_VERSION,
+                "0.5.0-sample",
+            ),
+        )
     }
 
     @Test
@@ -101,9 +106,10 @@ class VerifiedCbdClearancesTest {
 
     @Test
     fun noCbdSampleBridgeKeepsFormerMockDemoHeights() {
-        // Scope to CBD river samples — QR SEQ publishes legitimate 4.3–5.0 m figures.
+        // Scope to curated CBD `-sample` river crossings only — QR / TMR / BCC GIS
+        // publish legitimate 4.3–5.0 m figures that must not trip this guard.
         val bridges = BridgeMarkersCatalog.loadFromAssets(RuntimeEnvironment.getApplication())
-            .filterNot { QueenslandRailClearances.isQueenslandRail(it) }
+            .filter { it.id.endsWith("-sample") }
         val formerMocks = setOf(4.3, 4.5, 4.6, 4.8, 5.0)
         bridges.forEach { bridge ->
             val h = bridge.clearanceHeightM

@@ -42,7 +42,12 @@ class QueenslandRailClearancesTest {
                 "0.4.0-sample",
             ),
         )
-        assertEquals("0.5.0-sample", CachedBridgePackRepository.BOOTSTRAP_VERSION)
+        assertTrue(
+            BridgePackVersions.isNewer(
+                CachedBridgePackRepository.BOOTSTRAP_VERSION,
+                "0.5.0-sample",
+            ),
+        )
     }
 
     @Test
