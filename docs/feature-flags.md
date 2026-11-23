@@ -27,6 +27,7 @@ XML screen layouts were removed; do not add new AppCompat/XML screens.
 | `ff_bridge_markers` | Low-bridge markers on MapLibre home (Australia-first sample JSON asset; SymbolManager + optional clearance label) | off (on in debug) |
 | `ff_verified_cbd_clearances` | Verified CBD sample clearances (ATNA-42): labels only for published road heights; unknown / not_applicable omit invented mocks | off (on in debug) |
 | `ff_queensland_rail_clearances` | Queensland Rail SEQ road-under-rail clearances (ATNA-44): show published QR railbridges pack entries; off keeps BCC CBD samples only | off (on in debug) |
+| `ff_w5_8_low_only` | W5-8 only for low / restricted clearances (ATNA-45): AU W5-8 diamond only when verified ≤ 4.6 m or QR published underbridge | off (on in debug) |
 | `ff_demo_mode` | Demo mode — Settings toggle; temporary dogfood affordances (Jump to sample bridges). Fuller demo dataset later, not yet | off (on in debug) |
 
 ## Rules
@@ -80,7 +81,11 @@ XML screen layouts were removed; do not add new AppCompat/XML screens.
     meta). Coordinates come from that page’s location maps. When off, QR rows are hidden and
     BCC CBD samples remain. Bootstrap `0.5.0-sample` re-seeds older `-sample` caches without
     refetching on every load.
-15. Demo mode (`ff_demo_mode`) is a Settings switch for temporary dogfood affordances.
+15. W5-8 low-only (`ff_w5_8_low_only`, ATNA-45): when on, only qualifying low bridges
+    get the AU W5-8 symbol — verified height ≤ 4.6 m (`LowBridgeW58.LOW_CLEARANCE_MAX_M`,
+    matching QR’s Low clearance &lt;4.6 m band) or QR published underbridges. Unknown /
+    not_applicable / high open spans do not get W5-8 or invented heights.
+16. Demo mode (`ff_demo_mode`) is a Settings switch for temporary dogfood affordances.
     Today it gates **Jump to sample bridges** on map-home chrome (also needs
     `ff_bridge_markers`). A fuller demo dataset (prefilled routes/data) may come later —
     not in scope yet. Production defaults remain off.

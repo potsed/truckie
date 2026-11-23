@@ -119,4 +119,13 @@ class LocalFeatureFlagsTest {
         flags.setEnabled(FlagKeys.QUEENSLAND_RAIL_CLEARANCES, true)
         assertTrue(flags.isEnabled(FlagKeys.QUEENSLAND_RAIL_CLEARANCES))
     }
+
+    @Test
+    fun w58LowOnlyFlagKey() {
+        assertTrue(FlagKeys.W5_8_LOW_ONLY == "ff_w5_8_low_only")
+        val flags = LocalFeatureFlags()
+        assertFalse(flags.isEnabled(FlagKeys.W5_8_LOW_ONLY))
+        flags.setEnabled(FlagKeys.W5_8_LOW_ONLY, true)
+        assertTrue(flags.isEnabled(FlagKeys.W5_8_LOW_ONLY))
+    }
 }

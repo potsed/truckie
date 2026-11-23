@@ -49,6 +49,11 @@ object FlagKeys {
      */
     const val QUEENSLAND_RAIL_CLEARANCES = "ff_queensland_rail_clearances"
     /**
+     * W5-8 only for low / restricted clearances (ATNA-45): AU W5-8 diamond
+     * only when verified low (≤ 4.6 m) or QR published underbridge.
+     */
+    const val W5_8_LOW_ONLY = "ff_w5_8_low_only"
+    /**
      * Demo mode — temporary dogfood affordances (e.g. Jump to sample bridges).
      * May later gate a fuller demo dataset; that is out of scope for the jump control.
      */

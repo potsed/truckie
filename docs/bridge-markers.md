@@ -1,6 +1,6 @@
 # Bridge markers on home map
 
-Feature flags: **`ff_bridge_markers`** (on in debug), **`ff_verified_cbd_clearances`** (on in debug; ATNA-42), **`ff_queensland_rail_clearances`** (on in debug; ATNA-44). Gherkin: [`features/bridge_markers.feature`](../features/bridge_markers.feature), [`features/bridge_pack.feature`](../features/bridge_pack.feature), [`features/verified_cbd_clearances.feature`](../features/verified_cbd_clearances.feature), [`features/queensland_rail_clearances.feature`](../features/queensland_rail_clearances.feature).
+Feature flags: **`ff_bridge_markers`** (on in debug), **`ff_verified_cbd_clearances`** (on in debug; ATNA-42), **`ff_queensland_rail_clearances`** (on in debug; ATNA-44), **`ff_w5_8_low_only`** (on in debug; ATNA-45). Gherkin: [`features/bridge_markers.feature`](../features/bridge_markers.feature), [`features/bridge_pack.feature`](../features/bridge_pack.feature), [`features/verified_cbd_clearances.feature`](../features/verified_cbd_clearances.feature), [`features/queensland_rail_clearances.feature`](../features/queensland_rail_clearances.feature), [`features/low_bridge_w5_8.feature`](../features/low_bridge_w5_8.feature).
 
 ## Behaviour
 
@@ -11,9 +11,9 @@ Feature flags: **`ff_bridge_markers`** (on in debug), **`ff_verified_cbd_clearan
 | **Data (bootstrap)** | Baked-in sample `app/src/main/assets/bridges/au_sample_bridges.json` seeds the cache when empty (and re-seeds when the bootstrap version advances) — **not** the long-term source of truth |
 | **Local-first** | `loadActive()` is **on-device only** (bundled → disk). No network on cold start, Jump, or map redraw. `refresh()` downloads **only** when the remote version is newer — same/older versions keep the disk pack (power efficiency). Weight packs will follow the same lifecycle later; live OSM/NHVR ingest is ATNA-11 |
 | **Rendering** | Annotation plugin **SymbolManager** (not deprecated MarkerOptions); separate manager from stop markers; style loaded **once** (concurrent AndroidView updates coalesce — no second `setStyle`); managers recreate if style identity drifts or the manager layer is missing from the live style |
-| **Icon** | Australian road sign **W5-8** (low level bridge) — Wikimedia Commons public-domain SVG, rasterised to `res/drawable/au_road_sign_w5_8.png` (~96px @ iconSize ≈ 1.15) |
-| **Label** | Short clearance text (e.g. `3.8 m`) only for **verified** published road heights when `ff_verified_cbd_clearances` is on; marker-only when height is unknown / not applicable. **Must** set `text-font` to **Noto Sans Regular** (OpenFreeMap glyph host); MapLibre’s default Open Sans stack 404s and hides the whole symbol. `textOptional=true` keeps icons if glyphs fail. |
-| **Build check** | Debug `versionName` (Android App info / Settings) — Queensland Rail clearances builds are `0.8.9-queensland-rail-clearances` or newer. Prior: `0.8.8-verified-cbd-clearances`, `0.8.7-cbd-samples-local-packs`, `0.8.6-w5-8-openfreemap-fonts`, `0.8.5-bridges-style-lifecycle`. |
+| **Icon** | Australian road sign **W5-8** (low level bridge) — Wikimedia Commons public-domain SVG, rasterised to `res/drawable/au_road_sign_w5_8.png` (~96px @ iconSize ≈ 1.15). **Only** on qualifying low bridges when `ff_w5_8_low_only` is on (ATNA-45) — not every pack bridge. |
+| **Label** | Short clearance text (e.g. `3.8 m`) only for **verified** published road heights when `ff_verified_cbd_clearances` is on. Unknown / not_applicable / high open spans get **no W5-8** (and no invented height). **Must** set `text-font` to **Noto Sans Regular** (OpenFreeMap glyph host); MapLibre’s default Open Sans stack 404s and hides the whole symbol. `textOptional=true` keeps icons if glyphs fail. |
+| **Build check** | Debug `versionName` (Android App info / Settings) — W5-8 low-only builds are `0.8.10-w5-8-low-only` or newer. Prior: `0.8.9-queensland-rail-clearances`, `0.8.8-verified-cbd-clearances`, `0.8.7-cbd-samples-local-packs`. |
 | **Where to look** | Demo samples snap onto real **Brisbane CBD crossings** (Story, Victoria, Captain Cook / M3, Goodwill, William Jolly, Go Between, Kurilpa) within ~2 km of the fallback camera. With **`ff_queensland_rail_clearances`**, SEQ **road-under-rail** markers from the QR railbridges page also appear (Ascot, Milton, South Brisbane, …). With **Demo mode** on (`ff_demo_mode`, Settings), use **Jump to sample bridges** on the map chrome to fly to the CBD cluster. |
 | **Out of scope** | Live CDN hosting, full OSM/NHVR pack ingest (remaining ATNA-11), GraphHopper Custom Model, Phase C vehicle UI, create-route changes, global chrome |
 
@@ -32,6 +32,18 @@ Kept in pack bootstrap **`0.5.0-sample`** (still valid after ATNA-44). Provenanc
 | Go Between | — | unknown | Same rule (nearby Hale St pedestrian underpass 4.1 m is a different structure) |
 | Goodwill | — | not_applicable | Pedestrian/cycle — no vehicle carriageway |
 | Kurilpa | — | not_applicable | Pedestrian/cycle — no vehicle carriageway |
+
+## W5-8 only for low bridges (ATNA-45)
+
+**Not every bridge is a low bridge.** Flag **`ff_w5_8_low_only`**. Constant `LowBridgeW58.LOW_CLEARANCE_MAX_M` = **4.6 m** — matches Queensland Rail’s “Low clearance &lt;4.6m” table band (documented in `LowBridgeW58.THRESHOLD_RATIONALE`).
+
+| Qualifies for W5-8 | Does not |
+| --- | --- |
+| Verified height ≤ 4.6 m (e.g. Story 3.8 m, Victoria 4.4 m BCC) | `unknown` / `not_applicable` (Captain Cook, William Jolly, Go Between, Goodwill, Kurilpa) |
+| QR road-under-rail rows with a **published** clearance (height-restricted underpasses, including 4.6–5.4 m band) | Verified non-QR height **above** 4.6 m |
+| | Missing height even if status says verified |
+
+When the flag is on, SymbolManager binds only `LowBridgeW58.bridgesForW58(…)`. Pack rows remain on disk for routing later; they simply do not all get the LOW LEVEL BRIDGE diamond.
 
 ## Queensland Rail SEQ clearances (ATNA-44)
 
@@ -57,6 +69,7 @@ Pack bootstrap **`0.5.0-sample`**. Flag **`ff_queensland_rail_clearances`**. Sou
 - `BridgePackLifecycle` — local-first contracts (`isLocalFirst`, `loadActiveUsesNetwork = false`, …)
 - `VerifiedCbdClearances` — flag gate, provenance loader, label policy
 - `QueenslandRailClearances` — QR SEQ flag gate, visibility filter, source URL + retrieval date
+- `LowBridgeW58` — W5-8 eligibility (≤ 4.6 m / QR underbridge), `bridgesForW58` filter
 - `BridgePackDownloader` — injectable; production uses `NoOpBridgePackDownloader` until a pack host URL is configured; tests use `FixedPayloadBridgePackDownloader` / `CountingBridgePackDownloader`
 - Cache files: `filesDir/bridge_packs/manifest.json` + `bridges.json`
 

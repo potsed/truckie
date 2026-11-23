@@ -488,10 +488,12 @@ private fun MapHomeRoute(
     )
     val bridges = remember(showBridgeMarkers, app.bridgePackRepository, app.featureFlags) {
         if (showBridgeMarkers) {
-            QueenslandRailClearances.visibleBridges(
+            val visible = QueenslandRailClearances.visibleBridges(
                 bridges = app.bridgePackRepository.loadActive().bridges,
                 flags = app.featureFlags,
             )
+            // W5-8 only for verified low / QR underbridges (ATNA-45).
+            LowBridgeW58.bridgesForW58(visible, app.featureFlags)
         } else {
             emptyList()
         }
