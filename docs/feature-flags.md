@@ -64,8 +64,9 @@ XML screen layouts were removed; do not add new AppCompat/XML screens.
     via a separate Annotation **SymbolManager**. Long-term source is a **downloadable
     updatable pack** (`BridgePackRepository`: versioned cache + refresh). The baked-in
     `assets/bridges/au_sample_bridges.json` only **seeds** an empty cache. Optional short
-    clearance labels appear when `clearanceHeightM` is present. Requires map home to be
-    the active surface; does not change create-route or vehicle UI.
+    clearance labels appear when `clearanceHeightM` is present (text-font **Noto Sans
+    Regular** for OpenFreeMap Liberty — default Open Sans stack 404s and hides icons).
+    Requires map home to be the active surface; does not change create-route or vehicle UI.
 13. Demo mode (`ff_demo_mode`) is a Settings switch for temporary dogfood affordances.
     Today it gates **Jump to sample bridges** on map-home chrome (also needs
     `ff_bridge_markers`). A fuller demo dataset (prefilled routes/data) may come later —

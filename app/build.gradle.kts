@@ -20,7 +20,7 @@ android {
         minSdk = 24
         targetSdk = 35
         versionCode = 1
-        versionName = "0.8.5-bridges-style-lifecycle"
+        versionName = "0.8.6-w5-8-openfreemap-fonts"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 

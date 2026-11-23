@@ -14,6 +14,8 @@
     <string name="nav_back">Back</string>
     <string name="settings_buffer_value">Current buffer: %1$s m</string>
     <string name="settings_stub_note">Toll preferences, offline maps, licenses, and disclaimer land in later milestones.</string>
+    <!-- Debug dogfood: confirm installed APK includes a given marker/font fix. -->
+    <string name="settings_app_version">App version: %1$s</string>
     <string name="clearance_buffer_label">Clearance buffer (0.15–1.0 m)</string>
     <string name="auto_unavailable">Android Auto requires API 23+</string>
     <string name="add_vehicle">+</string>

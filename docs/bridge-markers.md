@@ -11,7 +11,8 @@ Feature flag: **`ff_bridge_markers`** (on in debug). Gherkin: [`features/bridge_
 | **Data (bootstrap)** | Baked-in sample `app/src/main/assets/bridges/au_sample_bridges.json` seeds the cache when empty (and re-seeds when the bootstrap version advances) — **not** the long-term source of truth |
 | **Rendering** | Annotation plugin **SymbolManager** (not deprecated MarkerOptions); separate manager from stop markers; style loaded **once** (concurrent AndroidView updates coalesce — no second `setStyle`); managers recreate if style identity drifts or the manager layer is missing from the live style |
 | **Icon** | Australian road sign **W5-8** (low level bridge) — Wikimedia Commons public-domain SVG, rasterised to `res/drawable/au_road_sign_w5_8.png` (~96px @ iconSize ≈ 1.15) |
-| **Label** | Short clearance text (e.g. `4.3 m`) when `clearanceHeightM` is present; marker-only otherwise |
+| **Label** | Short clearance text (e.g. `4.3 m`) when `clearanceHeightM` is present; marker-only otherwise. **Must** set `text-font` to **Noto Sans Regular** (OpenFreeMap glyph host); MapLibre’s default Open Sans stack 404s and hides the whole symbol. `textOptional=true` keeps icons if glyphs fail. |
+| **Build check** | Debug `versionName` (Android App info / Settings) — builds with this font fix are `0.8.6-w5-8-openfreemap-fonts` or newer. Pre-#28 APKs were `0.8.5-bridges-style-lifecycle` or earlier. |
 | **Where to look** | Sample pack clusters around **Brisbane CBD / SEQ** (within ~2 km of the fallback camera). With **Demo mode** on (`ff_demo_mode`, Settings), use **Jump to sample bridges** on the map chrome to fly there. |
 | **Out of scope** | Live CDN hosting, full OSM/NHVR pack ingest, GraphHopper Custom Model, Phase C vehicle UI, create-route changes, global chrome |
 

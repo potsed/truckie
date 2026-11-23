@@ -40,6 +40,15 @@ Feature: Bridge markers on home map
     Then the camera is over Brisbane CBD
     And W5-8 SymbolManager icons remain visible (not orphaned by style reload races)
 
+  Scenario: Clearance labels use OpenFreeMap-compatible text fonts
+    Given ff_bridge_markers is enabled
+    And the basemap is OpenFreeMap Liberty
+    When bridge markers include clearance textField labels
+    Then SymbolOptions text-font is Noto Sans Regular
+    And MapLibre’s default Open Sans stack is not requested
+    And textOptional is true so icons still paint if glyphs fail
+    And W5-8 icons remain visible after Jump to sample bridges
+
   Scenario: Markers use SymbolManager with optional clearance labels
     Given ff_bridge_markers is enabled
     And sample bridges include a height clearance
@@ -47,6 +56,7 @@ Feature: Bridge markers on home map
     And the marker icon is the AU W5-8 low-bridge road sign
     And a short clearance label is shown when height data is present
     And bridges without height show a marker without a clearance label
+    And clearance labels use an OpenFreeMap-hosted fontstack
 
   Scenario: Bridge markers stay Compose-only on map home
     Given ff_map_home and ff_bridge_markers are enabled

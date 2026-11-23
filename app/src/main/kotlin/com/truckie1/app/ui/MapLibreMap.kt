@@ -472,6 +472,8 @@ private class MapLibreHost(
             created.iconAllowOverlap = true
             created.iconIgnorePlacement = true
             created.textAllowOverlap = true
+            // OpenFreeMap glyph 404s must not suppress stop icons.
+            created.textOptional = MapLibreSymbolText.textOptional
             symbolManager = created
         }
         manager.deleteAll()
@@ -484,6 +486,8 @@ private class MapLibreHost(
                 .withIconSize(1.1f)
                 .withIconAnchor("center")
                 .withTextField("${index + 1}")
+                // OpenFreeMap hosts Noto Sans only — default Open Sans stack 404s.
+                .withTextFont(MapStopAnnotations.symbolTextFont)
                 .withTextSize(12f)
                 .withTextColor("#FFFFFF")
                 .withTextHaloColor("#0B1F33")
@@ -530,6 +534,8 @@ private class MapLibreHost(
             created.textAllowOverlap = true
             // Keep icons visible even if the basemap has dense symbol collision.
             created.iconOptional = false
+            // Clearance textField + missing Open Sans glyphs used to hide the whole symbol.
+            created.textOptional = MapLibreSymbolText.textOptional
             bridgeSymbolManager = created
         }
         manager.deleteAll()
@@ -547,6 +553,8 @@ private class MapLibreHost(
             } else {
                 base
                     .withTextField(label)
+                    // OpenFreeMap Liberty glyphs: Noto Sans Regular only.
+                    .withTextFont(BridgeMarkersVisibility.symbolTextFont)
                     .withTextSize(12f)
                     .withTextColor("#0B1F33")
                     .withTextHaloColor("#FFFFFF")

@@ -23,6 +23,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
+import com.truckie1.app.BuildConfig
 import com.truckie1.app.R
 import com.truckie1.app.settings.InstalledNavigationAppQuery
 import com.truckie1.app.settings.NavigationAppPreference
@@ -38,12 +39,24 @@ fun SettingsScreen(
     navigationAppQuery: InstalledNavigationAppQuery? = null,
     featureFlags: LocalFeatureFlags? = null,
     showDemoModeSwitch: Boolean = false,
+    /** Debug dogfood: show [BuildConfig.VERSION_NAME] so installs of a fix can be confirmed. */
+    showAppVersion: Boolean = true,
+    appVersionName: String = BuildConfig.VERSION_NAME,
 ) {
     TruckieBody(text = stringResource(R.string.clearance_buffer_label))
     Spacer(modifier = Modifier.height(8.dp))
     TruckieBody(text = stringResource(R.string.settings_buffer_value, "%.2f".format(bufferM)))
     Spacer(modifier = Modifier.height(16.dp))
     TruckieBody(text = stringResource(R.string.settings_stub_note))
+    if (showAppVersion) {
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = stringResource(R.string.settings_app_version, appVersionName),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onBackground,
+            modifier = Modifier.testTag("settings_app_version"),
+        )
+    }
 
     if (showDemoModeSwitch && featureFlags != null) {
         Spacer(modifier = Modifier.height(24.dp))
