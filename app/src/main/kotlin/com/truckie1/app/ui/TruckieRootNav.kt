@@ -486,14 +486,31 @@ private fun MapHomeRoute(
         flags = app.featureFlags,
         mapHomeEnabled = true,
     )
-    val bridges = remember(showBridgeMarkers, app.bridgePackRepository, app.featureFlags) {
+    val activeVehicleHeightM = remember(app.vehicleProfiles.activeRego) {
+        app.vehicleProfiles.activeRego
+            ?.let { app.vehicleProfiles.findByRego(it)?.heightM }
+    }
+    val bridges = remember(
+        showBridgeMarkers,
+        app.bridgePackRepository,
+        app.featureFlags,
+        activeVehicleHeightM,
+        app.clearanceBufferM,
+    ) {
         if (showBridgeMarkers) {
             val visible = QldOpenClearances.visibleBridges(
                 bridges = app.bridgePackRepository.loadActive().bridges,
                 flags = app.featureFlags,
             )
             // W5-8 only for verified low / QR underbridges (ATNA-45).
-            LowBridgeW58.bridgesForW58(visible, app.featureFlags)
+            val lowOnly = LowBridgeW58.bridgesForW58(visible, app.featureFlags)
+            // Conflicts only when active vehicle has usable height (ATNA-47).
+            VehicleHeightBridgeFilter.bridgesAffectingVehicle(
+                bridges = lowOnly,
+                flags = app.featureFlags,
+                vehicleHeightM = activeVehicleHeightM,
+                bufferM = app.clearanceBufferM,
+            )
         } else {
             emptyList()
         }

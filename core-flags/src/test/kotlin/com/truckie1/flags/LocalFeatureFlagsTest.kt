@@ -146,4 +146,13 @@ class LocalFeatureFlagsTest {
         flags.setEnabled(FlagKeys.BCC_ROAD_HEIGHT_RESTRICTIONS, true)
         assertTrue(flags.isEnabled(FlagKeys.BCC_ROAD_HEIGHT_RESTRICTIONS))
     }
+
+    @Test
+    fun vehicleHeightBridgeFilterFlagKey() {
+        assertTrue(FlagKeys.VEHICLE_HEIGHT_BRIDGE_FILTER == "ff_vehicle_height_bridge_filter")
+        val flags = LocalFeatureFlags()
+        assertFalse(flags.isEnabled(FlagKeys.VEHICLE_HEIGHT_BRIDGE_FILTER))
+        flags.setEnabled(FlagKeys.VEHICLE_HEIGHT_BRIDGE_FILTER, true)
+        assertTrue(flags.isEnabled(FlagKeys.VEHICLE_HEIGHT_BRIDGE_FILTER))
+    }
 }
