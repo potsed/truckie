@@ -37,6 +37,8 @@ data class BridgePoint(
     val clearanceSource: String? = null,
     val clearanceSourceId: String? = null,
     val clearanceRetrievedAt: String? = null,
+    /** Optional provenance provider wire name (e.g. queensland_rail). */
+    val clearanceProvider: String? = null,
 )
 
 object BridgeMarkersCatalog {
@@ -102,6 +104,8 @@ object BridgeMarkersCatalog {
                     val sourceId = obj.optString("clearanceSourceId").trim().takeIf { it.isNotEmpty() }
                     val retrievedAt = obj.optString("clearanceRetrievedAt").trim()
                         .takeIf { it.isNotEmpty() }
+                    val provider = obj.optString("clearanceProvider").trim()
+                        .takeIf { it.isNotEmpty() }
                     add(
                         BridgePoint(
                             id = id,
@@ -113,6 +117,7 @@ object BridgeMarkersCatalog {
                             clearanceSource = source,
                             clearanceSourceId = sourceId,
                             clearanceRetrievedAt = retrievedAt,
+                            clearanceProvider = provider,
                         ),
                     )
                 }

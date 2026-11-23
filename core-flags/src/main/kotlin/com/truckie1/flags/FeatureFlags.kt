@@ -44,6 +44,11 @@ object FlagKeys {
      */
     const val VERIFIED_CBD_CLEARANCES = "ff_verified_cbd_clearances"
     /**
+     * Queensland Rail SEQ road-under-rail clearances (ATNA-44): show published
+     * QR railbridges pack entries on the map; off keeps BCC CBD samples only.
+     */
+    const val QUEENSLAND_RAIL_CLEARANCES = "ff_queensland_rail_clearances"
+    /**
      * Demo mode — temporary dogfood affordances (e.g. Jump to sample bridges).
      * May later gate a fuller demo dataset; that is out of scope for the jump control.
      */

@@ -110,4 +110,13 @@ class LocalFeatureFlagsTest {
         flags.setEnabled(FlagKeys.VERIFIED_CBD_CLEARANCES, true)
         assertTrue(flags.isEnabled(FlagKeys.VERIFIED_CBD_CLEARANCES))
     }
+
+    @Test
+    fun queenslandRailClearancesFlagKey() {
+        assertTrue(FlagKeys.QUEENSLAND_RAIL_CLEARANCES == "ff_queensland_rail_clearances")
+        val flags = LocalFeatureFlags()
+        assertFalse(flags.isEnabled(FlagKeys.QUEENSLAND_RAIL_CLEARANCES))
+        flags.setEnabled(FlagKeys.QUEENSLAND_RAIL_CLEARANCES, true)
+        assertTrue(flags.isEnabled(FlagKeys.QUEENSLAND_RAIL_CLEARANCES))
+    }
 }

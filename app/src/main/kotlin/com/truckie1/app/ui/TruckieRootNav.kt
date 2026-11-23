@@ -486,9 +486,12 @@ private fun MapHomeRoute(
         flags = app.featureFlags,
         mapHomeEnabled = true,
     )
-    val bridges = remember(showBridgeMarkers, app.bridgePackRepository) {
+    val bridges = remember(showBridgeMarkers, app.bridgePackRepository, app.featureFlags) {
         if (showBridgeMarkers) {
-            app.bridgePackRepository.loadActive().bridges
+            QueenslandRailClearances.visibleBridges(
+                bridges = app.bridgePackRepository.loadActive().bridges,
+                flags = app.featureFlags,
+            )
         } else {
             emptyList()
         }

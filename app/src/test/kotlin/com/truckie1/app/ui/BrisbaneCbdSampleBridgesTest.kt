@@ -95,7 +95,9 @@ class BrisbaneCbdSampleBridgesTest {
     @Test
     fun clearanceLabelsAreVerifiedOrOmittedNotMocked() {
         val context = RuntimeEnvironment.getApplication()
+        // CBD river samples only — QR SEQ covers a wider published height band.
         val bridges = BridgeMarkersCatalog.loadFromAssets(context)
+            .filterNot { QueenslandRailClearances.isQueenslandRail(it) }
         val withHeight = bridges.filter { it.clearanceHeightM != null }
         assertTrue(withHeight.isNotEmpty())
         withHeight.forEach { bridge ->
