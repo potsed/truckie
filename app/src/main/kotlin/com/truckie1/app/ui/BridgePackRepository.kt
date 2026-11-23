@@ -150,6 +150,9 @@ class CachedBridgePackRepository(
             if (bridge.clearanceRetrievedAt != null) {
                 obj.put("clearanceRetrievedAt", bridge.clearanceRetrievedAt)
             }
+            if (bridge.clearanceProvider != null) {
+                obj.put("clearanceProvider", bridge.clearanceProvider)
+            }
             array.put(obj)
         }
         File(cacheDir, BRIDGES_FILE).writeText(array.toString())
@@ -169,8 +172,9 @@ class CachedBridgePackRepository(
          * Version stamped when seeding from the baked-in AU sample asset.
          * Bump when `assets/bridges/au_sample_bridges.json` changes so installs
          * with an older `-sample` cache re-seed without a remote fetch
-         * (ATNA-41 snap; ATNA-42 verified clearances → 0.4.0-sample).
+         * (ATNA-41 snap; ATNA-42 verified CBD → 0.4.0-sample;
+         * ATNA-44 Queensland Rail SEQ → 0.5.0-sample).
          */
-        const val BOOTSTRAP_VERSION: String = "0.4.0-sample"
+        const val BOOTSTRAP_VERSION: String = "0.5.0-sample"
     }
 }

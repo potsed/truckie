@@ -44,6 +44,16 @@ object FlagKeys {
      */
     const val VERIFIED_CBD_CLEARANCES = "ff_verified_cbd_clearances"
     /**
+     * Queensland Rail SEQ road-under-rail clearances (ATNA-44): show published
+     * QR railbridges pack entries on the map; off keeps BCC CBD samples only.
+     */
+    const val QUEENSLAND_RAIL_CLEARANCES = "ff_queensland_rail_clearances"
+    /**
+     * W5-8 only for low / restricted clearances (ATNA-45): AU W5-8 diamond
+     * only when verified low (≤ 4.6 m) or QR published underbridge.
+     */
+    const val W5_8_LOW_ONLY = "ff_w5_8_low_only"
+    /**
      * Demo mode — temporary dogfood affordances (e.g. Jump to sample bridges).
      * May later gate a fuller demo dataset; that is out of scope for the jump control.
      */

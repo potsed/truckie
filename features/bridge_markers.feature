@@ -61,9 +61,10 @@ Feature: Bridge markers on home map
     Given ff_bridge_markers is enabled
     And sample bridges include a height clearance
     Then bridge markers use SymbolManager not deprecated MarkerOptions
-    And the marker icon is the AU W5-8 low-bridge road sign
-    And a short clearance label is shown when height data is present
-    And bridges without height show a marker without a clearance label
+    And the marker icon is the AU W5-8 low-bridge road sign only for qualifying low bridges
+      (see low_bridge_w5_8.feature / ff_w5_8_low_only)
+    And a short clearance label is shown when a verified height is present on a W5-8 marker
+    And unknown / not_applicable / high spans do not get W5-8
     And clearance labels use an OpenFreeMap-hosted fontstack
 
   Scenario: Bridge markers stay Compose-only on map home

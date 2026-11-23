@@ -1,15 +1,15 @@
 {
   "region": "AU",
-  "pack": "brisbane-cbd-sample",
-  "version": "0.4.0-sample",
+  "pack": "brisbane-cbd-qr-seq",
+  "version": "0.5.0-sample",
   "retrievedAt": "2026-11-23",
-  "clearancePolicy": "Use only published signed road vertical clearances for vehicles (BCC Open Data road-restrictions, Queensland Rail SEQ low bridges, TMR/NHVR notices). If a crossing has no published road clearance (high open river spans), omit clearanceHeightM and set clearanceStatus to unknown. Pedestrian/cycle-only bridges are not_applicable. Never invent mock demo heights. Never treat Maritime Safety Queensland vessel air draft above HAT as a truck road clearance.",
+  "clearancePolicy": "Use only published signed road vertical clearances for vehicles (BCC Open Data road-restrictions, Queensland Rail SEQ low bridges, TMR/NHVR notices). Prefer Queensland Rail published figures over mock/unknown for matching road-under-rail assets. If a crossing has no published road clearance (high open river spans), omit clearanceHeightM and set clearanceStatus to unknown. Pedestrian/cycle-only bridges are not_applicable. Never invent mock demo heights or heights for bridges absent from the cited sources. Never treat Maritime Safety Queensland vessel air draft above HAT as a truck road clearance.",
   "sources": [
-    "Brisbane City Council Open Data — Road height restrictions (dataset road-restrictions), retrieved 2026-11-23: https://data.brisbane.qld.gov.au/explore/dataset/road-restrictions/",
-    "BCC B0001 - 13 / B0001 - 14 — Kerbside Lane under Bradfield Highway/Story Bridge — signed_clearance_min 3.8 m (validation_date 2020-10-08)",
-    "BCC B0002 - 298 — South-East Arterial Road under Victoria Bridge — Southeast — signed_clearance_min 4.4 m (validation_date 2020-10-08); B0002 - 213 Cultural Centre Tunnel under Victoria Bridge also 4.4 m",
-    "Queensland Rail — Low rail bridges in South East Queensland, retrieved 2026-11-23: https://www.queenslandrail.com.au/forcustomers/safetysecurity/railbridges (no matching signed road clearance for the named CBD river spans)",
-    "TMR Queensland — Bridge and culvert restrictions hub, retrieved 2026-11-23: https://www.tmr.qld.gov.au/business-industry/heavy-vehicles/bridge-and-culvert-restrictions (mass/OSOM lists; not used as invented height)",
-    "Maritime Safety Queensland — Port Procedures and Information for Shipping – Brisbane (August 2024) Table 23 air draft/bridge heights above HAT — vessel navigation only; explicitly excluded from road clearanceHeightM"
+    "Queensland Rail \u2014 Low rail bridges in South East Queensland, retrieved 2026-11-23: https://www.queenslandrail.com.au/forcustomers/safetysecurity/railbridges (road-under-rail signed clearances; location map coordinates from the same page)",
+    "Brisbane City Council Open Data \u2014 Road height restrictions (dataset road-restrictions), retrieved 2026-11-23: https://data.brisbane.qld.gov.au/explore/dataset/road-restrictions/",
+    "BCC B0001 - 13 / B0001 - 14 \u2014 Kerbside Lane under Bradfield Highway/Story Bridge \u2014 signed_clearance_min 3.8 m (validation_date 2020-10-08)",
+    "BCC B0002 - 298 \u2014 South-East Arterial Road under Victoria Bridge \u2014 Southeast \u2014 signed_clearance_min 4.4 m (validation_date 2020-10-08); B0002 - 213 Cultural Centre Tunnel under Victoria Bridge also 4.4 m",
+    "TMR Queensland \u2014 Bridge and culvert restrictions hub, retrieved 2026-11-23: https://www.tmr.qld.gov.au/business-industry/heavy-vehicles/bridge-and-culvert-restrictions (mass/OSOM lists; not used as invented height)",
+    "Maritime Safety Queensland \u2014 Port Procedures and Information for Shipping \u2013 Brisbane (August 2024) Table 23 air draft/bridge heights above HAT \u2014 vessel navigation only; explicitly excluded from road clearanceHeightM"
   ]
 }

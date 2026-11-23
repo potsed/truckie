@@ -544,7 +544,10 @@ private class MapLibreHost(
         if (bridges.isEmpty()) return
         val flags = (context.applicationContext as? TruckieApp)?.featureFlags
             ?: LocalFeatureFlags()
-        val options = bridges.map { bridge ->
+        // Callers should already filter via LowBridgeW58; re-apply so W5-8 is
+        // never drawn on unknown / high / not_applicable spans (ATNA-45).
+        val forW58 = LowBridgeW58.bridgesForW58(bridges, flags)
+        val options = forW58.map { bridge ->
             val label = BridgeMarkersCatalog.clearanceLabel(bridge, flags)
             // W5-8 is a diamond road sign — centre on the bridge point (not a pin tip).
             val base = SymbolOptions()
