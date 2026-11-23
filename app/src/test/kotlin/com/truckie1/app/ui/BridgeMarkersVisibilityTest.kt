@@ -96,5 +96,12 @@ class BridgeMarkersVisibilityTest {
                 "0.1.0-sample",
             ),
         )
+        assertTrue(
+            BridgePackVersions.isNewer(
+                CachedBridgePackRepository.BOOTSTRAP_VERSION,
+                "0.2.0-sample",
+            ),
+        )
+        assertEquals("0.3.0-sample", CachedBridgePackRepository.BOOTSTRAP_VERSION)
     }
 }

@@ -1,50 +1,50 @@
 [
   {
-    "id": "qld-victoria-bridge-sample",
-    "name": "Victoria Bridge approach (sample)",
-    "lat": -27.4726,
-    "lng": 153.0218,
-    "clearanceHeightM": 4.5
-  },
-  {
-    "id": "qld-story-bridge-approach-sample",
-    "name": "Story Bridge approach (sample)",
-    "lat": -27.4678,
-    "lng": 153.0355,
+    "id": "qld-story-bridge-sample",
+    "name": "Story Bridge (sample)",
+    "lat": -27.4682221,
+    "lng": 153.0358746,
     "clearanceHeightM": 4.6
   },
   {
-    "id": "qld-grey-street-bridge-sample",
-    "name": "Grey Street Bridge / South Bank (sample)",
-    "lat": -27.4755,
-    "lng": 153.0198,
-    "clearanceHeightM": 4.3
+    "id": "qld-victoria-bridge-sample",
+    "name": "Victoria Bridge (sample)",
+    "lat": -27.4724167,
+    "lng": 153.0210044,
+    "clearanceHeightM": 4.5
   },
   {
-    "id": "qld-captain-cook-north-sample",
-    "name": "Captain Cook Bridge north approach (sample)",
-    "lat": -27.4788,
-    "lng": 153.0282,
+    "id": "qld-captain-cook-bridge-sample",
+    "name": "Captain Cook Bridge / M3 (sample)",
+    "lat": -27.4804702,
+    "lng": 153.0289367,
     "clearanceHeightM": 4.8
   },
   {
-    "id": "qld-ann-st-overpass-sample",
-    "name": "Ann Street overpass (sample)",
-    "lat": -27.4642,
-    "lng": 153.0245,
-    "clearanceHeightM": 4.1
+    "id": "qld-goodwill-bridge-sample",
+    "name": "Goodwill Bridge (sample)",
+    "lat": -27.4806730,
+    "lng": 153.0269819,
+    "clearanceHeightM": 4.3
   },
   {
-    "id": "qld-indooroopilly-rail-sample",
-    "name": "Indooroopilly rail underpass (sample)",
-    "lat": -27.5012,
-    "lng": 152.9735,
-    "clearanceHeightM": 4.2
+    "id": "qld-william-jolly-bridge-sample",
+    "name": "William Jolly Bridge (sample)",
+    "lat": -27.4691880,
+    "lng": 153.0156208,
+    "clearanceHeightM": 4.4
   },
   {
-    "id": "qld-kangaroo-point-cliffs-road-sample",
-    "name": "Kangaroo Point cliffs road overpass (sample)",
-    "lat": -27.4750,
-    "lng": 153.0340
+    "id": "qld-go-between-bridge-sample",
+    "name": "Go Between Bridge (sample)",
+    "lat": -27.4698444,
+    "lng": 153.0122765,
+    "clearanceHeightM": 5.0
+  },
+  {
+    "id": "qld-kurilpa-bridge-sample",
+    "name": "Kurilpa Bridge (sample)",
+    "lat": -27.4691815,
+    "lng": 153.0188130
   }
 ]

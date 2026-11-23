@@ -142,4 +142,59 @@ class BridgePackRepositoryTest {
         assertTrue(result is BridgePackRefreshResult.Failed)
         assertEquals(CachedBridgePackRepository.BOOTSTRAP_VERSION, repo.cachedVersion())
     }
+
+    @Test
+    fun localFirstLifecycleNeverNetworksOnLoadActive() {
+        assertTrue(BridgePackLifecycle.isLocalFirst)
+        assertFalse(BridgePackLifecycle.loadActiveUsesNetwork)
+        assertTrue(BridgePackLifecycle.refreshOnlyWhenVersionNewer)
+        assertTrue(BridgePackLifecycle.seedsBundledSampleToDisk)
+        assertEquals("0.3.0-sample", CachedBridgePackRepository.BOOTSTRAP_VERSION)
+
+        val counting = CountingBridgePackDownloader(
+            FixedPayloadBridgePackDownloader(
+                """[{"id":"x","name":"X","lat":-27.0,"lng":153.0}]""".toByteArray(),
+            ),
+        )
+        val repo = freshRepo(counting)
+        repeat(3) { repo.loadActive() }
+        assertEquals(
+            "loadActive must stay on-device (bundled/cache) — no pack download",
+            0,
+            counting.downloadCount,
+        )
+        assertNotNull(repo.cachedVersion())
+    }
+
+    @Test
+    fun refreshSkipsDownloadWhenRemoteVersionIsNotNewer() {
+        val counting = CountingBridgePackDownloader(
+            FixedPayloadBridgePackDownloader(
+                """[{"id":"x","name":"X","lat":-27.0,"lng":153.0}]""".toByteArray(),
+            ),
+        )
+        val repo = freshRepo(counting)
+        repo.loadActive()
+        val first = repo.refresh(
+            BridgePackManifest(region = "AU", version = "1.1.0", downloadUrl = "https://example.invalid/a"),
+        )
+        assertTrue(first is BridgePackRefreshResult.Updated)
+        assertEquals(1, counting.downloadCount)
+
+        val second = repo.refresh(
+            BridgePackManifest(region = "AU", version = "1.1.0", downloadUrl = "https://example.invalid/a"),
+        )
+        assertTrue(second is BridgePackRefreshResult.Unchanged)
+        assertEquals(
+            "Same version must not re-fetch (power efficiency)",
+            1,
+            counting.downloadCount,
+        )
+
+        val older = repo.refresh(
+            BridgePackManifest(region = "AU", version = "1.0.0", downloadUrl = "https://example.invalid/b"),
+        )
+        assertTrue(older is BridgePackRefreshResult.Unchanged)
+        assertEquals(1, counting.downloadCount)
+    }
 }

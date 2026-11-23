@@ -57,6 +57,34 @@ class FixedPayloadBridgePackDownloader(
     override fun download(manifest: BridgePackManifest): Result<ByteArray> = Result.success(payload)
 }
 
+/** Test helper: counts download attempts (local-first / power-efficiency asserts). */
+class CountingBridgePackDownloader(
+    private val delegate: BridgePackDownloader,
+) : BridgePackDownloader {
+    var downloadCount: Int = 0
+        private set
+
+    override fun download(manifest: BridgePackManifest): Result<ByteArray> {
+        downloadCount += 1
+        return delegate.download(manifest)
+    }
+}
+
+/**
+ * Local-first pack lifecycle (power efficiency).
+ * Gherkin: features/bridge_pack.feature
+ *
+ * Cold start / Jump / map home read **on-device** data only (bundled asset → disk
+ * cache). Network is used solely by [BridgePackRepository.refresh] when a remote
+ * manifest advertises a **newer** version. Live OSM/NHVR ingest stays ATNA-11.
+ */
+object BridgePackLifecycle {
+    const val isLocalFirst: Boolean = true
+    const val loadActiveUsesNetwork: Boolean = false
+    const val refreshOnlyWhenVersionNewer: Boolean = true
+    const val seedsBundledSampleToDisk: Boolean = true
+}
+
 object BridgePackVersions {
     /** Semver-ish compare: major.minor.patch numeric tuples; non-numeric → string. */
     fun isNewer(candidate: String, current: String): Boolean {
