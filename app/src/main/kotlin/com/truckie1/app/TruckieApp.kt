@@ -7,9 +7,9 @@ import com.truckie1.app.settings.NavigationAppStore
 import com.truckie1.app.settings.PackageManagerNavigationAppQuery
 import com.truckie1.app.settings.SharedNavigationAppStore
 import com.truckie1.app.trips.RouteNavigateSession
+import com.truckie1.app.ui.AuLowBridgesPack
 import com.truckie1.app.ui.BridgePackRepository
 import com.truckie1.app.ui.CachedBridgePackRepository
-import com.truckie1.app.ui.NoOpBridgePackDownloader
 import com.truckie1.flags.FlagKeys
 import com.truckie1.flags.LocalFeatureFlags
 import com.truckie1.maps.MapLibreNativeEngine
@@ -60,13 +60,6 @@ class TruckieApp : Application() {
         vehicleProfiles = RoomVehicleProfileRepository(db.vehicleDao())
         navigationAppStore = SharedNavigationAppStore(this)
         navigationAppQuery = PackageManagerNavigationAppQuery(packageManager)
-        // AU bridge pack: local-first (bundled sample → disk cache). loadActive
-        // never networks; refresh only when a newer remote version is advertised.
-        // Remote host not wired yet — NoOp until CDN/NHVR pack URL (ATNA-11).
-        bridgePackRepository = CachedBridgePackRepository(
-            context = this,
-            downloader = NoOpBridgePackDownloader,
-        )
         // Dogfood: enable shipped capabilities in debug builds only.
         if (BuildConfig.DEBUG) {
             featureFlags.setEnabled(FlagKeys.VEHICLE_PROFILES, true)
@@ -93,8 +86,28 @@ class TruckieApp : Application() {
             featureFlags.setEnabled(FlagKeys.VEHICLE_HEIGHT_BRIDGE_FILTER, true)
             // Over vs under passage — conflicts block under-paths only (ATNA-48).
             featureFlags.setEnabled(FlagKeys.BRIDGE_PASSAGE, true)
+            // OSS AU low-bridges pack refresh (ATNA-50) — local-first when newer.
+            featureFlags.setEnabled(FlagKeys.AU_LOW_BRIDGES_PACK, true)
             // Demo mode: temporary dogfood affordances (Jump to sample bridges).
             featureFlags.setEnabled(FlagKeys.DEMO_MODE, true)
+        }
+        // AU bridge pack: local-first (bundled sample → disk cache). loadActive
+        // never networks; refresh only when a newer remote version is advertised.
+        // ff_au_low_bridges_pack → HTTPS GitHub Release asset (shared OSS schema).
+        bridgePackRepository = CachedBridgePackRepository(
+            context = this,
+            downloader = AuLowBridgesPack.downloaderFor(featureFlags),
+        )
+        if (AuLowBridgesPack.isEnabled(featureFlags)) {
+            // Best-effort off-main refresh; failures keep on-device fallback.
+            Thread(
+                {
+                    runCatching {
+                        bridgePackRepository.refresh(AuLowBridgesPack.remoteManifest())
+                    }
+                },
+                "au-low-bridges-pack-refresh",
+            ).apply { isDaemon = true }.start()
         }
     }
 }

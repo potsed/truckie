@@ -50,6 +50,27 @@ object NoOpBridgePackDownloader : BridgePackDownloader {
         Result.failure(IllegalStateException("No remote bridge pack host configured"))
 }
 
+/**
+ * HTTPS downloader for the AU low-bridges Release asset (ATNA-50).
+ * Uses [manifest.downloadUrl]; fails closed when the URL is missing.
+ */
+class UrlBridgePackDownloader(
+    private val openStream: (String) -> ByteArray = { url ->
+        java.net.URI.create(url).toURL().openStream().use { it.readBytes() }
+    },
+) : BridgePackDownloader {
+    override fun download(manifest: BridgePackManifest): Result<ByteArray> {
+        val url = manifest.downloadUrl?.trim().orEmpty()
+        if (url.isEmpty()) {
+            return Result.failure(IllegalStateException("Bridge pack downloadUrl missing"))
+        }
+        if (!url.startsWith("https://")) {
+            return Result.failure(IllegalStateException("Bridge pack URL must be HTTPS"))
+        }
+        return runCatching { openStream(url) }
+    }
+}
+
 /** Test / dogfood downloader that returns a fixed JSON payload. */
 class FixedPayloadBridgePackDownloader(
     private val payload: ByteArray,
@@ -86,8 +107,16 @@ object BridgePackLifecycle {
 }
 
 object BridgePackVersions {
-    /** Semver-ish compare: major.minor.patch numeric tuples; non-numeric → string. */
+    /**
+     * Semver-ish compare: major.minor.patch numeric tuples; non-numeric → string.
+     * A published (non-`-sample`) remote always replaces an on-device bootstrap
+     * `-sample` stamp — e.g. OSS `0.1.0` supersedes `0.7.0-sample`.
+     */
     fun isNewer(candidate: String, current: String): Boolean {
+        val candidateSample = candidate.trim().endsWith("-sample")
+        val currentSample = current.trim().endsWith("-sample")
+        if (currentSample && !candidateSample) return true
+        if (!currentSample && candidateSample) return false
         val a = parse(candidate)
         val b = parse(current)
         if (a != null && b != null) {

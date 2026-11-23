@@ -44,6 +44,20 @@ data class BridgePoint(
      * Height conflicts apply to under-paths only — OK to drive over the deck.
      */
     val passage: BridgePassage = BridgePassage.UNKNOWN,
+    /** AU state/territory code when known (OSS / Truckie source pack). */
+    val state: String? = null,
+    /** Local government area when known — null over inventing. */
+    val lga: String? = null,
+    /** Road name going under the structure (height-restricted path). */
+    val roadUnder: String? = null,
+    /** Road / feature going over the structure when known. */
+    val roadOver: String? = null,
+    /** Required on OSS pack rows; optional on legacy bootstrap fixtures. */
+    val source: BridgeSource? = null,
+    /** Optional published weight/load restriction — null when unknown. */
+    val weightRestriction: String? = null,
+    /** Optional signage note; roadside signs still override the pack. */
+    val signageNote: String? = null,
 )
 
 object BridgeMarkersCatalog {
@@ -121,6 +135,11 @@ object BridgeMarkersCatalog {
                         clearanceStatus = status,
                         explicit = explicitPassage,
                     )
+                    val packSource = parseBridgeSource(obj)
+                    val resolvedRetrieved = retrievedAt
+                        ?: packSource?.retrievedAt
+                    val resolvedCitation = source
+                        ?: packSource?.citation()
                     add(
                         BridgePoint(
                             id = id,
@@ -129,16 +148,42 @@ object BridgeMarkersCatalog {
                             longitude = lng,
                             clearanceHeightM = clearance,
                             clearanceStatus = status,
-                            clearanceSource = source,
+                            clearanceSource = resolvedCitation,
                             clearanceSourceId = sourceId,
-                            clearanceRetrievedAt = retrievedAt,
+                            clearanceRetrievedAt = resolvedRetrieved,
                             clearanceProvider = provider,
                             passage = passage,
+                            state = optNullableString(obj, "state"),
+                            lga = optNullableString(obj, "lga"),
+                            roadUnder = optNullableString(obj, "roadUnder"),
+                            roadOver = optNullableString(obj, "roadOver"),
+                            source = packSource,
+                            weightRestriction = optNullableString(obj, "weightRestriction"),
+                            signageNote = optNullableString(obj, "signageNote"),
                         ),
                     )
                 }
             }
         }.getOrDefault(emptyList())
+    }
+
+    /**
+     * org.json [JSONObject.optString] returns the literal `"null"` for JSON null —
+     * treat missing / JSON null / blank as Kotlin null (prefer null over inventing).
+     */
+    fun optNullableString(obj: org.json.JSONObject, key: String): String? {
+        if (!obj.has(key) || obj.isNull(key)) return null
+        return obj.optString(key).trim().takeIf { it.isNotEmpty() && it != "null" }
+    }
+
+    /** Parse required OSS `source` object; null when absent (legacy bootstrap rows). */
+    fun parseBridgeSource(obj: org.json.JSONObject): BridgeSource? {
+        val nested = obj.optJSONObject("source") ?: return null
+        val name = nested.optString("name").trim()
+        val url = nested.optString("url").trim()
+        val retrievedAt = nested.optString("retrievedAt").trim()
+        if (name.isEmpty() || url.isEmpty() || retrievedAt.isEmpty()) return null
+        return BridgeSource(name = name, url = url, retrievedAt = retrievedAt)
     }
 
     fun ensureBridgeMarkerImage(style: Style, context: Context) {
