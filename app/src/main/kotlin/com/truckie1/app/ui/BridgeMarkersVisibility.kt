@@ -38,6 +38,15 @@ object BridgeMarkersVisibility {
 
     const val usesAuRoadSignW58: Boolean = true
 
+    /**
+     * Clearance labels must use OpenFreeMap’s Noto Sans stack — MapLibre’s default
+     * Open Sans fontstack 404s and hides the whole W5-8 symbol (icon + text).
+     */
+    const val requiresOpenFreeMapCompatibleTextFont: Boolean =
+        MapLibreSymbolText.requiresOpenFreeMapCompatibleTextFont
+
+    val symbolTextFont: Array<String> = MapLibreSymbolText.openFreeMapTextFont
+
     fun nearBrisbaneFallback(bridges: List<BridgePoint>): List<BridgePoint> =
         bridges.filter { bridge ->
             distanceKm(

@@ -77,6 +77,11 @@ class BridgeMarkersVisibilityTest {
         assertTrue(BridgeMarkersVisibility.recreatesManagersWhenStyleIdentityDrifts)
         assertTrue(BridgeMarkersVisibility.recreatesManagersWhenLayerMissing)
         assertTrue(BridgeMarkersVisibility.usesAuRoadSignW58)
+        assertTrue(BridgeMarkersVisibility.requiresOpenFreeMapCompatibleTextFont)
+        assertEquals(
+            "Noto Sans Regular",
+            BridgeMarkersVisibility.symbolTextFont.single(),
+        )
         assertTrue(
             "W5-8 iconSize should stay neighbourhood-readable (0.9–1.5), was ${BridgeMarkersVisibility.iconSize}",
             BridgeMarkersVisibility.iconSize in 0.9f..1.5f,

@@ -19,6 +19,8 @@ class MapStopAnnotationsTest {
         assertTrue(MapStopAnnotations.usesSymbolManager)
         assertFalse(MapStopAnnotations.usesDeprecatedMarkerApi)
         assertEquals("truckie_stop_marker", MapStopAnnotations.ICON_ID)
+        assertTrue(MapStopAnnotations.requiresOpenFreeMapCompatibleTextFont)
+        assertEquals("Noto Sans Regular", MapStopAnnotations.symbolTextFont.single())
     }
 
     @Test

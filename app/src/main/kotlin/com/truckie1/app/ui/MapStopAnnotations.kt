@@ -17,6 +17,15 @@ object MapStopAnnotations {
     const val usesSymbolManager: Boolean = true
     const val usesDeprecatedMarkerApi: Boolean = false
 
+    /**
+     * Stop index labels need the same OpenFreeMap Noto stack as bridge clearance
+     * text — otherwise SymbolManager icons vanish after textField is set.
+     */
+    const val requiresOpenFreeMapCompatibleTextFont: Boolean =
+        MapLibreSymbolText.requiresOpenFreeMapCompatibleTextFont
+
+    val symbolTextFont: Array<String> = MapLibreSymbolText.openFreeMapTextFont
+
     fun ensureStopMarkerImage(style: Style) {
         if (style.getImage(ICON_ID) != null) return
         style.addImage(ICON_ID, createStopMarkerBitmap())

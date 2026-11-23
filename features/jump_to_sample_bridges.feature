@@ -29,4 +29,5 @@ Feature: Jump to sample bridges (temporary demo control)
     When the driver taps Jump to sample bridges
     Then the MapLibre camera animates to the SEQ sample cluster near Brisbane CBD
     And the zoom shows several W5-8 markers
+    And clearance labels use OpenFreeMap Noto Sans so icons are not hidden by glyph 404s
     And follow mode exits so location updates do not pull the camera away
