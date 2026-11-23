@@ -128,4 +128,22 @@ class LocalFeatureFlagsTest {
         flags.setEnabled(FlagKeys.W5_8_LOW_ONLY, true)
         assertTrue(flags.isEnabled(FlagKeys.W5_8_LOW_ONLY))
     }
+
+    @Test
+    fun tmrStructureClearancesFlagKey() {
+        assertTrue(FlagKeys.TMR_STRUCTURE_CLEARANCES == "ff_tmr_structure_clearances")
+        val flags = LocalFeatureFlags()
+        assertFalse(flags.isEnabled(FlagKeys.TMR_STRUCTURE_CLEARANCES))
+        flags.setEnabled(FlagKeys.TMR_STRUCTURE_CLEARANCES, true)
+        assertTrue(flags.isEnabled(FlagKeys.TMR_STRUCTURE_CLEARANCES))
+    }
+
+    @Test
+    fun bccRoadHeightRestrictionsFlagKey() {
+        assertTrue(FlagKeys.BCC_ROAD_HEIGHT_RESTRICTIONS == "ff_bcc_road_height_restrictions")
+        val flags = LocalFeatureFlags()
+        assertFalse(flags.isEnabled(FlagKeys.BCC_ROAD_HEIGHT_RESTRICTIONS))
+        flags.setEnabled(FlagKeys.BCC_ROAD_HEIGHT_RESTRICTIONS, true)
+        assertTrue(flags.isEnabled(FlagKeys.BCC_ROAD_HEIGHT_RESTRICTIONS))
+    }
 }

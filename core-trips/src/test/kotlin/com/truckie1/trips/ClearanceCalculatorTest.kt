@@ -1,6 +1,7 @@
 package com.truckie1.trips
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class ClearanceCalculatorTest {
@@ -42,6 +43,15 @@ class ClearanceCalculatorTest {
         assertEquals(3.65, low, 1e-9)
         val high = ClearanceCalculator.effectiveHeightM(3.0, listOf(3.5), 5.0)
         assertEquals(4.5, high, 1e-9)
+    }
+
+    @Test
+    fun bufferRationaleCoversPackLagVersusRoadsideSigns() {
+        assertTrue(ClearanceBuffer.RATIONALE.contains("sign", ignoreCase = true))
+        assertTrue(
+            ClearanceBuffer.RATIONALE.contains("lag", ignoreCase = true) ||
+                ClearanceBuffer.RATIONALE.contains("stale", ignoreCase = true),
+        )
     }
 
     @Test

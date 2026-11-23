@@ -54,6 +54,16 @@ object FlagKeys {
      */
     const val W5_8_LOW_ONLY = "ff_w5_8_low_only"
     /**
+     * TMR Structure Clearances in Queensland (ATNA-46): show published TMR
+     * spatial clearance pack entries; off hides TMR rows only.
+     */
+    const val TMR_STRUCTURE_CLEARANCES = "ff_tmr_structure_clearances"
+    /**
+     * BCC Road Height Restrictions GIS (ATNA-46): show Brisbane Open Data
+     * under-4.6 m local pack entries; off keeps curated CBD `-sample` rows.
+     */
+    const val BCC_ROAD_HEIGHT_RESTRICTIONS = "ff_bcc_road_height_restrictions"
+    /**
      * Demo mode — temporary dogfood affordances (e.g. Jump to sample bridges).
      * May later gate a fuller demo dataset; that is out of scope for the jump control.
      */

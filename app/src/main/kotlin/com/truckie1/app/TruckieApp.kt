@@ -86,6 +86,9 @@ class TruckieApp : Application() {
             featureFlags.setEnabled(FlagKeys.QUEENSLAND_RAIL_CLEARANCES, true)
             // W5-8 only for verified low / QR underbridges (ATNA-45).
             featureFlags.setEnabled(FlagKeys.W5_8_LOW_ONLY, true)
+            // TMR Structure Clearances + BCC road-restrictions GIS (ATNA-46).
+            featureFlags.setEnabled(FlagKeys.TMR_STRUCTURE_CLEARANCES, true)
+            featureFlags.setEnabled(FlagKeys.BCC_ROAD_HEIGHT_RESTRICTIONS, true)
             // Demo mode: temporary dogfood affordances (Jump to sample bridges).
             featureFlags.setEnabled(FlagKeys.DEMO_MODE, true)
         }
