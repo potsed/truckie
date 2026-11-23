@@ -317,12 +317,6 @@ fun MapLibreMap(
                     }
                     mapHost.bindStops(mapView = view, map = map, style = style, stops = stops)
                     mapHost.bindRoutePath(mapView = view, map = map, style = style, points = routePathPoints)
-                    mapHost.bindBridges(
-                        mapView = view,
-                        map = map,
-                        style = style,
-                        bridges = if (showBridgeMarkers) bridges else emptyList(),
-                    )
                     if (showLocationPuck) {
                         mapHost.ensureLocationComponent(map = map, style = style)
                         mapHost.updatePuck(locationFix, enabled = locationFix != null)
@@ -340,6 +334,14 @@ fun MapLibreMap(
                     } else {
                         mapHost.updatePuck(null, enabled = false)
                     }
+                    // Bridges after LocationComponent so the W5-8 SymbolLayer sits above
+                    // puck/accuracy layers and is never buried under the basemap stack.
+                    mapHost.bindBridges(
+                        mapView = view,
+                        map = map,
+                        style = style,
+                        bridges = if (showBridgeMarkers) bridges else emptyList(),
+                    )
                 }
             }
         },
@@ -362,24 +364,53 @@ private class MapLibreHost(
     private var followGesturesBound: Boolean = false
     private var ignoreTrackingDismiss: Boolean = false
     private var styleReady: Boolean = false
+    private var styleLoading: Boolean = false
+    private val pendingStyleReady = mutableListOf<(Style) -> Unit>()
+    /** Style instance managers were last created against (identity check). */
+    private var boundStyle: Style? = null
     var hasAppliedInitialCamera: Boolean = false
 
     /**
-     * Loads the basemap style once. If Compose recomposes, reuse the live style
-     * and only rebind annotations — never orphan SymbolManagers via setStyle.
+     * Loads the basemap style once. Concurrent AndroidView updates coalesce into
+     * a single setStyle; recompositions rebind annotations on the live style.
+     * Recreates managers when style identity drifts (orphaned SymbolManagers were
+     * the root cause of invisible W5-8 markers after Jump to sample bridges).
      */
     fun ensureStyle(map: MapLibreMap, onReady: (Style) -> Unit) {
         mapRef = map
         val existing = map.style
-        if (styleReady && existing != null) {
-            onReady(existing)
-            return
-        }
-        map.setStyle(Style.Builder().fromUri(MapCameraDefaults.STYLE_URI)) { style ->
-            // Fresh style → managers tied to any previous style are invalid.
-            resetAnnotationManagers()
-            styleReady = true
-            onReady(style)
+        val fullyLoaded = existing != null && existing.isFullyLoaded
+        val decision = MapLibreStyleLifecycle.decide(
+            styleReady = styleReady,
+            styleLoading = styleLoading,
+            hasExistingFullyLoadedStyle = fullyLoaded,
+            boundStyleMatchesExisting = boundStyle != null && boundStyle === existing,
+        )
+        when (decision.action) {
+            StyleEnsureAction.REUSE_EXISTING -> {
+                val style = existing ?: return
+                if (decision.recreateManagers) {
+                    resetAnnotationManagers()
+                    boundStyle = style
+                }
+                onReady(style)
+            }
+            StyleEnsureAction.ENQUEUE_WHILE_LOADING -> {
+                pendingStyleReady.add(onReady)
+            }
+            StyleEnsureAction.START_LOAD -> {
+                pendingStyleReady.add(onReady)
+                styleLoading = true
+                map.setStyle(Style.Builder().fromUri(MapCameraDefaults.STYLE_URI)) { style ->
+                    resetAnnotationManagers()
+                    boundStyle = style
+                    styleReady = true
+                    styleLoading = false
+                    val callbacks = pendingStyleReady.toList()
+                    pendingStyleReady.clear()
+                    callbacks.forEach { callback -> callback(style) }
+                }
+            }
         }
     }
 
@@ -400,6 +431,34 @@ private class MapLibreHost(
         followGesturesBound = false
     }
 
+    private fun dropManagerIfOrphaned(
+        manager: SymbolManager?,
+        style: Style,
+        clear: () -> Unit,
+    ): SymbolManager? {
+        val current = manager ?: return null
+        val recreate = MapLibreStyleLifecycle.mustRecreateAnnotationManager(
+            hasManager = true,
+            styleContainsManagerLayer = style.getLayer(current.layerId) != null,
+        )
+        if (!recreate) return current
+        runCatching { current.onDestroy() }
+        clear()
+        return null
+    }
+
+    private fun dropLineManagerIfOrphaned(style: Style): LineManager? {
+        val current = lineManager ?: return null
+        val recreate = MapLibreStyleLifecycle.mustRecreateAnnotationManager(
+            hasManager = true,
+            styleContainsManagerLayer = style.getLayer(current.layerId) != null,
+        )
+        if (!recreate) return current
+        runCatching { current.onDestroy() }
+        lineManager = null
+        return null
+    }
+
     fun bindStops(
         mapView: MapView,
         map: MapLibreMap,
@@ -408,6 +467,7 @@ private class MapLibreHost(
     ) {
         mapRef = map
         MapStopAnnotations.ensureStopMarkerImage(style)
+        dropManagerIfOrphaned(symbolManager, style) { symbolManager = null }
         val manager = symbolManager ?: SymbolManager(mapView, map, style).also { created ->
             created.iconAllowOverlap = true
             created.iconIgnorePlacement = true
@@ -442,6 +502,7 @@ private class MapLibreHost(
         points: List<LatLngPoint>,
     ) {
         mapRef = map
+        dropLineManagerIfOrphaned(style)
         val manager = lineManager ?: LineManager(mapView, map, style).also { lineManager = it }
         manager.deleteAll()
         if (points.size < 2) return
@@ -462,10 +523,13 @@ private class MapLibreHost(
     ) {
         mapRef = map
         BridgeMarkersCatalog.ensureBridgeMarkerImage(style, context)
+        dropManagerIfOrphaned(bridgeSymbolManager, style) { bridgeSymbolManager = null }
         val manager = bridgeSymbolManager ?: SymbolManager(mapView, map, style).also { created ->
             created.iconAllowOverlap = true
             created.iconIgnorePlacement = true
             created.textAllowOverlap = true
+            // Keep icons visible even if the basemap has dense symbol collision.
+            created.iconOptional = false
             bridgeSymbolManager = created
         }
         manager.deleteAll()
@@ -670,6 +734,9 @@ private class MapLibreHost(
     fun dispose() {
         resetAnnotationManagers()
         styleReady = false
+        styleLoading = false
+        pendingStyleReady.clear()
+        boundStyle = null
         hasAppliedInitialCamera = false
         mapRef = null
     }

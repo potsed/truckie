@@ -72,7 +72,10 @@ class BridgeMarkersVisibilityTest {
     @Test
     fun mapHostMustNotReloadStyleEveryUpdate() {
         assertTrue(BridgeMarkersVisibility.loadsStyleOnce)
+        assertTrue(BridgeMarkersVisibility.coalescesConcurrentStyleLoads)
         assertTrue(BridgeMarkersVisibility.recreatesManagersOnNewStyle)
+        assertTrue(BridgeMarkersVisibility.recreatesManagersWhenStyleIdentityDrifts)
+        assertTrue(BridgeMarkersVisibility.recreatesManagersWhenLayerMissing)
         assertTrue(BridgeMarkersVisibility.usesAuRoadSignW58)
         assertTrue(
             "W5-8 iconSize should stay neighbourhood-readable (0.9–1.5), was ${BridgeMarkersVisibility.iconSize}",
