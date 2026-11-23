@@ -504,9 +504,14 @@ private fun MapHomeRoute(
             )
             // W5-8 only for verified low / QR underbridges (ATNA-45).
             val lowOnly = LowBridgeW58.bridgesForW58(visible, app.featureFlags)
+            // Under-restricting structures only when passage flag on (ATNA-48).
+            val underRelevant = BridgePassageFilter.bridgesRestrictingUnder(
+                bridges = lowOnly,
+                flags = app.featureFlags,
+            )
             // Conflicts only when active vehicle has usable height (ATNA-47).
             VehicleHeightBridgeFilter.bridgesAffectingVehicle(
-                bridges = lowOnly,
+                bridges = underRelevant,
                 flags = app.featureFlags,
                 vehicleHeightM = activeVehicleHeightM,
                 bufferM = app.clearanceBufferM,

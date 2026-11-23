@@ -47,7 +47,7 @@ class QldTmrBccClearancesTest {
                 "0.5.0-sample",
             ),
         )
-        assertEquals("0.6.0-sample", CachedBridgePackRepository.BOOTSTRAP_VERSION)
+        assertEquals("0.7.0-sample", CachedBridgePackRepository.BOOTSTRAP_VERSION)
     }
 
     @Test

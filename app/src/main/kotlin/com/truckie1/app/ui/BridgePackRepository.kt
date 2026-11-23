@@ -153,6 +153,9 @@ class CachedBridgePackRepository(
             if (bridge.clearanceProvider != null) {
                 obj.put("clearanceProvider", bridge.clearanceProvider)
             }
+            if (bridge.passage != BridgePassage.UNKNOWN) {
+                obj.put("passage", bridge.passage.wireName())
+            }
             array.put(obj)
         }
         File(cacheDir, BRIDGES_FILE).writeText(array.toString())
@@ -174,8 +177,9 @@ class CachedBridgePackRepository(
          * with an older `-sample` cache re-seed without a remote fetch
          * (ATNA-41 snap; ATNA-42 verified CBD → 0.4.0-sample;
          * ATNA-44 Queensland Rail SEQ → 0.5.0-sample;
-         * ATNA-46 TMR + BCC GIS → 0.6.0-sample).
+         * ATNA-46 TMR + BCC GIS → 0.6.0-sample;
+         * ATNA-48 passage over/under → 0.7.0-sample).
          */
-        const val BOOTSTRAP_VERSION: String = "0.6.0-sample"
+        const val BOOTSTRAP_VERSION: String = "0.7.0-sample"
     }
 }

@@ -74,6 +74,12 @@ object FlagKeys {
      * vehicle height, falls back to all low-pack markers.
      */
     const val VEHICLE_HEIGHT_BRIDGE_FILTER = "ff_vehicle_height_bridge_filter"
+    /**
+     * Bridge passage over vs under (ATNA-48): model under/over/both/unknown.
+     * Height conflicts block driving under a restricted structure — OK to drive
+     * over the deck. Never invents clearances.
+     */
+    const val BRIDGE_PASSAGE = "ff_bridge_passage"
 }
 
 /**

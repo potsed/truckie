@@ -547,13 +547,15 @@ private class MapLibreHost(
         // Callers should already filter via LowBridgeW58; re-apply so W5-8 is
         // never drawn on unknown / high / not_applicable spans (ATNA-45).
         val forW58 = LowBridgeW58.bridgesForW58(bridges, flags)
+        // Under-restricting structures only when passage flag on (ATNA-48).
+        val forUnder = BridgePassageFilter.bridgesRestrictingUnder(forW58, flags)
         // Conflicts only for active vehicle height + system buffer (ATNA-47).
         val vehicleHeightM = app?.vehicleProfiles?.activeRego
             ?.let { rego -> app.vehicleProfiles.findByRego(rego)?.heightM }
         val bufferM = app?.clearanceBufferM
             ?: com.truckie1.trips.ClearanceBuffer.DEFAULT_M
         val forVehicle = VehicleHeightBridgeFilter.bridgesAffectingVehicle(
-            bridges = forW58,
+            bridges = forUnder,
             flags = flags,
             vehicleHeightM = vehicleHeightM,
             bufferM = bufferM,

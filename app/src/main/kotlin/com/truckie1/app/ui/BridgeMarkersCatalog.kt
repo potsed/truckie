@@ -39,6 +39,11 @@ data class BridgePoint(
     val clearanceRetrievedAt: String? = null,
     /** Optional provenance provider wire name (e.g. queensland_rail). */
     val clearanceProvider: String? = null,
+    /**
+     * Vehicle passage relation (ATNA-48): under / over / both / unknown.
+     * Height conflicts apply to under-paths only — OK to drive over the deck.
+     */
+    val passage: BridgePassage = BridgePassage.UNKNOWN,
 )
 
 object BridgeMarkersCatalog {
@@ -106,6 +111,16 @@ object BridgeMarkersCatalog {
                         .takeIf { it.isNotEmpty() }
                     val provider = obj.optString("clearanceProvider").trim()
                         .takeIf { it.isNotEmpty() }
+                    val explicitPassage = obj.optString("passage").trim()
+                        .takeIf { it.isNotEmpty() }
+                        ?.let { BridgePassage.fromWire(it) }
+                    val passage = BridgePassage.resolve(
+                        id = id,
+                        clearanceProvider = provider,
+                        clearanceHeightM = clearance,
+                        clearanceStatus = status,
+                        explicit = explicitPassage,
+                    )
                     add(
                         BridgePoint(
                             id = id,
@@ -118,6 +133,7 @@ object BridgeMarkersCatalog {
                             clearanceSourceId = sourceId,
                             clearanceRetrievedAt = retrievedAt,
                             clearanceProvider = provider,
+                            passage = passage,
                         ),
                     )
                 }

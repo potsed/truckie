@@ -31,6 +31,7 @@ XML screen layouts were removed; do not add new AppCompat/XML screens.
 | `ff_tmr_structure_clearances` | TMR Structure Clearances in Queensland (ATNA-46): show published TMR spatial pack entries; off hides TMR rows only | off (on in debug) |
 | `ff_bcc_road_height_restrictions` | BCC Road Height Restrictions GIS (ATNA-46): show Brisbane Open Data under-4.6 m local pack entries; off keeps curated CBD samples | off (on in debug) |
 | `ff_vehicle_height_bridge_filter` | Home-map W5-8 conflicts only (ATNA-47): show low bridges where clearance &lt; vehicle height + system buffer; no usable height → show all low | off (on in debug) |
+| `ff_bridge_passage` | Bridge over vs under (ATNA-48): model under/over/both/unknown; height conflicts block under-paths only (OK to drive over deck) | off (on in debug) |
 | `ff_demo_mode` | Demo mode — Settings toggle; temporary dogfood affordances (Jump to sample bridges). Fuller demo dataset later, not yet | off (on in debug) |
 
 ## Rules
@@ -94,7 +95,7 @@ XML screen layouts were removed; do not add new AppCompat/XML screens.
     21/22; source URL + retrieval date in pack meta). When off, TMR rows are hidden.
 17. BCC road height restrictions (`ff_bcc_road_height_restrictions`, ATNA-46) show Brisbane
     Open Data GIS/CSV under-4.6 m local rows. Curated CBD `-sample` river crossings remain
-    when the flag is off. Bootstrap `0.6.0-sample` re-seeds older `-sample` caches.
+    when the flag is off. Bootstrap `0.7.0-sample` re-seeds older `-sample` caches.
     Physical roadside signs override digital packs; the clearance buffer covers pack lag
     versus signs as well as vehicle variance. NHVR national / other states = ATNA-43.
 18. Vehicle-height bridge filter (`ff_vehicle_height_bridge_filter`, ATNA-47): when on
@@ -102,7 +103,11 @@ XML screen layouts were removed; do not add new AppCompat/XML screens.
     conflicts (`clearance < vehicleHeight + ClearanceBuffer`). Keeps W5-8 low-only
     rules; never invents heights. No active vehicle / no usable height → show all
     low-pack markers (`show_all_low`) so Demo Jump still works.
-19. Demo mode (`ff_demo_mode`) is a Settings switch for temporary dogfood affordances.
+19. Bridge passage (`ff_bridge_passage`, ATNA-48): pack models under/over/both/unknown.
+    Height conflicts (and future routing) block driving **under** a restricted
+    structure — OK to drive **over** the deck. Bootstrap `0.7.0-sample`. Never
+    invents clearances.
+20. Demo mode (`ff_demo_mode`) is a Settings switch for temporary dogfood affordances.
     Today it gates **Jump to sample bridges** on map-home chrome (also needs
     `ff_bridge_markers`). A fuller demo dataset (prefilled routes/data) may come later —
     not in scope yet. Production defaults remain off.
