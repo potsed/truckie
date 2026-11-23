@@ -55,12 +55,21 @@ object VehicleHeightBridgeFilter {
      * True when the bridge has a published clearance strictly below
      * `vehicleHeight + buffer`. Missing / unknown heights never invent a value
      * and never count as a conflict.
+     *
+     * When [ff_bridge_passage][FlagKeys.BRIDGE_PASSAGE] is on, only structures
+     * that restrict **under** passage can conflict (OK to drive over the deck).
      */
     fun conflictsWithVehicle(
         bridge: BridgePoint,
         vehicleHeightM: Double,
         bufferM: Double,
+        flags: FeatureFlags? = null,
     ): Boolean {
+        if (flags != null && BridgePassageFilter.isEnabled(flags) &&
+            !BridgePassageFilter.restrictsUnderPassage(bridge)
+        ) {
+            return false
+        }
         val clearance = bridge.clearanceHeightM ?: return false
         return clearance < conflictThresholdM(vehicleHeightM, bufferM)
     }
@@ -69,6 +78,7 @@ object VehicleHeightBridgeFilter {
      * When [ff_vehicle_height_bridge_filter][FlagKeys.VEHICLE_HEIGHT_BRIDGE_FILTER]
      * is on and [vehicleHeightM] is usable, returns only conflict bridges.
      * Otherwise returns [bridges] unchanged (flag off, or no-height fallback).
+     * With [ff_bridge_passage] on, pure over-crossings are excluded.
      */
     fun bridgesAffectingVehicle(
         bridges: List<BridgePoint>,
@@ -79,6 +89,6 @@ object VehicleHeightBridgeFilter {
         if (!isEnabled(flags)) return bridges
         if (!hasUsableHeight(vehicleHeightM)) return bridges
         val height = vehicleHeightM!!
-        return bridges.filter { conflictsWithVehicle(it, height, bufferM) }
+        return bridges.filter { conflictsWithVehicle(it, height, bufferM, flags) }
     }
 }

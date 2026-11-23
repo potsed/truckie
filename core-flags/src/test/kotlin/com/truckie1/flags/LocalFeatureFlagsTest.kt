@@ -155,4 +155,13 @@ class LocalFeatureFlagsTest {
         flags.setEnabled(FlagKeys.VEHICLE_HEIGHT_BRIDGE_FILTER, true)
         assertTrue(flags.isEnabled(FlagKeys.VEHICLE_HEIGHT_BRIDGE_FILTER))
     }
+
+    @Test
+    fun bridgePassageFlagKey() {
+        assertTrue(FlagKeys.BRIDGE_PASSAGE == "ff_bridge_passage")
+        val flags = LocalFeatureFlags()
+        assertFalse(flags.isEnabled(FlagKeys.BRIDGE_PASSAGE))
+        flags.setEnabled(FlagKeys.BRIDGE_PASSAGE, true)
+        assertTrue(flags.isEnabled(FlagKeys.BRIDGE_PASSAGE))
+    }
 }

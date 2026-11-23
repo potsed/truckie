@@ -91,6 +91,8 @@ class TruckieApp : Application() {
             featureFlags.setEnabled(FlagKeys.BCC_ROAD_HEIGHT_RESTRICTIONS, true)
             // Home-map conflicts only for active vehicle height + buffer (ATNA-47).
             featureFlags.setEnabled(FlagKeys.VEHICLE_HEIGHT_BRIDGE_FILTER, true)
+            // Over vs under passage — conflicts block under-paths only (ATNA-48).
+            featureFlags.setEnabled(FlagKeys.BRIDGE_PASSAGE, true)
             // Demo mode: temporary dogfood affordances (Jump to sample bridges).
             featureFlags.setEnabled(FlagKeys.DEMO_MODE, true)
         }

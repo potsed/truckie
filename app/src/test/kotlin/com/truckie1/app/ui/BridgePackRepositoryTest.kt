@@ -149,7 +149,7 @@ class BridgePackRepositoryTest {
         assertFalse(BridgePackLifecycle.loadActiveUsesNetwork)
         assertTrue(BridgePackLifecycle.refreshOnlyWhenVersionNewer)
         assertTrue(BridgePackLifecycle.seedsBundledSampleToDisk)
-        assertEquals("0.6.0-sample", CachedBridgePackRepository.BOOTSTRAP_VERSION)
+        assertEquals("0.7.0-sample", CachedBridgePackRepository.BOOTSTRAP_VERSION)
 
         val counting = CountingBridgePackDownloader(
             FixedPayloadBridgePackDownloader(

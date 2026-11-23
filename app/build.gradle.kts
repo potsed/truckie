@@ -20,7 +20,7 @@ android {
         minSdk = 24
         targetSdk = 35
         versionCode = 1
-        versionName = "0.8.12-vehicle-height-bridge-filter"
+        versionName = "0.8.13-bridge-passage"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
