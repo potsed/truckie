@@ -30,7 +30,7 @@ Feature: Bridge markers on home map
     Then sample points snap onto Story Bridge, Victoria Bridge, Captain Cook / M3,
       Goodwill, William Jolly, Go Between, and Kurilpa
     And markers are not mid-river or mid-block away from those crossings
-    And clearance labels remain optional plausible mock values for demo
+    And clearance labels are verified published road heights or omitted (ATNA-42)
 
   Scenario: Markers stay visible across map recompositions
     Given ff_bridge_markers is enabled

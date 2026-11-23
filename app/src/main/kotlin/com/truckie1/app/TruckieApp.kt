@@ -80,6 +80,8 @@ class TruckieApp : Application() {
             featureFlags.setEnabled(FlagKeys.ROUTE_START_END, true)
             featureFlags.setEnabled(FlagKeys.NAVIGATE, true)
             featureFlags.setEnabled(FlagKeys.BRIDGE_MARKERS, true)
+            // Verified CBD clearances: no mock heights (ATNA-42).
+            featureFlags.setEnabled(FlagKeys.VERIFIED_CBD_CLEARANCES, true)
             // Demo mode: temporary dogfood affordances (Jump to sample bridges).
             featureFlags.setEnabled(FlagKeys.DEMO_MODE, true)
         }

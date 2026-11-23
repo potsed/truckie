@@ -39,6 +39,11 @@ object FlagKeys {
     /** Low-bridge markers on MapLibre home (Australia-first sample/fixture asset). */
     const val BRIDGE_MARKERS = "ff_bridge_markers"
     /**
+     * Verified CBD sample clearances (ATNA-42): labels only for published road
+     * heights; unknown / not_applicable omit invented mocks.
+     */
+    const val VERIFIED_CBD_CLEARANCES = "ff_verified_cbd_clearances"
+    /**
      * Demo mode — temporary dogfood affordances (e.g. Jump to sample bridges).
      * May later gate a fuller demo dataset; that is out of scope for the jump control.
      */

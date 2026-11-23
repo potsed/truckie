@@ -11,6 +11,7 @@ import androidx.core.content.ContextCompat
 import com.truckie1.app.R
 import com.truckie1.flags.FeatureFlags
 import com.truckie1.flags.FlagKeys
+import com.truckie1.flags.LocalFeatureFlags
 import org.json.JSONArray
 import org.maplibre.android.maps.Style
 import java.util.Locale
@@ -24,7 +25,7 @@ import java.util.Locale
  * Long-term data source is a **downloadable, updatable** [BridgePackRepository]
  * (versioned cache → SymbolManager). The baked-in sample asset is **bootstrap
  * only** when the cache is empty. Gherkin: features/bridge_markers.feature,
- * features/bridge_pack.feature.
+ * features/bridge_pack.feature, features/verified_cbd_clearances.feature.
  */
 data class BridgePoint(
     val id: String,
@@ -32,6 +33,10 @@ data class BridgePoint(
     val latitude: Double,
     val longitude: Double,
     val clearanceHeightM: Double? = null,
+    val clearanceStatus: BridgeClearanceStatus = BridgeClearanceStatus.UNKNOWN,
+    val clearanceSource: String? = null,
+    val clearanceSourceId: String? = null,
+    val clearanceRetrievedAt: String? = null,
 )
 
 object BridgeMarkersCatalog {
@@ -57,7 +62,11 @@ object BridgeMarkersCatalog {
     fun shouldShow(flags: FeatureFlags, mapHomeEnabled: Boolean): Boolean =
         mapHomeEnabled && isEnabled(flags)
 
-    fun clearanceLabel(bridge: BridgePoint): String? {
+    fun clearanceLabel(
+        bridge: BridgePoint,
+        flags: FeatureFlags = LocalFeatureFlags(),
+    ): String? {
+        if (!VerifiedCbdClearances.allowsHeightLabel(bridge, flags)) return null
         val height = bridge.clearanceHeightM ?: return null
         return "%.1f m".format(Locale.US, height)
     }
@@ -86,6 +95,13 @@ object BridgeMarkersCatalog {
                     } else {
                         null
                     }
+                    val status = BridgeClearanceStatus.fromWire(
+                        obj.optString("clearanceStatus").takeIf { it.isNotBlank() },
+                    )
+                    val source = obj.optString("clearanceSource").trim().takeIf { it.isNotEmpty() }
+                    val sourceId = obj.optString("clearanceSourceId").trim().takeIf { it.isNotEmpty() }
+                    val retrievedAt = obj.optString("clearanceRetrievedAt").trim()
+                        .takeIf { it.isNotEmpty() }
                     add(
                         BridgePoint(
                             id = id,
@@ -93,6 +109,10 @@ object BridgeMarkersCatalog {
                             latitude = lat,
                             longitude = lng,
                             clearanceHeightM = clearance,
+                            clearanceStatus = status,
+                            clearanceSource = source,
+                            clearanceSourceId = sourceId,
+                            clearanceRetrievedAt = retrievedAt,
                         ),
                     )
                 }

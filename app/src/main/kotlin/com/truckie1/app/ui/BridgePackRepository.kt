@@ -140,6 +140,16 @@ class CachedBridgePackRepository(
             if (bridge.clearanceHeightM != null) {
                 obj.put("clearanceHeightM", bridge.clearanceHeightM)
             }
+            obj.put("clearanceStatus", bridge.clearanceStatus.wireName())
+            if (bridge.clearanceSource != null) {
+                obj.put("clearanceSource", bridge.clearanceSource)
+            }
+            if (bridge.clearanceSourceId != null) {
+                obj.put("clearanceSourceId", bridge.clearanceSourceId)
+            }
+            if (bridge.clearanceRetrievedAt != null) {
+                obj.put("clearanceRetrievedAt", bridge.clearanceRetrievedAt)
+            }
             array.put(obj)
         }
         File(cacheDir, BRIDGES_FILE).writeText(array.toString())
@@ -158,8 +168,9 @@ class CachedBridgePackRepository(
         /**
          * Version stamped when seeding from the baked-in AU sample asset.
          * Bump when `assets/bridges/au_sample_bridges.json` changes so installs
-         * with an older `-sample` cache re-seed without a remote fetch (ATNA-41).
+         * with an older `-sample` cache re-seed without a remote fetch
+         * (ATNA-41 snap; ATNA-42 verified clearances → 0.4.0-sample).
          */
-        const val BOOTSTRAP_VERSION: String = "0.3.0-sample"
+        const val BOOTSTRAP_VERSION: String = "0.4.0-sample"
     }
 }

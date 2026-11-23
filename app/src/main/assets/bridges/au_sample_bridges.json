@@ -4,47 +4,66 @@
     "name": "Story Bridge (sample)",
     "lat": -27.4682221,
     "lng": 153.0358746,
-    "clearanceHeightM": 4.6
+    "clearanceHeightM": 3.8,
+    "clearanceStatus": "verified",
+    "clearanceSource": "Brisbane City Council Open Data — Road height restrictions: Kerbside Lane under Bradfield Highway/Story Bridge (signed_clearance_min). Vessel air draft is not used.",
+    "clearanceSourceId": "B0001 - 13",
+    "clearanceRetrievedAt": "2026-11-23"
   },
   {
     "id": "qld-victoria-bridge-sample",
     "name": "Victoria Bridge (sample)",
     "lat": -27.4724167,
     "lng": 153.0210044,
-    "clearanceHeightM": 4.5
+    "clearanceHeightM": 4.4,
+    "clearanceStatus": "verified",
+    "clearanceSource": "Brisbane City Council Open Data — Road height restrictions: South-East Arterial Road under Victoria Bridge — Southeast (signed_clearance_min). Cultural Centre Tunnel under Victoria Bridge also 4.4 m (B0002 - 213).",
+    "clearanceSourceId": "B0002 - 298",
+    "clearanceRetrievedAt": "2026-11-23"
   },
   {
     "id": "qld-captain-cook-bridge-sample",
     "name": "Captain Cook Bridge / M3 (sample)",
     "lat": -27.4804702,
     "lng": 153.0289367,
-    "clearanceHeightM": 4.8
+    "clearanceStatus": "unknown",
+    "clearanceSource": "No published signed road vertical clearance in BCC road-restrictions (≤4.6 m) or Queensland Rail SEQ low-rail lists for this river road span. MSQ Port Procedures air draft (12.7 m above HAT) is vessel navigation only — not a truck road clearance; height omitted.",
+    "clearanceRetrievedAt": "2026-11-23"
   },
   {
     "id": "qld-goodwill-bridge-sample",
     "name": "Goodwill Bridge (sample)",
     "lat": -27.4806730,
     "lng": 153.0269819,
-    "clearanceHeightM": 4.3
+    "clearanceStatus": "not_applicable",
+    "clearanceSource": "Pedestrian/cycle bridge — no vehicle carriageway; no signed road vertical clearance applies. MSQ vessel air draft is not a truck clearance.",
+    "clearanceRetrievedAt": "2026-11-23"
   },
   {
     "id": "qld-william-jolly-bridge-sample",
     "name": "William Jolly Bridge (sample)",
     "lat": -27.4691880,
     "lng": 153.0156208,
-    "clearanceHeightM": 4.4
+    "clearanceStatus": "unknown",
+    "clearanceSource": "No published signed road vertical clearance in BCC road-restrictions (≤4.6 m) or Queensland Rail SEQ low-rail lists for this river road span. MSQ Port Procedures air draft (12 m above HAT) is vessel navigation only — not a truck road clearance; height omitted.",
+    "clearanceRetrievedAt": "2026-11-23"
   },
   {
     "id": "qld-go-between-bridge-sample",
     "name": "Go Between Bridge (sample)",
     "lat": -27.4698444,
     "lng": 153.0122765,
-    "clearanceHeightM": 5.0
+    "clearanceStatus": "unknown",
+    "clearanceSource": "No published signed road vertical clearance in BCC road-restrictions (≤4.6 m) for this Hale Street Link river road span. Nearby Hale Street Service Road pedestrian-bridge underpass (4.1 m, B0949) is a different structure. MSQ air draft (11.4 m above HAT) is vessel-only; height omitted.",
+    "clearanceRetrievedAt": "2026-11-23"
   },
   {
     "id": "qld-kurilpa-bridge-sample",
     "name": "Kurilpa Bridge (sample)",
     "lat": -27.4691815,
-    "lng": 153.0188130
+    "lng": 153.0188130,
+    "clearanceStatus": "not_applicable",
+    "clearanceSource": "Pedestrian/cycle bridge — no vehicle carriageway; no signed road vertical clearance applies. MSQ vessel air draft is not a truck clearance.",
+    "clearanceRetrievedAt": "2026-11-23"
   }
 ]

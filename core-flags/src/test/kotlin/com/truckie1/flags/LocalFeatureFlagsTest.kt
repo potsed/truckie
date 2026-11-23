@@ -101,4 +101,13 @@ class LocalFeatureFlagsTest {
         flags.setEnabled(FlagKeys.DEMO_MODE, true)
         assertTrue(flags.isEnabled(FlagKeys.DEMO_MODE))
     }
+
+    @Test
+    fun verifiedCbdClearancesFlagKey() {
+        assertTrue(FlagKeys.VERIFIED_CBD_CLEARANCES == "ff_verified_cbd_clearances")
+        val flags = LocalFeatureFlags()
+        assertFalse(flags.isEnabled(FlagKeys.VERIFIED_CBD_CLEARANCES))
+        flags.setEnabled(FlagKeys.VERIFIED_CBD_CLEARANCES, true)
+        assertTrue(flags.isEnabled(FlagKeys.VERIFIED_CBD_CLEARANCES))
+    }
 }

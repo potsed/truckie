@@ -83,6 +83,7 @@ class BridgeMarkersCatalogTest {
             latitude = -27.47,
             longitude = 153.03,
             clearanceHeightM = 4.3,
+            clearanceStatus = BridgeClearanceStatus.VERIFIED,
         )
         assertEquals("4.3 m", BridgeMarkersCatalog.clearanceLabel(withHeight))
         val without = withHeight.copy(clearanceHeightM = null)
