@@ -5,8 +5,14 @@ import org.json.JSONObject
 import java.io.File
 
 /**
- * Loads AU bridge points for SymbolManager: prefer versioned local cache,
- * seed from baked-in sample when empty, refresh when a newer remote pack arrives.
+ * Loads AU bridge points for SymbolManager — **local-first** (power efficiency).
+ *
+ * - [loadActive] never hits the network: reads versioned on-device cache, or seeds
+ *   from the bundled AU sample asset onto disk when empty / when bootstrap advances.
+ * - [refresh] downloads **only** when [BridgePackVersions.isNewer] says the remote
+ *   manifest is newer than the cached stamp. Same/older versions stay on disk.
+ *
+ * Live OSM/NHVR pack ingest remains ATNA-11. Gherkin: features/bridge_pack.feature
  */
 interface BridgePackRepository {
     fun loadActive(): BridgePack
@@ -22,6 +28,10 @@ class CachedBridgePackRepository(
     private val cacheDir: File = File(context.filesDir, CACHE_DIR_NAME),
 ) : BridgePackRepository {
 
+    /**
+     * On-device only — never calls [BridgePackDownloader].
+     * Bundled sample → disk cache; re-seeds when bootstrap `-sample` stamp advances.
+     */
     override fun loadActive(): BridgePack {
         val cached = readCache()
         if (cached != null) {
@@ -145,7 +155,11 @@ class CachedBridgePackRepository(
         const val CACHE_DIR_NAME: String = "bridge_packs"
         const val MANIFEST_FILE: String = "manifest.json"
         const val BRIDGES_FILE: String = "bridges.json"
-        /** Version stamped when seeding from the baked-in AU sample asset. */
-        const val BOOTSTRAP_VERSION: String = "0.2.0-sample"
+        /**
+         * Version stamped when seeding from the baked-in AU sample asset.
+         * Bump when `assets/bridges/au_sample_bridges.json` changes so installs
+         * with an older `-sample` cache re-seed without a remote fetch (ATNA-41).
+         */
+        const val BOOTSTRAP_VERSION: String = "0.3.0-sample"
     }
 }

@@ -5,6 +5,8 @@ Feature: Downloadable Australia bridge pack
 
   # Ships with ff_bridge_markers. Baked-in sample JSON is bootstrap fallback only.
   # Long-term source of truth: versioned downloadable pack + local cache → SymbolManager.
+  # Local-first / power efficiency: loadActive never networks; refresh downloads only
+  # when the remote version is newer. Live OSM/NHVR ingest stays ATNA-11.
   # Out of scope: live CDN hosting, full OSM/NHVR ingest, GraphHopper Custom Model.
 
   Scenario: Pack is the preferred source over the baked-in sample
@@ -20,6 +22,14 @@ Feature: Downloadable Australia bridge pack
     When the home map loads bridge markers
     Then the Australia-first sample asset seeds the pack cache
     And subsequent loads read from the cache
+    And no network fetch runs during loadActive
+
+  Scenario: Pack loads local-first without repeated network fetches
+    Given ff_bridge_markers is enabled
+    And the AU sample pack is seeded on disk
+    When the home map loads bridge markers repeatedly
+    Then each load reads the on-device cache
+    And the pack downloader is not invoked
 
   Scenario: Newer remote pack version updates the cache
     Given a cached pack at version "1.0.0"
@@ -30,6 +40,7 @@ Feature: Downloadable Australia bridge pack
 
   Scenario: Refresh keeps the cache when remote is not newer
     Given a cached pack at version "1.1.0"
-    And a remote manifest advertises version "1.0.0"
+    And a remote manifest advertises version "1.1.0" or "1.0.0"
     When the pack repository refreshes
     Then the cache remains at version "1.1.0"
+    And the pack downloader is not invoked again

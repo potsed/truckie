@@ -20,7 +20,7 @@ android {
         minSdk = 24
         targetSdk = 35
         versionCode = 1
-        versionName = "0.8.6-w5-8-openfreemap-fonts"
+        versionName = "0.8.7-cbd-samples-local-packs"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 

@@ -25,9 +25,9 @@ Feature: Jump to sample bridges (temporary demo control)
 
   Scenario: Tap flies camera to Brisbane CBD sample cluster
     Given ff_demo_mode and ff_bridge_markers are enabled
-    And sample bridges sit within 2 km of Brisbane CBD fallback
+    And sample bridges sit on real CBD crossings within 2 km of Brisbane CBD fallback
     When the driver taps Jump to sample bridges
     Then the MapLibre camera animates to the SEQ sample cluster near Brisbane CBD
-    And the zoom shows several W5-8 markers
+    And the zoom shows several W5-8 markers on actual bridges
     And clearance labels use OpenFreeMap Noto Sans so icons are not hidden by glyph 404s
     And follow mode exits so location updates do not pull the camera away

@@ -24,6 +24,14 @@ Feature: Bridge markers on home map
     And clearance height is optional
     And several sample bridges sit within 2 km of Brisbane CBD fallback
 
+  Scenario: Demo samples sit on real Brisbane CBD crossings
+    Given ff_bridge_markers is enabled
+    And the Australia-first sample asset is loaded
+    Then sample points snap onto Story Bridge, Victoria Bridge, Captain Cook / M3,
+      Goodwill, William Jolly, Go Between, and Kurilpa
+    And markers are not mid-river or mid-block away from those crossings
+    And clearance labels remain optional plausible mock values for demo
+
   Scenario: Markers stay visible across map recompositions
     Given ff_bridge_markers is enabled
     And the MapLibre style has loaded once

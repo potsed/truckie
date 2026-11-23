@@ -60,8 +60,9 @@ class TruckieApp : Application() {
         vehicleProfiles = RoomVehicleProfileRepository(db.vehicleDao())
         navigationAppStore = SharedNavigationAppStore(this)
         navigationAppQuery = PackageManagerNavigationAppQuery(packageManager)
-        // AU bridge pack: versioned cache; sample asset seeds when empty.
-        // Remote host not wired yet — NoOp downloader until CDN/NHVR pack URL exists.
+        // AU bridge pack: local-first (bundled sample → disk cache). loadActive
+        // never networks; refresh only when a newer remote version is advertised.
+        // Remote host not wired yet — NoOp until CDN/NHVR pack URL (ATNA-11).
         bridgePackRepository = CachedBridgePackRepository(
             context = this,
             downloader = NoOpBridgePackDownloader,
