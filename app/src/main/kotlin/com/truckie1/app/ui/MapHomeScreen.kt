@@ -32,8 +32,10 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.DirectionsCar
+import androidx.compose.material.icons.filled.Explore
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.MyLocation
+import androidx.compose.material.icons.filled.Navigation
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
@@ -122,6 +124,11 @@ fun MapHomeScreen(
     showNavigateAction: Boolean = false,
     showLocationPuck: Boolean = false,
     locationFollowEnabled: Boolean = false,
+    /** Course-up while following (`ff_map_heading_up`). */
+    headingUpEnabled: Boolean = false,
+    /** Map-chrome orientation lock (Recenter-style), gated by follow flags. */
+    showOrientationLock: Boolean = false,
+    onOrientationLockChange: (Boolean) -> Unit = {},
     bridges: List<BridgePoint> = emptyList(),
     showBridgeMarkers: Boolean = false,
     /**
@@ -182,6 +189,7 @@ fun MapHomeScreen(
             stops = state.route?.stops.orEmpty(),
             showLocationPuck = showLocationPuck,
             locationFollowEnabled = locationFollowEnabled && showLocationPuck,
+            headingUpEnabled = headingUpEnabled && locationFollowEnabled && showLocationPuck,
             followState = followState,
             onFollowStateChange = { followState = it },
             recenterToken = recenterToken,
@@ -308,6 +316,13 @@ fun MapHomeScreen(
 
         // TEMPORARY / DEV (ff_demo_mode): fly to SEQ sample bridges near Brisbane CBD.
         if (showJumpToSampleBridges) {
+            val jumpBottom = when {
+                locationFollowEnabled && showLocationPuck && followState.showsRecenter &&
+                    showOrientationLock -> 224.dp
+                locationFollowEnabled && showLocationPuck &&
+                    (followState.showsRecenter || showOrientationLock) -> 160.dp
+                else -> 96.dp
+            }
             MapJumpToSampleBridgesButton(
                 onClick = {
                     val jump = JumpToSampleBridges.onJump(followState)
@@ -317,18 +332,19 @@ fun MapHomeScreen(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .navigationBarsPadding()
-                    .padding(
-                        end = 16.dp,
-                        bottom = if (
-                            locationFollowEnabled &&
-                            showLocationPuck &&
-                            followState.showsRecenter
-                        ) {
-                            160.dp
-                        } else {
-                            96.dp
-                        },
-                    ),
+                    .padding(end = 16.dp, bottom = jumpBottom),
+            )
+        }
+
+        if (showOrientationLock && locationFollowEnabled && showLocationPuck) {
+            val lockBottom = if (followState.showsRecenter) 160.dp else 96.dp
+            MapOrientationLockButton(
+                locked = headingUpEnabled,
+                onClick = { onOrientationLockChange(!headingUpEnabled) },
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .navigationBarsPadding()
+                    .padding(end = 16.dp, bottom = lockBottom),
             )
         }
 
@@ -342,6 +358,43 @@ fun MapHomeScreen(
                     .align(Alignment.BottomEnd)
                     .navigationBarsPadding()
                     .padding(end = 16.dp, bottom = 96.dp),
+            )
+        }
+    }
+}
+
+@Composable
+private fun MapOrientationLockButton(
+    locked: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val description = if (locked) {
+        stringResource(R.string.map_orientation_lock_on)
+    } else {
+        stringResource(R.string.map_orientation_lock_off)
+    }
+    Surface(
+        shape = CircleShape,
+        color = if (locked) {
+            MaterialTheme.colorScheme.primary
+        } else {
+            MaterialTheme.colorScheme.secondaryContainer
+        },
+        shadowElevation = 4.dp,
+        modifier = modifier
+            .testTag(MapHeadingUpCatalog.MAP_CONTROL_TEST_TAG)
+            .semantics { contentDescription = description },
+    ) {
+        IconButton(onClick = onClick) {
+            Icon(
+                imageVector = if (locked) Icons.Filled.Navigation else Icons.Filled.Explore,
+                contentDescription = description,
+                tint = if (locked) {
+                    MaterialTheme.colorScheme.onPrimary
+                } else {
+                    MaterialTheme.colorScheme.onSecondaryContainer
+                },
             )
         }
     }

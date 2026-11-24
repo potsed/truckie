@@ -173,4 +173,13 @@ class LocalFeatureFlagsTest {
         flags.setEnabled(FlagKeys.AU_LOW_BRIDGES_PACK, true)
         assertTrue(flags.isEnabled(FlagKeys.AU_LOW_BRIDGES_PACK))
     }
+
+    @Test
+    fun mapHeadingUpFlagKey() {
+        assertTrue(FlagKeys.MAP_HEADING_UP == "ff_map_heading_up")
+        val flags = LocalFeatureFlags()
+        assertFalse(flags.isEnabled(FlagKeys.MAP_HEADING_UP))
+        flags.setEnabled(FlagKeys.MAP_HEADING_UP, true)
+        assertTrue(flags.isEnabled(FlagKeys.MAP_HEADING_UP))
+    }
 }

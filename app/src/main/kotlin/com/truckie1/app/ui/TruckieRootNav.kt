@@ -486,6 +486,10 @@ private fun MapHomeRoute(
         flags = app.featureFlags,
         mapHomeEnabled = true,
     )
+    var headingUpEnabled by remember {
+        mutableStateOf(MapHeadingUpCatalog.isEnabled(app.featureFlags))
+    }
+    val showOrientationLock = MapHeadingUpCatalog.shouldShowOnMap(app.featureFlags)
     val activeVehicleHeightM = remember(app.vehicleProfiles.activeRego) {
         app.vehicleProfiles.activeRego
             ?.let { app.vehicleProfiles.findByRego(it)?.heightM }
@@ -620,6 +624,12 @@ private fun MapHomeRoute(
         showNavigateAction = showNavigate,
         showLocationPuck = MapLocationPuck.isEnabled(app.featureFlags),
         locationFollowEnabled = MapLocationFollow.isEnabled(app.featureFlags),
+        headingUpEnabled = headingUpEnabled,
+        showOrientationLock = showOrientationLock,
+        onOrientationLockChange = { locked ->
+            headingUpEnabled = locked
+            MapHeadingUpCatalog.setEnabled(app.featureFlags, enabled = locked)
+        },
         bridges = bridges,
         showBridgeMarkers = showBridgeMarkers,
         showJumpToSampleBridges = showJumpToSampleBridges,

@@ -4,8 +4,12 @@ Feature: Demo mode
   So that temporary demo affordances can be shown or hidden
 
   # Product toggle: ff_demo_mode
-  # Debug builds may default Demo mode on (same pattern as other dogfood flags).
-  # Production defaults remain off.
+  # Demo mode is off by default in production AND debug — opt-in via Settings only.
+
+  Scenario: Demo mode defaults off
+    Given a fresh app start
+    Then ff_demo_mode is off
+    And Demo mode is disabled even in debug dogfood
 
   Scenario: Demo mode is feature-flagged
     Given the feature flag ff_demo_mode is off

@@ -6,18 +6,19 @@ Feature flags:
 | --- | --- | --- |
 | `ff_map_home` | Map + sheet | off (on in debug) |
 | `ff_map_location_puck` | Blue my-location + follow/recenter (Recenter also restores default closer zoom) | off (on in debug) |
+| `ff_map_heading_up` | Map-chrome orientation lock (like Recenter): course-up while following; off = north-up | off (on in debug) |
 | `ff_address_autocomplete` | Verified stops | off (on in debug) |
 | `ff_route_start_end` | Create route requires verified **start** + **end** (same place = round trip) | off (on in debug) |
 | `ff_navigate` | Navigate: in-app GraphHopper path on MapLibre; optional post-route external handoff | off (on in debug) |
 | `ff_bridge_markers` | AU bridge markers on MapLibre home (downloadable pack + sample bootstrap) | off (on in debug) |
 
-Gherkin: [`features/map_first_home.feature`](../features/map_first_home.feature), [`features/create_route_start_end.feature`](../features/create_route_start_end.feature), [`features/bridge_markers.feature`](../features/bridge_markers.feature).
+Gherkin: [`features/map_first_home.feature`](../features/map_first_home.feature), [`features/map_heading_up.feature`](../features/map_heading_up.feature), [`features/create_route_start_end.feature`](../features/create_route_start_end.feature), [`features/bridge_markers.feature`](../features/bridge_markers.feature).
 
 ## Screens
 
 | Surface | What ships |
 | --- | --- |
-| **Map home** | Full-bleed MapLibre map — **OpenFreeMap Liberty** street basemap; camera = **current location** via Fused Location; Brisbane AU fallback; stop markers via SymbolManager; amber **bridge markers** (`ff_bridge_markers`) from versioned pack cache (sample asset seeds empty cache) via a separate SymbolManager (optional clearance label); temporary **Jump to sample bridges** when Demo mode (`ff_demo_mode`) is on; blue **my-location puck** + follow/Recenter when flagged |
+| **Map home** | Full-bleed MapLibre map — **OpenFreeMap Liberty** street basemap; camera = **current location** via Fused Location; Brisbane AU fallback; stop markers via SymbolManager; amber **bridge markers** (`ff_bridge_markers`) from versioned pack cache (sample asset seeds empty cache) via a separate SymbolManager (optional clearance label); temporary **Jump to sample bridges** when Demo mode (`ff_demo_mode`) is on; blue **my-location puck** + follow/Recenter when flagged; **orientation lock** (`ff_map_heading_up`, map chrome like Recenter) rotates course-up while following |
 | **Route drag sheet** | Peek / half / full — Material3 elevated surface, large top radius, drag handle |
 | **Create route** | Headline; optional name; **Start** + **End** verified autocomplete when `ff_route_start_end` is on; round-trip checkbox (same place OK); Today / Tomorrow / Pick a date |
 | **Navigate** | When `ff_navigate` is on and the active route has start+end: **Navigate** computes a GraphHopper path **in-app** (stub until live HTTP) and draws it on the **same** MapLibre map. Optional Settings handoff app runs **after** that constrained path — never replaces GraphHopper |

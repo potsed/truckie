@@ -10,6 +10,7 @@ import com.truckie1.flags.LocalFeatureFlags
  * Today: gates [JumpToSampleBridges] on map-home chrome.
  * Later (not this PR): may include a fuller demo dataset (prefilled routes/data).
  *
+ * Off by default in production **and** debug — opt-in via Settings only.
  * Gherkin: features/demo_mode.feature
  */
 object DemoModeCatalog {
@@ -17,6 +18,15 @@ object DemoModeCatalog {
     const val SETTINGS_LABEL: String = "Demo mode"
     const val SETTINGS_TEST_TAG: String = "settings_demo_mode_switch"
     const val showsInSettings: Boolean = true
+
+    /** Fresh installs / LocalFeatureFlags default — always off. */
+    const val DEFAULT_ENABLED: Boolean = false
+
+    /**
+     * Debug dogfood must **not** auto-enable Demo mode (unlike most other flags).
+     * Drivers opt in from Settings.
+     */
+    const val ENABLED_BY_DEFAULT_IN_DEBUG: Boolean = false
 
     fun isEnabled(flags: FeatureFlags): Boolean = flags.isEnabled(FlagKeys.DEMO_MODE)
 

@@ -89,6 +89,9 @@
     <string name="stop_kind_drop_off_unload">Drop-off / unload</string>
     <string name="map_home_menu">Open navigation menu</string>
     <string name="map_recenter">Recenter on my location</string>
+    <!-- Map orientation lock (ff_map_heading_up) — map chrome like Recenter -->
+    <string name="map_orientation_lock_on">Orientation locked to driving direction</string>
+    <string name="map_orientation_lock_off">Orientation unlocked — north up</string>
     <!-- TEMPORARY / DEV: Demo mode (ff_demo_mode) + Jump to sample bridges -->
     <string name="map_jump_to_sample_bridges">Jump to sample bridges</string>
     <string name="settings_demo_mode_label">Demo mode</string>

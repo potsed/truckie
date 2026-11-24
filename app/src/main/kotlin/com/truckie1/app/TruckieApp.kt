@@ -70,6 +70,8 @@ class TruckieApp : Application() {
             featureFlags.setEnabled(FlagKeys.MAP_HOME, true)
             featureFlags.setEnabled(FlagKeys.ADDRESS_AUTOCOMPLETE, true)
             featureFlags.setEnabled(FlagKeys.MAP_LOCATION_PUCK, true)
+            // Course-up while following — map orients to driving direction.
+            featureFlags.setEnabled(FlagKeys.MAP_HEADING_UP, true)
             featureFlags.setEnabled(FlagKeys.ROUTE_START_END, true)
             featureFlags.setEnabled(FlagKeys.NAVIGATE, true)
             featureFlags.setEnabled(FlagKeys.BRIDGE_MARKERS, true)
@@ -88,8 +90,8 @@ class TruckieApp : Application() {
             featureFlags.setEnabled(FlagKeys.BRIDGE_PASSAGE, true)
             // OSS AU low-bridges pack refresh (ATNA-50) — local-first when newer.
             featureFlags.setEnabled(FlagKeys.AU_LOW_BRIDGES_PACK, true)
-            // Demo mode: temporary dogfood affordances (Jump to sample bridges).
-            featureFlags.setEnabled(FlagKeys.DEMO_MODE, true)
+            // Demo mode stays off by default (even in debug) — opt-in via Settings.
+            // Do not set FlagKeys.DEMO_MODE here; see DemoModeCatalog.ENABLED_BY_DEFAULT_IN_DEBUG.
         }
         // AU bridge pack: local-first (bundled sample → disk cache). loadActive
         // never networks; refresh only when a newer remote version is advertised.
