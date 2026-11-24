@@ -8,7 +8,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * Gherkin: features/map_heading_up.feature — Settings switch for course-up.
+ * Gherkin: features/map_heading_up.feature — map orientation lock control.
  */
 class MapHeadingUpCatalogTest {
 
@@ -25,14 +25,28 @@ class MapHeadingUpCatalogTest {
     }
 
     @Test
-    fun settingsShowsHeadingUpSwitch() {
-        assertTrue(MapHeadingUpCatalog.showsInSettings)
-        assertEquals("Orient map to driving direction", MapHeadingUpCatalog.SETTINGS_LABEL)
-        assertEquals("settings_map_heading_up_switch", MapHeadingUpCatalog.SETTINGS_TEST_TAG)
+    fun mapChromeShowsOrientationLockNotSettingsSwitch() {
+        assertTrue(MapHeadingUpCatalog.showsOnMapChrome)
+        assertFalse(MapHeadingUpCatalog.showsInSettings)
+        assertEquals("Lock map to driving direction", MapHeadingUpCatalog.MAP_CONTROL_LABEL)
+        assertEquals("map_orientation_lock_button", MapHeadingUpCatalog.MAP_CONTROL_TEST_TAG)
     }
 
     @Test
-    fun followUsesHeadingUpOnlyWhenSwitchOn() {
+    fun shouldShowOnMapRequiresFollowFlags() {
+        val off = LocalFeatureFlags()
+        assertFalse(MapHeadingUpCatalog.shouldShowOnMap(off))
+        val follow = LocalFeatureFlags(
+            mapOf(
+                FlagKeys.MAP_HOME to true,
+                FlagKeys.MAP_LOCATION_PUCK to true,
+            ),
+        )
+        assertTrue(MapHeadingUpCatalog.shouldShowOnMap(follow))
+    }
+
+    @Test
+    fun toggleFlipsHeadingUpFlag() {
         val flags = LocalFeatureFlags(
             mapOf(
                 FlagKeys.MAP_HOME to true,
@@ -40,9 +54,9 @@ class MapHeadingUpCatalogTest {
             ),
         )
         assertFalse(MapLocationFollow.isHeadingUpEnabled(flags))
-        MapHeadingUpCatalog.setEnabled(flags, enabled = true)
+        assertTrue(MapHeadingUpCatalog.toggle(flags))
         assertTrue(MapLocationFollow.isHeadingUpEnabled(flags))
-        MapHeadingUpCatalog.setEnabled(flags, enabled = false)
+        assertFalse(MapHeadingUpCatalog.toggle(flags))
         assertFalse(MapLocationFollow.isHeadingUpEnabled(flags))
         assertEquals("TRACKING", MapLocationFollow.followingCameraMode(headingUp = false))
     }

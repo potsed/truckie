@@ -1,14 +1,14 @@
 package com.truckie1.app.ui
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.assertIsOff
-import androidx.compose.ui.test.assertIsOn
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
-import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import com.truckie1.flags.FlagKeys
-import com.truckie1.flags.LocalFeatureFlags
+import com.truckie1.trips.RouteSummary
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -18,7 +18,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 /**
- * Gherkin: features/map_heading_up.feature — Settings heading-up switch.
+ * Gherkin: features/map_heading_up.feature — map orientation lock control.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28])
@@ -28,27 +28,35 @@ class MapHeadingUpComposeTest {
     val composeRule = createComposeRule()
 
     @Test
-    fun settingsHeadingUpSwitchTogglesFlag() {
-        val flags = LocalFeatureFlags(mapOf(FlagKeys.MAP_HEADING_UP to true))
+    fun mapOrientationLockControlTogglesHeadingUp() {
+        var locked = true
         composeRule.setContent {
             TruckieTheme {
-                SettingsScreen(
-                    bufferM = 0.3,
-                    featureFlags = flags,
-                    showMapHeadingUpSwitch = true,
+                var headingUp by remember { mutableStateOf(true) }
+                MapHomeScreen(
+                    state = MapHomeUiState(
+                        route = null,
+                        sheetValue = RouteSheetValue.Peek,
+                        summaryStrip = RouteSummary.emptyStrip(),
+                    ),
+                    onSheetValueChange = {},
+                    onCreateRoute = {},
+                    onAddStop = { _, _, _ -> },
+                    showLocationPuck = true,
+                    locationFollowEnabled = true,
+                    headingUpEnabled = headingUp,
+                    showOrientationLock = true,
+                    onOrientationLockChange = {
+                        headingUp = it
+                        locked = it
+                    },
                 )
             }
         }
-        composeRule.onNodeWithText(MapHeadingUpCatalog.SETTINGS_LABEL).assertIsDisplayed()
-        composeRule.onNodeWithTag(MapHeadingUpCatalog.SETTINGS_TEST_TAG).assertIsDisplayed()
-        composeRule.onNodeWithTag(MapHeadingUpCatalog.SETTINGS_TEST_TAG).assertIsOn()
-
-        composeRule.onNodeWithTag(MapHeadingUpCatalog.SETTINGS_TEST_TAG).performClick()
-        composeRule.onNodeWithTag(MapHeadingUpCatalog.SETTINGS_TEST_TAG).assertIsOff()
-        assertFalse(flags.isEnabled(FlagKeys.MAP_HEADING_UP))
-
-        composeRule.onNodeWithTag(MapHeadingUpCatalog.SETTINGS_TEST_TAG).performClick()
-        composeRule.onNodeWithTag(MapHeadingUpCatalog.SETTINGS_TEST_TAG).assertIsOn()
-        assertTrue(flags.isEnabled(FlagKeys.MAP_HEADING_UP))
+        composeRule.onNodeWithTag(MapHeadingUpCatalog.MAP_CONTROL_TEST_TAG).assertIsDisplayed()
+        composeRule.onNodeWithTag(MapHeadingUpCatalog.MAP_CONTROL_TEST_TAG).performClick()
+        assertFalse(locked)
+        composeRule.onNodeWithTag(MapHeadingUpCatalog.MAP_CONTROL_TEST_TAG).performClick()
+        assertTrue(locked)
     }
 }

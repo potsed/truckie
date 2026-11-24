@@ -1,14 +1,13 @@
 Feature: Map orients to driving direction while following
   As a single-owner-operator driver
-  I want a Settings switch for map heading-up
-  So that I can choose whether the map rotates to match the direction I am driving
+  I want a map control to lock orientation to my driving direction
+  So that what is ahead of me stays at the top of the screen while I follow
 
   # Product toggle: ff_map_heading_up (requires ff_map_home + ff_map_location_puck follow).
-  # Settings exposes a switch that flips the same flag (same pattern as Demo mode).
-  # While following + on: MapLibre CameraMode.TRACKING_GPS + RenderMode.GPS.
-  # When the driver pans away (free mode): north-up / NONE — no forced rotation.
-  # Recenter restores heading-up follow when the switch is on.
-  # Fused Location bearing feeds the puck.
+  # Map chrome exposes an orientation-lock control next to Recenter (not a Settings switch).
+  # While following + locked: MapLibre CameraMode.TRACKING_GPS + RenderMode.GPS.
+  # Unlocked: north-up TRACKING. Free pan exits follow; Recenter restores follow
+  # (and heading lock when the control is on). Fused Location bearing feeds the puck.
 
   Scenario: Heading-up is feature-flagged
     Given ff_map_home and ff_map_location_puck are enabled
@@ -19,24 +18,24 @@ Feature: Map orients to driving direction while following
     Then the follow camera mode is TRACKING_GPS
     And the location puck render mode is GPS
 
-  Scenario: Settings exposes a heading-up switch
-    Given the Settings screen is open
-    Then a clear Orient map to driving direction switch is shown
-    When the switch is turned on
-    Then ff_map_heading_up is on
-    When the switch is turned off
-    Then ff_map_heading_up is off
-    And follow camera mode stays TRACKING (north-up)
+  Scenario: Map chrome exposes an orientation lock control
+    Given ff_map_home and ff_map_location_puck are enabled
+    And the map-home location chrome is shown
+    Then an orientation lock control is shown like Recenter
+    And Settings does not show a Demo-style heading-up switch
+    When the driver taps the orientation lock control
+    Then ff_map_heading_up toggles on or off
+    And while locked and following the camera mode is TRACKING_GPS
 
-  Scenario: Map orients with GPS bearing while following
-    Given ff_map_heading_up is enabled via the Settings switch
+  Scenario: Map orients with GPS bearing while locked
+    Given orientation lock is on
     And follow mode is on with a fused location fix that includes bearing
     When the driver is moving
     Then the map camera bearing matches the direction of travel
     And the blue my-location puck points in that direction
 
   Scenario: Free pan exits heading-up rotation
-    Given ff_map_heading_up is enabled and follow mode is on
+    Given orientation lock is on and follow mode is on
     When the driver pans the map
     Then follow mode exits
     And the camera mode is NONE

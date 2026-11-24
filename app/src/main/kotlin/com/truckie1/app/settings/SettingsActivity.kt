@@ -36,7 +36,6 @@ class SettingsActivity : ComponentActivity() {
                     navigationAppStore = app.navigationAppStore,
                     navigationAppQuery = app.navigationAppQuery,
                     featureFlags = app.featureFlags,
-                    showMapHeadingUpSwitch = com.truckie1.app.ui.MapHeadingUpCatalog.showsInSettings,
                     showDemoModeSwitch = com.truckie1.app.ui.DemoModeCatalog.showsInSettings,
                 )
             }

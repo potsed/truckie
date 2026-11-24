@@ -39,7 +39,6 @@ fun SettingsScreen(
     navigationAppQuery: InstalledNavigationAppQuery? = null,
     featureFlags: LocalFeatureFlags? = null,
     showDemoModeSwitch: Boolean = false,
-    showMapHeadingUpSwitch: Boolean = false,
     /** Debug dogfood: show [BuildConfig.VERSION_NAME] so installs of a fix can be confirmed. */
     showAppVersion: Boolean = true,
     appVersionName: String = BuildConfig.VERSION_NAME,
@@ -59,11 +58,6 @@ fun SettingsScreen(
         )
     }
 
-    if (showMapHeadingUpSwitch && featureFlags != null) {
-        Spacer(modifier = Modifier.height(24.dp))
-        MapHeadingUpSwitchSection(flags = featureFlags)
-    }
-
     if (showDemoModeSwitch && featureFlags != null) {
         Spacer(modifier = Modifier.height(24.dp))
         DemoModeSwitchSection(flags = featureFlags)
@@ -74,40 +68,6 @@ fun SettingsScreen(
         NavigationAppPickerSection(
             store = navigationAppStore,
             query = navigationAppQuery,
-        )
-    }
-}
-
-@Composable
-private fun MapHeadingUpSwitchSection(flags: LocalFeatureFlags) {
-    var enabled by remember { mutableStateOf(MapHeadingUpCatalog.isEnabled(flags)) }
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp)
-            .testTag("settings_map_heading_up_row"),
-    ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = stringResource(R.string.settings_map_heading_up_label),
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onBackground,
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = stringResource(R.string.settings_map_heading_up_note),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onBackground,
-            )
-        }
-        Switch(
-            checked = enabled,
-            onCheckedChange = { checked ->
-                enabled = checked
-                MapHeadingUpCatalog.setEnabled(flags, enabled = checked)
-            },
-            modifier = Modifier.testTag(MapHeadingUpCatalog.SETTINGS_TEST_TAG),
         )
     }
 }
