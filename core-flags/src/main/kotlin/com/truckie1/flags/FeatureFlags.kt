@@ -86,6 +86,11 @@ object FlagKeys {
      * Shared full schema with potsed/au-low-bridges (no thinner parallel).
      */
     const val AU_LOW_BRIDGES_PACK = "ff_au_low_bridges_pack"
+    /**
+     * While following, orient the map to the direction of travel (course-up /
+     * heading-up via MapLibre TRACKING_GPS). Off = north-up TRACKING.
+     */
+    const val MAP_HEADING_UP = "ff_map_heading_up"
 }
 
 /**

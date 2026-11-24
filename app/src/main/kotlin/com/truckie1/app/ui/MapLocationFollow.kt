@@ -13,7 +13,10 @@ import com.truckie1.maps.MapCameraTarget
  * Recenter animates back onto the fix, restores the default closer zoom, and
  * re-enables follow.
  *
- * Gherkin: features/map_first_home.feature
+ * With [ff_map_heading_up][FlagKeys.MAP_HEADING_UP], follow uses course-up
+ * (MapLibre `TRACKING_GPS`) so the map orients to the direction of travel.
+ *
+ * Gherkin: features/map_first_home.feature, features/map_heading_up.feature
  */
 object MapLocationFollow {
     const val defaultsToFollowingWhenCentered: Boolean = true
@@ -31,14 +34,50 @@ object MapLocationFollow {
     /** Default closer zoom applied on Recenter (same as initial location center). */
     val RECENTER_ZOOM: Double = MapCameraDefaults.ZOOM
 
-    /** MapLibre LocationComponent camera mode while following. */
+    /** MapLibre LocationComponent camera mode while following (north-up). */
     const val FOLLOWING_CAMERA_MODE: String = "TRACKING"
+
+    /**
+     * Course-up / heading-up while following (`ff_map_heading_up`):
+     * MapLibre [org.maplibre.android.location.modes.CameraMode.TRACKING_GPS].
+     */
+    const val FOLLOWING_HEADING_UP_CAMERA_MODE: String = "TRACKING_GPS"
 
     /** MapLibre LocationComponent camera mode after the driver pans away. */
     const val FREE_CAMERA_MODE: String = "NONE"
 
+    /** Puck render while north-up following. */
+    const val FOLLOWING_RENDER_MODE: String = "NORMAL"
+
+    /** Puck render while heading-up — chevron / GPS direction. */
+    const val FOLLOWING_HEADING_UP_RENDER_MODE: String = "GPS"
+
     fun isEnabled(flags: FeatureFlags): Boolean =
         flags.isEnabled(FlagKeys.MAP_HOME) && flags.isEnabled(FlagKeys.MAP_LOCATION_PUCK)
+
+    fun isHeadingUpEnabled(flags: FeatureFlags): Boolean =
+        isEnabled(flags) && flags.isEnabled(FlagKeys.MAP_HEADING_UP)
+
+    fun followingCameraMode(headingUp: Boolean): String =
+        if (headingUp) FOLLOWING_HEADING_UP_CAMERA_MODE else FOLLOWING_CAMERA_MODE
+
+    fun followingRenderMode(headingUp: Boolean): String =
+        if (headingUp) FOLLOWING_HEADING_UP_RENDER_MODE else FOLLOWING_RENDER_MODE
+
+    /** MapLibre [CameraMode] int for follow (tests / host wiring). */
+    fun followingCameraModeInt(headingUp: Boolean): Int =
+        if (headingUp) {
+            org.maplibre.android.location.modes.CameraMode.TRACKING_GPS
+        } else {
+            org.maplibre.android.location.modes.CameraMode.TRACKING
+        }
+
+    fun followingRenderModeInt(headingUp: Boolean): Int =
+        if (headingUp) {
+            org.maplibre.android.location.modes.RenderMode.GPS
+        } else {
+            org.maplibre.android.location.modes.RenderMode.NORMAL
+        }
 
     fun initial(hasLocationFix: Boolean = false): MapFollowState =
         MapFollowState(
@@ -155,12 +194,16 @@ data class MapFollowState(
         get() = hasLocationFix && mode == MapFollowMode.FREE &&
             MapLocationFollow.showsRecenterWhenNotFollowing
 
-    val cameraMode: String
-        get() = if (isFollowing) {
-            MapLocationFollow.FOLLOWING_CAMERA_MODE
+    fun cameraMode(headingUp: Boolean = false): String =
+        if (isFollowing) {
+            MapLocationFollow.followingCameraMode(headingUp)
         } else {
             MapLocationFollow.FREE_CAMERA_MODE
         }
+
+    /** North-up follow string — kept for older tests; prefer [cameraMode]. */
+    val cameraMode: String
+        get() = cameraMode(headingUp = false)
 
     val shouldMoveCameraWithLocation: Boolean
         get() = isFollowing &&
