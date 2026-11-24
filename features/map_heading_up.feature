@@ -22,10 +22,17 @@ Feature: Map orients to driving direction while following
     Given ff_map_home and ff_map_location_puck are enabled
     And the map-home location chrome is shown
     Then an orientation lock control is shown like Recenter
+    And the lock and Recenter share the same primary circle visual treatment
     And Settings does not show a Demo-style heading-up switch
     When the driver taps the orientation lock control
     Then ff_map_heading_up toggles on or off
     And while locked and following the camera mode is TRACKING_GPS
+
+  Scenario: Orientation lock and Recenter stay visually consistent
+    Given the map-home location chrome is shown
+    Then both circular map icon controls use primary surface and onPrimary icon tint
+    And only the glyph differs (MyLocation vs Navigation/Explore)
+    And unlocked lock state does not use a secondaryContainer treatment
 
   Scenario: Map orients with GPS bearing while locked
     Given orientation lock is on

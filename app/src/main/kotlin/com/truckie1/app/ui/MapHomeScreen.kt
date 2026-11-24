@@ -68,6 +68,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -374,30 +375,13 @@ private fun MapOrientationLockButton(
     } else {
         stringResource(R.string.map_orientation_lock_off)
     }
-    Surface(
-        shape = CircleShape,
-        color = if (locked) {
-            MaterialTheme.colorScheme.primary
-        } else {
-            MaterialTheme.colorScheme.secondaryContainer
-        },
-        shadowElevation = 4.dp,
-        modifier = modifier
-            .testTag(MapHeadingUpCatalog.MAP_CONTROL_TEST_TAG)
-            .semantics { contentDescription = description },
-    ) {
-        IconButton(onClick = onClick) {
-            Icon(
-                imageVector = if (locked) Icons.Filled.Navigation else Icons.Filled.Explore,
-                contentDescription = description,
-                tint = if (locked) {
-                    MaterialTheme.colorScheme.onPrimary
-                } else {
-                    MaterialTheme.colorScheme.onSecondaryContainer
-                },
-            )
-        }
-    }
+    MapChromeIconButton(
+        onClick = onClick,
+        imageVector = if (locked) Icons.Filled.Navigation else Icons.Filled.Explore,
+        contentDescription = description,
+        testTag = MapHeadingUpCatalog.MAP_CONTROL_TEST_TAG,
+        modifier = modifier,
+    )
 }
 
 @Composable
@@ -429,18 +413,40 @@ private fun MapRecenterButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val description = stringResource(R.string.map_recenter)
+    MapChromeIconButton(
+        onClick = onClick,
+        imageVector = Icons.Filled.MyLocation,
+        contentDescription = description,
+        testTag = MapChromeIconControls.RECENTER_TEST_TAG,
+        modifier = modifier,
+    )
+}
+
+/**
+ * Shared primary circle FAB used by Recenter and orientation lock.
+ * Core requirement: consistent visual treatment — only the glyph differs.
+ */
+@Composable
+private fun MapChromeIconButton(
+    onClick: () -> Unit,
+    imageVector: ImageVector,
+    contentDescription: String,
+    testTag: String,
+    modifier: Modifier = Modifier,
+) {
     Surface(
         shape = CircleShape,
         color = MaterialTheme.colorScheme.primary,
-        shadowElevation = 4.dp,
+        shadowElevation = MapChromeIconControls.shadowElevationDp.dp,
         modifier = modifier
-            .testTag("map_recenter_button")
-            .semantics { contentDescription = "Recenter on my location" },
+            .testTag(testTag)
+            .semantics { this.contentDescription = contentDescription },
     ) {
         IconButton(onClick = onClick) {
             Icon(
-                imageVector = Icons.Filled.MyLocation,
-                contentDescription = stringResource(R.string.map_recenter),
+                imageVector = imageVector,
+                contentDescription = contentDescription,
                 tint = MaterialTheme.colorScheme.onPrimary,
             )
         }
