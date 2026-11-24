@@ -42,7 +42,41 @@ class MapLocationFollowTest {
         assertTrue(MapLocationFollow.resetsZoomToDefaultOnRecenter)
         assertEquals(MapCameraDefaults.ZOOM, MapLocationFollow.RECENTER_ZOOM, 0.0)
         assertEquals("TRACKING", MapLocationFollow.FOLLOWING_CAMERA_MODE)
+        assertEquals("TRACKING_GPS", MapLocationFollow.FOLLOWING_HEADING_UP_CAMERA_MODE)
+        assertEquals("NORMAL", MapLocationFollow.FOLLOWING_RENDER_MODE)
+        assertEquals("GPS", MapLocationFollow.FOLLOWING_HEADING_UP_RENDER_MODE)
         assertEquals("NONE", MapLocationFollow.FREE_CAMERA_MODE)
+    }
+
+    @Test
+    fun headingUpUsesTrackingGpsWhileFollowing() {
+        assertEquals("ff_map_heading_up", FlagKeys.MAP_HEADING_UP)
+        val off = LocalFeatureFlags(
+            mapOf(
+                FlagKeys.MAP_HOME to true,
+                FlagKeys.MAP_LOCATION_PUCK to true,
+            ),
+        )
+        assertFalse(MapLocationFollow.isHeadingUpEnabled(off))
+        assertEquals("TRACKING", MapLocationFollow.followingCameraMode(headingUp = false))
+        assertEquals("NORMAL", MapLocationFollow.followingRenderMode(headingUp = false))
+
+        val on = LocalFeatureFlags(
+            mapOf(
+                FlagKeys.MAP_HOME to true,
+                FlagKeys.MAP_LOCATION_PUCK to true,
+                FlagKeys.MAP_HEADING_UP to true,
+            ),
+        )
+        assertTrue(MapLocationFollow.isHeadingUpEnabled(on))
+        assertEquals("TRACKING_GPS", MapLocationFollow.followingCameraMode(headingUp = true))
+        assertEquals("GPS", MapLocationFollow.followingRenderMode(headingUp = true))
+
+        val following = MapLocationFollow.initial(hasLocationFix = true)
+        assertEquals("TRACKING_GPS", following.cameraMode(headingUp = true))
+        assertEquals("TRACKING", following.cameraMode(headingUp = false))
+        val free = MapLocationFollow.onUserPan(following)
+        assertEquals("NONE", free.cameraMode(headingUp = true))
     }
 
     @Test

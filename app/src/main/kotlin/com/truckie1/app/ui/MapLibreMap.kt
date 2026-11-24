@@ -59,8 +59,11 @@ import org.maplibre.android.plugins.annotation.SymbolOptions
  *
  * When [locationFollowEnabled] is true, follow mode keeps the puck centred and
  * moves the camera with location updates until the driver pans away; Recenter
- * (owned by the parent overlay) re-enables TRACKING and restores default closer
+ * (owned by the parent overlay) re-enables tracking and restores default closer
  * zoom via LocationComponent setCameraMode zoom transition.
+ *
+ * When [headingUpEnabled] is true (`ff_map_heading_up`), follow uses
+ * [CameraMode.TRACKING_GPS] so the map orients to the direction of travel.
  *
  * Stop markers use the Annotation plugin [SymbolManager] (not deprecated MarkerOptions).
  * When [showBridgeMarkers] is true (`ff_bridge_markers`), a separate SymbolManager
@@ -77,6 +80,8 @@ fun MapLibreMap(
     settingsEnsurer: LocationSettingsEnsurer? = null,
     showLocationPuck: Boolean = false,
     locationFollowEnabled: Boolean = false,
+    /** Course-up while following (`ff_map_heading_up`). */
+    headingUpEnabled: Boolean = false,
     followState: MapFollowState = MapLocationFollow.initial(),
     onFollowStateChange: (MapFollowState) -> Unit = {},
     recenterToken: Int = 0,
@@ -97,6 +102,12 @@ fun MapLibreMap(
     val hostHolder = remember { mutableStateOf<MapLibreHost?>(null) }
     val followStateRef = remember { mutableStateOf(followState) }
     SideEffect { followStateRef.value = followState }
+    SideEffect {
+        hostHolder.value?.headingUpEnabled = headingUpEnabled
+        if (locationFollowEnabled && followState.isFollowing) {
+            hostHolder.value?.setCameraFollowing(true)
+        }
+    }
 
     var cameraTarget by remember { mutableStateOf(MapCameraTarget.fallback()) }
     var locationFix by remember { mutableStateOf<LocationFix?>(null) }
@@ -320,6 +331,7 @@ fun MapLibreMap(
                     mapHost.bindStops(mapView = view, map = map, style = style, stops = stops)
                     mapHost.bindRoutePath(mapView = view, map = map, style = style, points = routePathPoints)
                     if (showLocationPuck) {
+                        mapHost.headingUpEnabled = headingUpEnabled
                         mapHost.ensureLocationComponent(map = map, style = style)
                         mapHost.updatePuck(locationFix, enabled = locationFix != null)
                         if (locationFollowEnabled) {
@@ -362,6 +374,8 @@ private class MapLibreHost(
     private var lineManager: LineManager? = null
     private var bridgeSymbolManager: SymbolManager? = null
     private var mapRef: MapLibreMap? = null
+    /** Course-up while following (`ff_map_heading_up`). */
+    var headingUpEnabled: Boolean = false
     private var locationActivated: Boolean = false
     private var followGesturesBound: Boolean = false
     private var ignoreTrackingDismiss: Boolean = false
@@ -613,7 +627,7 @@ private class MapLibreHost(
         component.activateLocationComponent(activation)
         component.isLocationComponentEnabled = false
         component.cameraMode = CameraMode.NONE
-        component.renderMode = RenderMode.NORMAL
+        component.renderMode = MapLocationFollow.followingRenderModeInt(headingUpEnabled)
         locationActivated = true
     }
 
@@ -682,12 +696,14 @@ private class MapLibreHost(
                 when (plan.zoomApplyMode) {
                     RecenterZoomApplyMode.TRACKING_TRANSITION_WITH_ZOOM -> {
                         if (locationActivated) {
+                            map.locationComponent.renderMode =
+                                MapLocationFollow.followingRenderModeInt(headingUpEnabled)
                             map.locationComponent.setCameraMode(
-                                CameraMode.TRACKING,
+                                MapLocationFollow.followingCameraModeInt(headingUpEnabled),
                                 plan.animationDurationMs,
                                 plan.target.zoom,
-                                null,
-                                null,
+                                /* bearing */ null,
+                                /* tilt */ null,
                                 null,
                             )
                         } else {
@@ -722,10 +738,14 @@ private class MapLibreHost(
         if (!locationActivated) return
         val map = mapRef ?: return
         runCatching {
-            map.locationComponent.cameraMode = if (following) {
-                CameraMode.TRACKING
+            val component = map.locationComponent
+            if (following) {
+                component.renderMode =
+                    MapLocationFollow.followingRenderModeInt(headingUpEnabled)
+                component.cameraMode =
+                    MapLocationFollow.followingCameraModeInt(headingUpEnabled)
             } else {
-                CameraMode.NONE
+                component.cameraMode = CameraMode.NONE
             }
         }
     }
@@ -779,4 +799,6 @@ private fun LocationFix.toAndroidLocation(): Location =
         loc.latitude = latitude
         loc.longitude = longitude
         accuracyMeters?.let { loc.accuracy = it }
+        bearingDegrees?.let { loc.bearing = it }
+        speedMetersPerSecond?.let { loc.speed = it }
     }

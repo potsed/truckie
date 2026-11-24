@@ -70,6 +70,8 @@ class TruckieApp : Application() {
             featureFlags.setEnabled(FlagKeys.MAP_HOME, true)
             featureFlags.setEnabled(FlagKeys.ADDRESS_AUTOCOMPLETE, true)
             featureFlags.setEnabled(FlagKeys.MAP_LOCATION_PUCK, true)
+            // Course-up while following — map orients to driving direction.
+            featureFlags.setEnabled(FlagKeys.MAP_HEADING_UP, true)
             featureFlags.setEnabled(FlagKeys.ROUTE_START_END, true)
             featureFlags.setEnabled(FlagKeys.NAVIGATE, true)
             featureFlags.setEnabled(FlagKeys.BRIDGE_MARKERS, true)

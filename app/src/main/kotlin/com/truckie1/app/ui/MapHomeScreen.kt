@@ -122,6 +122,8 @@ fun MapHomeScreen(
     showNavigateAction: Boolean = false,
     showLocationPuck: Boolean = false,
     locationFollowEnabled: Boolean = false,
+    /** Course-up while following (`ff_map_heading_up`). */
+    headingUpEnabled: Boolean = false,
     bridges: List<BridgePoint> = emptyList(),
     showBridgeMarkers: Boolean = false,
     /**
@@ -182,6 +184,7 @@ fun MapHomeScreen(
             stops = state.route?.stops.orEmpty(),
             showLocationPuck = showLocationPuck,
             locationFollowEnabled = locationFollowEnabled && showLocationPuck,
+            headingUpEnabled = headingUpEnabled && locationFollowEnabled && showLocationPuck,
             followState = followState,
             onFollowStateChange = { followState = it },
             recenterToken = recenterToken,

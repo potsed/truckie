@@ -25,6 +25,10 @@ data class LocationFix(
     val latitude: Double,
     val longitude: Double,
     val accuracyMeters: Float? = null,
+    /** Degrees clockwise from true north when the fused fix reports bearing. */
+    val bearingDegrees: Float? = null,
+    /** Ground speed m/s when reported — useful for trusting GPS course. */
+    val speedMetersPerSecond: Float? = null,
 )
 
 /**
@@ -97,8 +101,9 @@ class FusedCurrentLocationProvider(
     override fun startUpdates(onUpdate: (LocationFix) -> Unit) {
         if (!hasLocationPermission(context)) return
         stopUpdates()
+        // High accuracy so GPS course/bearing is available while driving (heading-up).
         val request = LocationRequest.Builder(
-            Priority.PRIORITY_BALANCED_POWER_ACCURACY,
+            Priority.PRIORITY_HIGH_ACCURACY,
             UPDATE_INTERVAL_MS,
         )
             .setMinUpdateIntervalMillis(MIN_UPDATE_INTERVAL_MS)
@@ -144,6 +149,8 @@ private fun android.location.Location.toLocationFix(): LocationFix =
         latitude = latitude,
         longitude = longitude,
         accuracyMeters = if (hasAccuracy()) accuracy else null,
+        bearingDegrees = if (hasBearing()) bearing else null,
+        speedMetersPerSecond = if (hasSpeed()) speed else null,
     )
 
 class PlayServicesLocationSettingsEnsurer(

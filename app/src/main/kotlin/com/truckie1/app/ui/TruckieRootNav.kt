@@ -224,6 +224,7 @@ fun TruckieRootApp(
                         navigationAppStore = app.navigationAppStore,
                         navigationAppQuery = app.navigationAppQuery,
                         featureFlags = app.featureFlags,
+                        showMapHeadingUpSwitch = MapHeadingUpCatalog.showsInSettings,
                         showDemoModeSwitch = DemoModeCatalog.showsInSettings,
                     )
                 }
@@ -620,6 +621,7 @@ private fun MapHomeRoute(
         showNavigateAction = showNavigate,
         showLocationPuck = MapLocationPuck.isEnabled(app.featureFlags),
         locationFollowEnabled = MapLocationFollow.isEnabled(app.featureFlags),
+        headingUpEnabled = MapLocationFollow.isHeadingUpEnabled(app.featureFlags),
         bridges = bridges,
         showBridgeMarkers = showBridgeMarkers,
         showJumpToSampleBridges = showJumpToSampleBridges,

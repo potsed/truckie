@@ -93,6 +93,9 @@
     <string name="map_jump_to_sample_bridges">Jump to sample bridges</string>
     <string name="settings_demo_mode_label">Demo mode</string>
     <string name="settings_demo_mode_note">Temporary dogfood controls (e.g. Jump to sample bridges). Off hides those controls; a fuller demo dataset may land later.</string>
+    <!-- Map heading-up / course-up (ff_map_heading_up) -->
+    <string name="settings_map_heading_up_label">Orient map to driving direction</string>
+    <string name="settings_map_heading_up_note">While following your location, rotate the map so the direction you are driving is at the top. Off keeps north-up.</string>
     <!-- Create route start/end (ff_route_start_end) -->
     <string name="route_start_label">Start</string>
     <string name="route_end_label">End</string>
