@@ -33,6 +33,8 @@ XML screen layouts were removed; do not add new AppCompat/XML screens.
 | `ff_vehicle_height_bridge_filter` | Home-map W5-8 conflicts only (ATNA-47): show low bridges where clearance &lt; vehicle height + system buffer; no usable height → show all low | off (on in debug) |
 | `ff_bridge_passage` | Bridge over vs under (ATNA-48): model under/over/both/unknown; height conflicts block under-paths only (OK to drive over deck) | off (on in debug) |
 | `ff_demo_mode` | Demo mode — Settings toggle; temporary dogfood affordances (Jump to sample bridges). Fuller demo dataset later, not yet | off (on in debug) |
+| `ff_map_heading_up` | Orient map to driving direction — Settings switch; while following, MapLibre `TRACKING_GPS` course-up (off = north-up `TRACKING`) | off (on in debug) |
+| `ff_au_low_bridges_pack` | Consume public AU low-bridges JSON pack (ATNA-50) local-first from GitHub Release when newer | off (on in debug) |
 
 ## Rules
 
@@ -111,3 +113,7 @@ XML screen layouts were removed; do not add new AppCompat/XML screens.
     Today it gates **Jump to sample bridges** on map-home chrome (also needs
     `ff_bridge_markers`). A fuller demo dataset (prefilled routes/data) may come later —
     not in scope yet. Production defaults remain off.
+21. Map heading-up (`ff_map_heading_up`) is a Settings switch (**Orient map to driving
+    direction**). Requires `ff_map_home` + `ff_map_location_puck` follow. On → course-up
+    (`TRACKING_GPS` + GPS puck); off → north-up `TRACKING`. Free pan exits rotation;
+    Recenter restores heading-up when the switch is on.
