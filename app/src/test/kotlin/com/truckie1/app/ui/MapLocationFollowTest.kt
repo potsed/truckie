@@ -5,6 +5,7 @@ import com.truckie1.flags.LocalFeatureFlags
 import com.truckie1.maps.MapCameraDefaults
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -107,12 +108,8 @@ class MapLocationFollowTest {
         )
         assertFalse(result.cameraTarget.usedFallback)
         assertTrue(result.resetsZoom)
-        assertEquals(
-            RecenterZoomApplyMode.ANIMATE_THEN_FOLLOW,
-            result.cameraPlan.zoomApplyMode,
-        )
-        assertEquals(RecenterCameraMotion.SMOOTH_ANIMATE, result.cameraPlan.cameraMotion)
-        assertFalse(result.cameraPlan.syncJumpBeforeFollow)
+        assertTrue(MapLocationFollow.isSingleCameraPath(result.cameraPlan))
+        assertFalse(MapLocationFollow.causesSecondZoom(result.cameraPlan))
         assertFalse(MapLocationFollow.usesHardCameraJump(result.cameraPlan))
         assertEquals(MapCameraDefaults.ZOOM, result.cameraPlan.target.zoom, 0.0)
     }
@@ -134,49 +131,80 @@ class MapLocationFollowTest {
     }
 
     @Test
-    fun recenterCameraPlanAnimatesSmoothlyWithoutHardJump() {
-        // ATNA-60: pan+zoom must animate; sync moveCamera is a hard jump.
-        val priorZoom = 11.0
-        assertTrue(priorZoom < MapCameraDefaults.ZOOM)
-
+    fun recenterUsesSingleAnimateThenZeroDurationFollow() {
+        // ATNA-61: one animateCamera; MapLibre bare setCameraMode defaults to 750ms
+        // transition which was the #44 second zoom + off-centre.
         val plan = MapLocationFollow.cameraPlanForRecenter(
             latitude = -27.4705,
             longitude = 153.0260,
         )
         assertEquals(MapCameraDefaults.ZOOM, plan.target.zoom, 0.0)
-        assertEquals(RecenterZoomApplyMode.ANIMATE_THEN_FOLLOW, plan.zoomApplyMode)
-        assertEquals(RecenterCameraMotion.SMOOTH_ANIMATE, plan.cameraMotion)
-        assertFalse(plan.syncJumpBeforeFollow)
-        assertTrue(plan.enableFollowAfterAnimation)
-        assertFalse(MapLocationFollow.usesHardCameraJump(plan))
         assertEquals(MapLocationFollow.RECENTER_ANIMATION_MS, plan.animationDurationMs)
+        assertEquals(0L, plan.followEnterTransitionMs)
+        assertFalse(plan.applyZoomOnFollowEnter)
+        assertTrue(MapLocationFollow.isSingleCameraPath(plan))
+        assertFalse(MapLocationFollow.causesSecondZoom(plan))
+        assertFalse(MapLocationFollow.usesHardCameraJump(plan))
 
-        // #24: animate + immediate TRACKING keeps prior zoom.
-        assertEquals(
-            priorZoom,
-            MapLocationFollow.effectiveZoomAfterRecenter(
-                plan = plan,
-                priorZoom = priorZoom,
-                trackingEnabledImmediately = true,
-            ),
-            0.0,
-        )
-        // ATNA-60: follow only after animation → default closer zoom.
-        assertEquals(
-            MapCameraDefaults.ZOOM,
-            MapLocationFollow.effectiveZoomAfterRecenter(
-                plan = plan,
-                priorZoom = priorZoom,
-                trackingEnabledImmediately = false,
-            ),
-            0.0,
-        )
+        val ops = MapLocationFollow.cameraOperations(plan)
+        assertEquals(3, ops.size)
+        assertEquals(RecenterCameraOp.ExitTracking, ops[0])
+        val animate = ops[1] as RecenterCameraOp.AnimateToLatLngZoom
+        assertEquals(-27.4705, animate.latitude, 0.0)
+        assertEquals(153.0260, animate.longitude, 0.0)
+        assertEquals(MapCameraDefaults.ZOOM, animate.zoom, 0.0)
+        assertEquals(MapLocationFollow.RECENTER_ANIMATION_MS, animate.durationMs)
+        val enter = ops[2] as RecenterCameraOp.EnterFollow
+        assertEquals(0L, enter.transitionMs)
+        assertNull(enter.zoom)
 
-        val jumpPlan = plan.copy(
-            cameraMotion = RecenterCameraMotion.HARD_JUMP,
-            syncJumpBeforeFollow = true,
+        // #44 regression model: default 750ms follow-enter = second zoom.
+        val doubleZoom = plan.copy(followEnterTransitionMs = 750L)
+        assertTrue(MapLocationFollow.causesSecondZoom(doubleZoom))
+        assertFalse(MapLocationFollow.isSingleCameraPath(doubleZoom))
+        val zoomOnEnter = plan.copy(applyZoomOnFollowEnter = true)
+        assertTrue(MapLocationFollow.causesSecondZoom(zoomOnEnter))
+    }
+
+    @Test
+    fun steadyFollowDoesNotDriveCameraOnGpsTicks() {
+        // LocationComponent owns the camera while tracking — GPS moveCamera was a
+        // second path that fought Recenter (off-centre / extra zoom).
+        assertFalse(
+            MapLocationFollow.shouldDriveCameraOnLocationFix(
+                isFollowing = true,
+                recenterInFlight = false,
+                locationComponentAlreadyTracking = true,
+            ),
         )
-        assertTrue(MapLocationFollow.usesHardCameraJump(jumpPlan))
+        assertFalse(
+            MapLocationFollow.shouldDriveCameraOnLocationFix(
+                isFollowing = true,
+                recenterInFlight = false,
+                locationComponentAlreadyTracking = false,
+            ),
+        )
+        assertTrue(
+            MapLocationFollow.shouldEnableFollowMode(
+                isFollowing = true,
+                recenterInFlight = false,
+                locationComponentAlreadyTracking = false,
+            ),
+        )
+        assertFalse(
+            MapLocationFollow.shouldEnableFollowMode(
+                isFollowing = true,
+                recenterInFlight = false,
+                locationComponentAlreadyTracking = true,
+            ),
+        )
+        assertFalse(
+            MapLocationFollow.shouldEnableFollowMode(
+                isFollowing = true,
+                recenterInFlight = true,
+                locationComponentAlreadyTracking = false,
+            ),
+        )
     }
 
     @Test
@@ -191,13 +219,6 @@ class MapLocationFollowTest {
             MapLocationFollow.shouldSyncFollowingModeWithoutZoom(
                 isFollowing = true,
                 recenterInFlight = false,
-            ),
-        )
-        assertFalse(
-            MapLocationFollow.shouldApplyFollowCameraOnLocationFix(
-                isFollowing = true,
-                recenterInFlight = true,
-                locationComponentAlreadyTracking = false,
             ),
         )
     }
