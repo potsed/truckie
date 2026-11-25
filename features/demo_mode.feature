@@ -46,3 +46,15 @@ Feature: Demo mode
     Then the demo vehicle is not listed
     And the demo route is not the active route
     And real vehicles and the real route are available again
+
+  # ATNA-58: Settings toggle must seed stops + isolate vehicles (not flag/Jump only).
+  Scenario: Toggling Demo mode seeds stops and isolates vehicles
+    Given real vehicles exist
+    When the Settings Demo mode switch is turned on
+    Then ff_demo_mode is on
+    And the active route has the DHL depot and 6 seeded stops
+    And only the 3.5 m demo vehicle is listed
+    And real vehicles are not listed
+    When the Home map sheet is shown
+    Then the route summary reflects 6 stops
+    And the stop list shows the seeded demo stops

@@ -481,11 +481,15 @@ private fun MapHomeRoute(
         mutableStateOf(app.routeNavigateSession.activePath()?.points.orEmpty())
     }
     LaunchedEffect(demoRevision) {
+        // ATNA-58: if flag is on but route was never seeded, repair on Home bind.
+        if (app.demoModeController.ensureSeededIfDemo()) {
+            // Controller bumped revision; parent may not have seen it yet.
+        }
         route = app.routeSession.activeRoute()
         if (DemoModeCatalog.isEnabled(app.featureFlags)) {
             app.routeNavigateSession.clear()
             navigatePathPoints = emptyList()
-            if (route != null) {
+            if (route != null && route!!.stops.isNotEmpty()) {
                 sheetValue = RouteSheetValue.Half
             }
         }
@@ -511,7 +515,7 @@ private fun MapHomeRoute(
         mutableStateOf(MapHeadingUpCatalog.isEnabled(app.featureFlags))
     }
     val showOrientationLock = MapHeadingUpCatalog.shouldShowOnMap(app.featureFlags)
-    val activeVehicleHeightM = remember(app.vehicleProfiles.activeRego) {
+    val activeVehicleHeightM = remember(app.vehicleProfiles.activeRego, demoRevision) {
         app.vehicleProfiles.activeRego
             ?.let { app.vehicleProfiles.findByRego(it)?.heightM }
     }
@@ -521,6 +525,7 @@ private fun MapHomeRoute(
         app.featureFlags,
         activeVehicleHeightM,
         app.clearanceBufferM,
+        demoRevision,
     ) {
         if (showBridgeMarkers) {
             val visible = QldOpenClearances.visibleBridges(
@@ -703,6 +708,7 @@ private fun ColumnScope.TripStopsRoute(
     var optimizeStatus by remember { mutableStateOf<String?>(null) }
 
     fun bindList() {
+        app.demoModeController.ensureSeededIfDemo()
         val current = app.tripSession.stops()
         stops = current
         clearanceSummary = tripClearanceText(app, current)
@@ -809,6 +815,7 @@ private fun ColumnScope.VehicleListRoute(
     var activeRego by remember { mutableStateOf(app.vehicleProfiles.activeRego) }
 
     fun bindList() {
+        app.demoModeController.ensureSeededIfDemo()
         vehicles = app.vehicleProfiles.all()
         activeRego = app.vehicleProfiles.activeRego
     }

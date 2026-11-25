@@ -110,9 +110,12 @@ private fun DemoModeSwitchSection(
             checked = enabled,
             onCheckedChange = { checked ->
                 enabled = checked
+                // ATNA-58: never flip the flag alone — isolation + seed must run together.
                 if (onDemoModeChanged != null) {
                     onDemoModeChanged(checked)
                 } else {
+                    // Tests without a controller still flip the flag; production always
+                    // passes onDemoModeChanged from TruckieRootNav / SettingsActivity.
                     DemoModeCatalog.setEnabled(flags, enabled = checked)
                 }
             },

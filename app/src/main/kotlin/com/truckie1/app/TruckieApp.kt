@@ -63,6 +63,7 @@ class TruckieApp : Application() {
         val db = VehicleDatabase.build(this)
         val dualVehicles = DualModeVehicleProfileRepository(
             real = RoomVehicleProfileRepository(db.vehicleDao()),
+            flags = featureFlags,
         )
         vehicleProfiles = dualVehicles
         demoModeController = DemoModeController(

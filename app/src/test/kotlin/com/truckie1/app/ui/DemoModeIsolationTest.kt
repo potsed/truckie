@@ -1,5 +1,6 @@
 package com.truckie1.app.ui
 
+import com.truckie1.flags.FlagKeys
 import com.truckie1.flags.LocalFeatureFlags
 import com.truckie1.profiles.InMemoryVehicleProfileRepository
 import com.truckie1.profiles.Vehicle
@@ -16,7 +17,7 @@ import org.junit.Test
 import java.time.LocalDate
 
 /**
- * Gherkin: features/demo_mode.feature — hard isolation of demo vs real data (ATNA-56).
+ * Gherkin: features/demo_mode.feature — hard isolation (ATNA-56 / ATNA-58).
  */
 class DemoModeIsolationTest {
 
@@ -36,12 +37,16 @@ class DemoModeIsolationTest {
         gcmT = 15.0,
     )
 
+    private fun dual(flags: LocalFeatureFlags): DualModeVehicleProfileRepository {
+        val realRepo = InMemoryVehicleProfileRepository()
+        realRepo.save(realVehicle())
+        return DualModeVehicleProfileRepository(real = realRepo, flags = flags)
+    }
+
     @Test
     fun enablingDemoHidesRealVehicleAndRoute() {
         val flags = LocalFeatureFlags()
-        val realRepo = InMemoryVehicleProfileRepository()
-        realRepo.save(realVehicle())
-        val dual = DualModeVehicleProfileRepository(real = realRepo)
+        val dual = dual(flags)
         val routes = RouteSession()
         routes.createRoute(
             name = "Real job",
@@ -78,9 +83,7 @@ class DemoModeIsolationTest {
     @Test
     fun disablingDemoRestoresRealDataAndHidesDemo() {
         val flags = LocalFeatureFlags()
-        val realRepo = InMemoryVehicleProfileRepository()
-        realRepo.save(realVehicle())
-        val dual = DualModeVehicleProfileRepository(real = realRepo)
+        val dual = dual(flags)
         val routes = RouteSession()
         val real = routes.createRoute(
             name = "Real job",
@@ -109,15 +112,51 @@ class DemoModeIsolationTest {
     }
 
     @Test
-    fun dualRepoNeverLeaksDemoIntoRealStore() {
+    fun dualRepoFollowsFlagWithoutSeparateLatch() {
+        val flags = LocalFeatureFlags()
         val realRepo = InMemoryVehicleProfileRepository()
         realRepo.save(realVehicle())
-        val dual = DualModeVehicleProfileRepository(real = realRepo)
-        dual.demoModeEnabled = true
-        dual.save(DemoDataset.vehicle)
-        assertEquals(1, dual.all().size)
-        dual.demoModeEnabled = false
+        val dual = DualModeVehicleProfileRepository(real = realRepo, flags = flags)
+
+        assertEquals(listOf("REAL99"), dual.all().map { it.rego })
+
+        // ATNA-58: flag alone must isolate vehicles (Jump used to flip flag only).
+        flags.setEnabled(FlagKeys.DEMO_MODE, true)
+        assertEquals(listOf(DemoDataset.VEHICLE_REGO), dual.all().map { it.rego })
+        assertEquals(3.5, dual.findByRego(DemoDataset.VEHICLE_REGO)!!.heightM, 0.001)
+        assertNull(dual.findByRego("REAL99"))
+
+        flags.setEnabled(FlagKeys.DEMO_MODE, false)
         assertEquals(listOf("REAL99"), realRepo.all().map { it.rego })
+        assertEquals(listOf("REAL99"), dual.all().map { it.rego })
         assertFalse(realRepo.all().any { DemoDataset.isDemoVehicleRego(it.rego) })
+    }
+
+    @Test
+    fun ensureSeededIfDemoRepairsFlagOnWithoutRoute() {
+        val flags = LocalFeatureFlags()
+        val dual = dual(flags)
+        val routes = RouteSession()
+        routes.createRoute(
+            name = "Real job",
+            dateChoice = RouteDateChoice.TODAY,
+            today = LocalDate.of(2026, 11, 25),
+        )
+        val trips = TripSession()
+        val controller = DemoModeController(
+            flags = flags,
+            vehicles = dual,
+            routeSession = routes,
+            tripSession = trips,
+        )
+
+        // Simulate broken ATNA-56 path: flag on, no controller seed.
+        flags.setEnabled(FlagKeys.DEMO_MODE, true)
+        assertFalse(DemoDataset.isDemoRouteId(routes.activeRoute()!!.id))
+
+        assertTrue(controller.ensureSeededIfDemo())
+        assertTrue(DemoDataset.isDemoRouteId(routes.activeRoute()!!.id))
+        assertEquals(6, routes.activeRoute()!!.stops.size)
+        assertEquals(listOf(DemoDataset.VEHICLE_REGO), dual.all().map { it.rego })
     }
 }
