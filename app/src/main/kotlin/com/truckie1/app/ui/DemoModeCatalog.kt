@@ -5,10 +5,11 @@ import com.truckie1.flags.FlagKeys
 import com.truckie1.flags.LocalFeatureFlags
 
 /**
- * Demo mode (`ff_demo_mode`) — Settings toggle for temporary dogfood affordances.
+ * Demo mode (`ff_demo_mode`, ATNA-56) — Settings toggle for dogfood affordances.
  *
- * Today: gates [JumpToSampleBridges] on map-home chrome.
- * Later (not this PR): may include a fuller demo dataset (prefilled routes/data).
+ * When on: [DemoDataset] (DHL Boronia Rd depot, 6 stops, 3.5 m vehicle) via
+ * [DemoModeController] with hard isolation from real vehicles/routes; also gates
+ * [JumpToSampleBridges] on map-home chrome.
  *
  * Off by default in production **and** debug — opt-in via Settings only.
  * Gherkin: features/demo_mode.feature

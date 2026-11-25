@@ -10,6 +10,8 @@ import com.truckie1.app.trips.RouteNavigateSession
 import com.truckie1.app.ui.AuLowBridgesPack
 import com.truckie1.app.ui.BridgePackRepository
 import com.truckie1.app.ui.CachedBridgePackRepository
+import com.truckie1.app.ui.DemoModeController
+import com.truckie1.app.ui.DualModeVehicleProfileRepository
 import com.truckie1.flags.FlagKeys
 import com.truckie1.flags.LocalFeatureFlags
 import com.truckie1.maps.MapLibreNativeEngine
@@ -24,6 +26,8 @@ import com.truckie1.trips.TripSession
 class TruckieApp : Application() {
     val featureFlags = LocalFeatureFlags()
     lateinit var vehicleProfiles: VehicleProfileRepository
+        private set
+    lateinit var demoModeController: DemoModeController
         private set
     lateinit var navigationAppStore: NavigationAppStore
         private set
@@ -57,7 +61,16 @@ class TruckieApp : Application() {
     override fun onCreate() {
         super.onCreate()
         val db = VehicleDatabase.build(this)
-        vehicleProfiles = RoomVehicleProfileRepository(db.vehicleDao())
+        val dualVehicles = DualModeVehicleProfileRepository(
+            real = RoomVehicleProfileRepository(db.vehicleDao()),
+        )
+        vehicleProfiles = dualVehicles
+        demoModeController = DemoModeController(
+            flags = featureFlags,
+            vehicles = dualVehicles,
+            routeSession = routeSession,
+            tripSession = tripSession,
+        )
         navigationAppStore = SharedNavigationAppStore(this)
         navigationAppQuery = PackageManagerNavigationAppQuery(packageManager)
         // Dogfood: enable shipped capabilities in debug builds only.

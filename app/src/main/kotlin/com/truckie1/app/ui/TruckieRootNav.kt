@@ -30,6 +30,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -86,6 +87,8 @@ fun TruckieRootApp(
     val title = rootTitle(baseRoute)
     val canNavigateUp = baseRoute !in TruckieRoutes.primaryRoutes
     val graphStart = remember(Unit) { primaryStartDestination(startRoute) }
+    // ATNA-56: bump when Demo mode toggles so map/vehicles/trip rebind isolated data.
+    var demoRevision by remember { mutableIntStateOf(0) }
 
     LaunchedEffect(startRoute) {
         openStartRoute(navController, startRoute)
@@ -157,6 +160,7 @@ fun TruckieRootApp(
                 if (mapHomeEnabled) {
                     MapHomeRoute(
                         app = app,
+                        demoRevision = demoRevision,
                         onNavigatePrimary = { destination ->
                             navigatePrimary(navController, app, activity, destination)
                         },
@@ -197,6 +201,7 @@ fun TruckieRootApp(
                 RootFillBody {
                     TripStopsRoute(
                         app = app,
+                        demoRevision = demoRevision,
                         onAddStop = { navController.navigate(TruckieRoutes.ADD_STOP) },
                         onBlocked = { reason ->
                             navController.navigate(TruckieRoutes.blockedRoute(reason))
@@ -208,6 +213,7 @@ fun TruckieRootApp(
                 RootFillBody {
                     VehicleListRoute(
                         app = app,
+                        demoRevision = demoRevision,
                         onAdd = { navController.navigate(TruckieRoutes.vehicleEdit()) },
                         onEdit = { vehicle ->
                             navController.navigate(TruckieRoutes.vehicleEdit(vehicle.rego))
@@ -225,6 +231,10 @@ fun TruckieRootApp(
                         navigationAppQuery = app.navigationAppQuery,
                         featureFlags = app.featureFlags,
                         showDemoModeSwitch = DemoModeCatalog.showsInSettings,
+                        onDemoModeChanged = { enabled ->
+                            app.demoModeController.setEnabled(enabled)
+                            demoRevision = app.demoModeController.revision()
+                        },
                     )
                 }
             }
@@ -461,6 +471,7 @@ private fun HomeRoute(
 @Composable
 private fun MapHomeRoute(
     app: TruckieApp,
+    demoRevision: Int = 0,
     onNavigatePrimary: (TruckiePrimaryDestination) -> Unit,
 ) {
     val context = LocalContext.current
@@ -468,6 +479,16 @@ private fun MapHomeRoute(
     var route by remember { mutableStateOf(app.routeSession.activeRoute()) }
     var navigatePathPoints by remember {
         mutableStateOf(app.routeNavigateSession.activePath()?.points.orEmpty())
+    }
+    LaunchedEffect(demoRevision) {
+        route = app.routeSession.activeRoute()
+        if (DemoModeCatalog.isEnabled(app.featureFlags)) {
+            app.routeNavigateSession.clear()
+            navigatePathPoints = emptyList()
+            if (route != null) {
+                sheetValue = RouteSheetValue.Half
+            }
+        }
     }
     val summary = remember(route) {
         route?.let { com.truckie1.trips.RouteSummary.strip(it) }
@@ -668,6 +689,7 @@ private fun bindHomeState(app: TruckieApp): HomeUiState {
 @Composable
 private fun ColumnScope.TripStopsRoute(
     app: TruckieApp,
+    demoRevision: Int = 0,
     onAddStop: () -> Unit,
     onBlocked: (String) -> Unit,
 ) {
@@ -687,7 +709,7 @@ private fun ColumnScope.TripStopsRoute(
         showOptimize = OptimizeForVehicleGate.isAvailable(app.featureFlags)
     }
 
-    LaunchedEffect(Unit) { bindList() }
+    LaunchedEffect(demoRevision) { bindList() }
 
     TripStopsScreen(
         stops = stops,
@@ -778,6 +800,7 @@ private fun tripClearanceText(app: TruckieApp, stops: List<TripStop>): String {
 @Composable
 private fun ColumnScope.VehicleListRoute(
     app: TruckieApp,
+    demoRevision: Int = 0,
     onAdd: () -> Unit,
     onEdit: (Vehicle) -> Unit,
 ) {
@@ -790,7 +813,7 @@ private fun ColumnScope.VehicleListRoute(
         activeRego = app.vehicleProfiles.activeRego
     }
 
-    LaunchedEffect(Unit) { bindList() }
+    LaunchedEffect(demoRevision) { bindList() }
 
     VehicleListScreen(
         vehicles = vehicles,

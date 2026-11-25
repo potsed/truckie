@@ -64,8 +64,8 @@ object FlagKeys {
      */
     const val BCC_ROAD_HEIGHT_RESTRICTIONS = "ff_bcc_road_height_restrictions"
     /**
-     * Demo mode — temporary dogfood affordances (e.g. Jump to sample bridges).
-     * May later gate a fuller demo dataset; that is out of scope for the jump control.
+     * Demo mode (ATNA-56) — sample SEQ run + hard isolation from real data;
+     * also gates temporary dogfood chrome (e.g. Jump to sample bridges).
      */
     const val DEMO_MODE = "ff_demo_mode"
     /**

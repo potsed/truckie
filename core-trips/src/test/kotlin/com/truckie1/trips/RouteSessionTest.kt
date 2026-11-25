@@ -82,6 +82,25 @@ class RouteSessionTest {
     }
 
     @Test
+    fun replaceActiveSwapsOrClearsActiveRoute() {
+        val session = RouteSession()
+        val created = session.createRoute(
+            name = "Real",
+            dateChoice = RouteDateChoice.TODAY,
+            today = LocalDate.of(2026, 11, 25),
+        )
+        assertEquals(created, session.activeRoute())
+
+        val replacement = created.copy(id = "demo-route", name = "Demo")
+        session.replaceActive(replacement)
+        assertEquals("demo-route", session.activeRoute()!!.id)
+        assertEquals("Demo", session.activeRoute()!!.name)
+
+        session.replaceActive(null)
+        assertNull(session.activeRoute())
+    }
+
+    @Test
     fun summaryCountsStopsByKind() {
         val session = RouteSession()
         session.createRoute(name = null, dateChoice = RouteDateChoice.TODAY, today = LocalDate.of(2026, 11, 22))

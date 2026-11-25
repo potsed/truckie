@@ -56,4 +56,12 @@ class RouteSession {
     fun clear() {
         active = null
     }
+
+    /**
+     * Replaces the active route in one shot (used by Demo mode isolation).
+     * Pass null to clear without creating a new route.
+     */
+    fun replaceActive(route: Route?) {
+        active = route
+    }
 }
