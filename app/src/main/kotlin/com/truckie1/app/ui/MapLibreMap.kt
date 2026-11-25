@@ -105,6 +105,10 @@ fun MapLibreMap(
     SideEffect {
         val host = hostHolder.value ?: return@SideEffect
         host.headingUpEnabled = headingUpEnabled
+        // Arm Recenter before follow SideEffect so bare TRACKING cannot cancel zoom.
+        if (recenterToken > 0) {
+            host.armRecenterIfNeeded(recenterToken)
+        }
         // ATNA-59: do not re-enter TRACKING without zoom while Recenter is applying
         // default closer zoom (#39 heading-up SideEffect race).
         if (locationFollowEnabled &&
@@ -140,18 +144,28 @@ fun MapLibreMap(
             locationFix = resolved.puck
             hostHolder.value?.updatePuck(resolved.puck, enabled = resolved.puck != null)
             if (followActive) {
+                val host = hostHolder.value
                 val withFix = MapLocationFollow.onLocationFixChanged(
                     followStateRef.value,
                     hasLocationFix = resolved.puck != null,
                 )
                 publishFollow(withFix)
-                if (withFix.shouldMoveCameraWithLocation && resolved.puck != null) {
-                    hostHolder.value?.applyFollowCamera(
+                // ATNA-59: LocationComponent TRACKING owns the camera while following.
+                // Re-applying camera on every fused fix cancelled Recenter zoom.
+                if (withFix.shouldMoveCameraWithLocation &&
+                    resolved.puck != null &&
+                    MapLocationFollow.shouldApplyFollowCameraOnLocationFix(
+                        isFollowing = withFix.isFollowing,
+                        recenterInFlight = host?.isRecenterInFlight == true,
+                        locationComponentAlreadyTracking = host?.isLocationTracking == true,
+                    )
+                ) {
+                    host?.applyFollowCamera(
                         target = resolved.camera,
                         animate = false,
                     )
                 } else if (withFix.isFollowing && resolved.puck == null) {
-                    hostHolder.value?.applyCamera(resolved.camera)
+                    host?.applyCamera(resolved.camera)
                 }
             } else {
                 hostHolder.value?.applyCamera(cameraTarget)
@@ -395,6 +409,7 @@ private class MapLibreHost(
     private var locationActivated: Boolean = false
     private var followGesturesBound: Boolean = false
     private var ignoreTrackingDismiss: Boolean = false
+    private var lastArmedRecenterToken: Int = 0
     private var styleReady: Boolean = false
     private var styleLoading: Boolean = false
     private val pendingStyleReady = mutableListOf<(Style) -> Unit>()
@@ -700,43 +715,73 @@ private class MapLibreHost(
     val isRecenterInFlight: Boolean
         get() = ignoreTrackingDismiss
 
+    /** LocationComponent currently in TRACKING / TRACKING_GPS. */
+    val isLocationTracking: Boolean
+        get() {
+            if (!locationActivated) return false
+            val mode = mapRef?.locationComponent?.cameraMode ?: return false
+            return mode == CameraMode.TRACKING || mode == CameraMode.TRACKING_GPS
+        }
+
+    /** Called from Compose SideEffect as soon as recenterToken bumps (before follow sync). */
+    fun armRecenterIfNeeded(recenterToken: Int) {
+        if (recenterToken <= lastArmedRecenterToken) return
+        lastArmedRecenterToken = recenterToken
+        ignoreTrackingDismiss = true
+    }
+
     fun applyFollowCamera(target: MapCameraTarget, animate: Boolean) {
         val map = mapRef ?: return
         val latLng = LatLng(target.latitude, target.longitude)
-        // Block heading-up SideEffect / AndroidView from re-entering TRACKING without zoom.
-        ignoreTrackingDismiss = true
+        if (animate) {
+            // Block heading-up SideEffect / GPS ticks from re-entering TRACKING without zoom.
+            ignoreTrackingDismiss = true
+        } else if (ignoreTrackingDismiss) {
+            // Recenter in flight — do not stomp zoomWhileTracking.
+            return
+        }
         runCatching {
             if (animate) {
-                // #24 bug: animateCamera(newLatLngZoom) is async; enabling TRACKING
-                // immediately keeps the free-pan zoom. Pass zoom into setCameraMode
-                // (or sync moveCamera before TRACKING) so MapLibre honors it.
-                // ATNA-59 / #39: SideEffect may already have enabled TRACKING without zoom —
-                // exit to NONE first so setCameraMode(..., zoom) is not a no-op.
                 val plan = MapLocationFollow.cameraPlanForRecenter(
                     target.latitude,
                     target.longitude,
                 )
                 when (plan.zoomApplyMode) {
-                    RecenterZoomApplyMode.TRACKING_TRANSITION_WITH_ZOOM -> {
+                    RecenterZoomApplyMode.ZOOM_WHILE_TRACKING,
+                    RecenterZoomApplyMode.TRACKING_TRANSITION_WITH_ZOOM,
+                    -> {
                         if (locationActivated) {
-                            map.locationComponent.renderMode =
+                            val component = map.locationComponent
+                            component.renderMode =
                                 MapLocationFollow.followingRenderModeInt(headingUpEnabled)
                             if (plan.exitTrackingBeforeApply) {
-                                map.locationComponent.cameraMode = CameraMode.NONE
-                                // Sync zoom immediately so a raced setCameraFollowing cannot
-                                // leave the free-pan zoom if the transition is interrupted.
-                                map.moveCamera(
-                                    CameraUpdateFactory.newLatLngZoom(latLng, plan.target.zoom),
+                                component.cameraMode = CameraMode.NONE
+                            }
+                            // Sync lat/lng + zoom immediately (survives cancelled transitions).
+                            map.moveCamera(
+                                CameraUpdateFactory.newLatLngZoom(latLng, plan.target.zoom),
+                            )
+                            component.setCameraMode(
+                                MapLocationFollow.followingCameraModeInt(headingUpEnabled),
+                            )
+                            // MapLibre API for zoom under TRACKING / TRACKING_GPS (ATNA-59).
+                            if (plan.useZoomWhileTracking ||
+                                plan.zoomApplyMode == RecenterZoomApplyMode.ZOOM_WHILE_TRACKING
+                            ) {
+                                component.zoomWhileTracking(
+                                    plan.target.zoom,
+                                    plan.animationDurationMs,
+                                )
+                            } else {
+                                component.setCameraMode(
+                                    MapLocationFollow.followingCameraModeInt(headingUpEnabled),
+                                    plan.animationDurationMs,
+                                    plan.target.zoom,
+                                    /* bearing */ null,
+                                    /* tilt */ null,
+                                    null,
                                 )
                             }
-                            map.locationComponent.setCameraMode(
-                                MapLocationFollow.followingCameraModeInt(headingUpEnabled),
-                                plan.animationDurationMs,
-                                plan.target.zoom,
-                                /* bearing */ null,
-                                /* tilt */ null,
-                                null,
-                            )
                         } else {
                             map.moveCamera(
                                 CameraUpdateFactory.newLatLngZoom(latLng, plan.target.zoom),
@@ -752,21 +797,25 @@ private class MapLibreHost(
                     }
                 }
             } else {
-                map.cameraPosition = CameraPosition.Builder()
-                    .target(latLng)
-                    .zoom(target.zoom)
-                    .build()
+                // Initial enter-follow only (steady TRACKING is owned by LocationComponent).
+                map.moveCamera(
+                    CameraUpdateFactory.newLatLngZoom(latLng, target.zoom),
+                )
                 setCameraFollowing(true)
             }
         }
-        mapView.postDelayed(
-            { ignoreTrackingDismiss = false },
-            MapLocationFollow.RECENTER_ANIMATION_MS + 50L,
-        )
+        if (animate) {
+            mapView.postDelayed(
+                { ignoreTrackingDismiss = false },
+                MapLocationFollow.RECENTER_ANIMATION_MS + 50L,
+            )
+        }
     }
 
     fun setCameraFollowing(following: Boolean) {
         if (!locationActivated) return
+        // Bare TRACKING re-entry cancels zoomWhileTracking / setCameraMode zoom (ATNA-59).
+        if (following && ignoreTrackingDismiss) return
         val map = mapRef ?: return
         runCatching {
             val component = map.locationComponent

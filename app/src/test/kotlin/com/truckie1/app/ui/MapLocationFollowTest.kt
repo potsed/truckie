@@ -108,9 +108,10 @@ class MapLocationFollowTest {
         assertFalse(result.cameraTarget.usedFallback)
         assertTrue(result.resetsZoom)
         assertEquals(
-            RecenterZoomApplyMode.TRACKING_TRANSITION_WITH_ZOOM,
+            RecenterZoomApplyMode.ZOOM_WHILE_TRACKING,
             result.cameraPlan.zoomApplyMode,
         )
+        assertTrue(result.cameraPlan.useZoomWhileTracking)
         assertEquals(MapCameraDefaults.ZOOM, result.cameraPlan.target.zoom, 0.0)
     }
 
@@ -131,7 +132,7 @@ class MapLocationFollowTest {
     }
 
     @Test
-    fun recenterCameraPlanAppliesDefaultZoomViaTrackingTransitionNotAnimateCamera() {
+    fun recenterCameraPlanUsesZoomWhileTrackingNotAnimateCamera() {
         val priorZoom = 11.0
         assertTrue(priorZoom < MapCameraDefaults.ZOOM)
 
@@ -140,10 +141,8 @@ class MapLocationFollowTest {
             longitude = 153.0260,
         )
         assertEquals(MapCameraDefaults.ZOOM, plan.target.zoom, 0.0)
-        assertEquals(
-            RecenterZoomApplyMode.TRACKING_TRANSITION_WITH_ZOOM,
-            plan.zoomApplyMode,
-        )
+        assertEquals(RecenterZoomApplyMode.ZOOM_WHILE_TRACKING, plan.zoomApplyMode)
+        assertTrue(plan.useZoomWhileTracking)
         assertEquals(MapLocationFollow.RECENTER_ANIMATION_MS, plan.animationDurationMs)
         assertTrue(plan.exitTrackingBeforeApply)
 
@@ -154,7 +153,7 @@ class MapLocationFollowTest {
             MapLocationFollow.effectiveZoomAfterRecenter(brokenPlan, priorZoom),
             0.0,
         )
-        // Fixed path: tracking transition (or sync moveCamera before TRACKING) applies 15.5.
+        // Preferred path: zoomWhileTracking applies default closer zoom.
         assertEquals(
             MapCameraDefaults.ZOOM,
             MapLocationFollow.effectiveZoomAfterRecenter(plan, priorZoom),
@@ -163,43 +162,57 @@ class MapLocationFollowTest {
     }
 
     @Test
-    fun headingUpSideEffectEnablingTrackingWithoutZoomMustNotKeepPriorZoom() {
-        // ATNA-59 / #39: SideEffect setCameraFollowing(true) runs when follow is restored,
-        // leaving TRACKING active at the free-pan zoom before applyFollowCamera.
+    fun gpsTickBareSetCameraFollowingMustNotCancelRecenterZoom() {
+        // ATNA-59: onLocationReady → applyFollowCamera(animate=false) → setCameraFollowing
+        // during Recenter cancelled setCameraMode(..., zoom). zoomWhileTracking survives.
         val priorZoom = 11.0
-        val plan = MapLocationFollow.cameraPlanForRecenter(
-            latitude = -27.4705,
-            longitude = 153.0260,
-        )
-        assertTrue(plan.exitTrackingBeforeApply)
+        val legacy = MapLocationFollow.cameraPlanForRecenter(-27.47, 153.02)
+            .copy(zoomApplyMode = RecenterZoomApplyMode.TRACKING_TRANSITION_WITH_ZOOM)
         assertEquals(
             priorZoom,
             MapLocationFollow.effectiveZoomAfterRecenter(
-                plan = plan.copy(exitTrackingBeforeApply = false),
+                plan = legacy,
                 priorZoom = priorZoom,
-                trackingAlreadyActiveWithoutZoom = true,
+                gpsTickCancelsTransition = true,
             ),
             0.0,
         )
+        val plan = MapLocationFollow.cameraPlanForRecenter(-27.47, 153.02)
+        assertEquals(RecenterZoomApplyMode.ZOOM_WHILE_TRACKING, plan.zoomApplyMode)
         assertEquals(
             MapCameraDefaults.ZOOM,
             MapLocationFollow.effectiveZoomAfterRecenter(
                 plan = plan,
                 priorZoom = priorZoom,
-                trackingAlreadyActiveWithoutZoom = true,
+                gpsTickCancelsTransition = true,
             ),
             0.0,
+        )
+        assertFalse(
+            MapLocationFollow.shouldApplyFollowCameraOnLocationFix(
+                isFollowing = true,
+                recenterInFlight = true,
+                locationComponentAlreadyTracking = true,
+            ),
+        )
+        assertFalse(
+            MapLocationFollow.shouldApplyFollowCameraOnLocationFix(
+                isFollowing = true,
+                recenterInFlight = false,
+                locationComponentAlreadyTracking = true,
+            ),
+        )
+        assertTrue(
+            MapLocationFollow.shouldApplyFollowCameraOnLocationFix(
+                isFollowing = true,
+                recenterInFlight = false,
+                locationComponentAlreadyTracking = false,
+            ),
         )
         assertFalse(
             MapLocationFollow.shouldSyncFollowingModeWithoutZoom(
                 isFollowing = true,
                 recenterInFlight = true,
-            ),
-        )
-        assertTrue(
-            MapLocationFollow.shouldSyncFollowingModeWithoutZoom(
-                isFollowing = true,
-                recenterInFlight = false,
             ),
         )
     }
