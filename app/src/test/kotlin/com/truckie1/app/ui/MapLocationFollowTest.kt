@@ -145,6 +145,7 @@ class MapLocationFollowTest {
             plan.zoomApplyMode,
         )
         assertEquals(MapLocationFollow.RECENTER_ANIMATION_MS, plan.animationDurationMs)
+        assertTrue(plan.exitTrackingBeforeApply)
 
         // #24 regression model: animateCamera + immediate TRACKING keeps prior zoom.
         val brokenPlan = plan.copy(zoomApplyMode = RecenterZoomApplyMode.ANIMATE_CAMERA_LAT_LNG_ZOOM)
@@ -158,6 +159,48 @@ class MapLocationFollowTest {
             MapCameraDefaults.ZOOM,
             MapLocationFollow.effectiveZoomAfterRecenter(plan, priorZoom),
             0.0,
+        )
+    }
+
+    @Test
+    fun headingUpSideEffectEnablingTrackingWithoutZoomMustNotKeepPriorZoom() {
+        // ATNA-59 / #39: SideEffect setCameraFollowing(true) runs when follow is restored,
+        // leaving TRACKING active at the free-pan zoom before applyFollowCamera.
+        val priorZoom = 11.0
+        val plan = MapLocationFollow.cameraPlanForRecenter(
+            latitude = -27.4705,
+            longitude = 153.0260,
+        )
+        assertTrue(plan.exitTrackingBeforeApply)
+        assertEquals(
+            priorZoom,
+            MapLocationFollow.effectiveZoomAfterRecenter(
+                plan = plan.copy(exitTrackingBeforeApply = false),
+                priorZoom = priorZoom,
+                trackingAlreadyActiveWithoutZoom = true,
+            ),
+            0.0,
+        )
+        assertEquals(
+            MapCameraDefaults.ZOOM,
+            MapLocationFollow.effectiveZoomAfterRecenter(
+                plan = plan,
+                priorZoom = priorZoom,
+                trackingAlreadyActiveWithoutZoom = true,
+            ),
+            0.0,
+        )
+        assertFalse(
+            MapLocationFollow.shouldSyncFollowingModeWithoutZoom(
+                isFollowing = true,
+                recenterInFlight = true,
+            ),
+        )
+        assertTrue(
+            MapLocationFollow.shouldSyncFollowingModeWithoutZoom(
+                isFollowing = true,
+                recenterInFlight = false,
+            ),
         )
     }
 

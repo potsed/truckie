@@ -118,28 +118,53 @@ object MapLocationFollow {
      * CameraMode.TRACKING owns the camera and keeps the zoom current when TRACKING starts,
      * so async [org.maplibre.android.camera.CameraUpdateFactory.newLatLngZoom] is discarded
      * when follow is re-enabled immediately (#24 regression).
+     *
+     * [RecenterCameraPlan.exitTrackingBeforeApply] is required after heading-up chrome (#39 /
+     * ATNA-59): a SideEffect may call setCameraFollowing without zoom as soon as follow is
+     * restored, leaving TRACKING already active at the free-pan zoom — a second
+     * setCameraMode(TRACKING, zoom) is then ignored unless we drop to NONE first.
      */
     fun cameraPlanForRecenter(latitude: Double, longitude: Double): RecenterCameraPlan =
         RecenterCameraPlan(
             target = cameraTargetForRecenter(latitude, longitude),
             zoomApplyMode = RecenterZoomApplyMode.TRACKING_TRANSITION_WITH_ZOOM,
             animationDurationMs = RECENTER_ANIMATION_MS,
+            exitTrackingBeforeApply = true,
         )
 
     /**
      * Models MapLibre Recenter zoom outcome for tests.
      * Async animateCamera + immediate TRACKING keeps [priorZoom]; tracking-transition
      * (or sync moveCamera before TRACKING) applies [RecenterCameraPlan] zoom.
+     *
+     * When [trackingAlreadyActiveWithoutZoom] (ATNA-59 / #39 SideEffect race), zoom only
+     * lands if [RecenterCameraPlan.exitTrackingBeforeApply] is true.
      */
     fun effectiveZoomAfterRecenter(
         plan: RecenterCameraPlan,
         priorZoom: Double,
         trackingEnabledImmediately: Boolean = true,
+        trackingAlreadyActiveWithoutZoom: Boolean = false,
     ): Double = when (plan.zoomApplyMode) {
         RecenterZoomApplyMode.ANIMATE_CAMERA_LAT_LNG_ZOOM ->
             if (trackingEnabledImmediately) priorZoom else plan.target.zoom
-        RecenterZoomApplyMode.TRACKING_TRANSITION_WITH_ZOOM -> plan.target.zoom
+        RecenterZoomApplyMode.TRACKING_TRANSITION_WITH_ZOOM -> {
+            if (trackingAlreadyActiveWithoutZoom && !plan.exitTrackingBeforeApply) {
+                priorZoom
+            } else {
+                plan.target.zoom
+            }
+        }
     }
+
+    /**
+     * Heading-up SideEffect must not call bare setCameraFollowing during Recenter —
+     * that re-enters TRACKING without zoom and fights the zoom transition (ATNA-59).
+     */
+    fun shouldSyncFollowingModeWithoutZoom(
+        isFollowing: Boolean,
+        recenterInFlight: Boolean,
+    ): Boolean = isFollowing && !recenterInFlight
 
     fun onLocationFixChanged(state: MapFollowState, hasLocationFix: Boolean): MapFollowState =
         state.copy(hasLocationFix = hasLocationFix)
@@ -177,6 +202,12 @@ data class RecenterCameraPlan(
     val target: MapCameraTarget,
     val zoomApplyMode: RecenterZoomApplyMode,
     val animationDurationMs: Long,
+    /**
+     * When true, drop to [org.maplibre.android.location.modes.CameraMode.NONE] before
+     * setCameraMode(..., zoom) so MapLibre honors the zoom even if TRACKING was already
+     * enabled without zoom (ATNA-59).
+     */
+    val exitTrackingBeforeApply: Boolean = true,
 )
 
 enum class MapFollowMode {
