@@ -44,10 +44,10 @@ Feature: Map-first home with route stop drag sheet
     Then follow mode exits
     And a Recenter control is shown on the map overlay
     When the driver taps Recenter
-    Then the camera smoothly animates pan and zoom onto the current location
-    # ATNA-60: must not hard-jump via sync moveCamera before follow
-    And zoom is reset to the default closer zoom used when first centering on the puck
-    And follow mode is re-enabled after the animation finishes
+    Then the camera smoothly animates once onto the current location at default closer zoom
+    # ATNA-61: one animateCamera path; follow enter must not run a second zoom or drift off centre
+    And follow mode is re-enabled without a second zoom or camera fight
+    And the puck stays centred
     And the Recenter control is hidden while centred and following
 
   Scenario: Map style renders a street basemap
