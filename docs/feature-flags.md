@@ -109,15 +109,17 @@ XML screen layouts were removed; do not add new AppCompat/XML screens.
     Height conflicts (and future routing) block driving **under** a restricted
     structure — OK to drive **over** the deck. Bootstrap `0.7.0-sample`. Never
     invents clearances.
-20. Demo mode (`ff_demo_mode`, ATNA-56) is a Settings switch. When on,
+20. Demo mode (`ff_demo_mode`, ATNA-56 / ATNA-58) is a Settings switch. When on,
     [DemoModeController] loads [DemoDataset]: DHL Boronia Rd depot, **6 stops**
     (2 pickup / 4 delivery; industrial Yatala/Lytton-style + one residential
     beside QR Colina St / Berrima St Wynnum 1.9 m underbridge for W5-8 dogfood),
     and a **3.5 m** demo vehicle — with **hard isolation** from real vehicles,
-    routes, and trip stops (and the reverse when off). Also gates **Jump to
-    sample bridges** on map-home chrome (needs `ff_bridge_markers`). Defaults
-    **off** in production **and** debug — Settings opt-in only
-    (`DemoModeCatalog.ENABLED_BY_DEFAULT_IN_DEBUG = false`).
+    routes, and trip stops (and the reverse when off). Vehicle isolation follows
+    the flag directly ([DualModeVehicleProfileRepository]); Home/Vehicles call
+    `ensureSeededIfDemo()` so a flag-on session always has the seeded route
+    (ATNA-58). Also gates **Jump to sample bridges** on map-home chrome (needs
+    `ff_bridge_markers`). Defaults **off** in production **and** debug —
+    Settings opt-in only (`DemoModeCatalog.ENABLED_BY_DEFAULT_IN_DEBUG = false`).
 21. Map heading-up (`ff_map_heading_up`) is a **map-chrome orientation lock** (same overlay
     pattern as Recenter — not a Settings switch). Requires `ff_map_home` +
     `ff_map_location_puck` follow. Locked → course-up (`TRACKING_GPS` + GPS puck);

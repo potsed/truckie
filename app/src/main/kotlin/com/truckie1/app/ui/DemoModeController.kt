@@ -11,6 +11,9 @@ import java.util.concurrent.atomic.AtomicInteger
 /**
  * Owns Demo mode enable/disable: flag flip + hard isolation of vehicles, routes, trips.
  *
+ * Call [setEnabled] from Settings. Call [ensureSeededIfDemo] when Home / Vehicles
+ * become visible so a flag-on session always has the demo route + vehicle (ATNA-58).
+ *
  * Gherkin: features/demo_mode.feature
  */
 class DemoModeController(
@@ -22,17 +25,17 @@ class DemoModeController(
     private var backedUpRoute: Route? = null
     private var backedUpTrips: List<TripStop> = emptyList()
     private var backedUpOptimizeMode = tripSession.lastOptimizeMode
+    private var holdingRealBackup: Boolean = false
     private val revisionCounter = AtomicInteger(0)
 
-    /** Bumps whenever demo mode is toggled — UI can key refreshes off this. */
+    /** Bumps whenever demo mode is toggled or re-seeded — UI keys refreshes off this. */
     fun revision(): Int = revisionCounter.get()
 
     fun setEnabled(enabled: Boolean) {
         val currentlyOn = DemoModeCatalog.isEnabled(flags)
-        if (enabled == currentlyOn && enabled == vehicles.demoModeEnabled) {
+        if (enabled == currentlyOn) {
             if (enabled) {
-                // Idempotent re-apply of demo dataset (e.g. after process restore).
-                applyDemoDataset()
+                ensureSeededIfDemo()
             }
             return
         }
@@ -41,20 +44,57 @@ class DemoModeController(
             backedUpRoute = routeSession.activeRoute()
             backedUpTrips = tripSession.stops()
             backedUpOptimizeMode = tripSession.lastOptimizeMode
+            holdingRealBackup = true
             DemoModeCatalog.setEnabled(flags, enabled = true)
-            vehicles.demoModeEnabled = true
             applyDemoDataset()
         } else {
             DemoModeCatalog.setEnabled(flags, enabled = false)
-            vehicles.demoModeEnabled = false
-            routeSession.replaceActive(backedUpRoute)
-            tripSession.replaceStops(backedUpTrips)
-            tripSession.lastOptimizeMode = backedUpOptimizeMode
+            if (holdingRealBackup) {
+                routeSession.replaceActive(backedUpRoute)
+                tripSession.replaceStops(backedUpTrips)
+                tripSession.lastOptimizeMode = backedUpOptimizeMode
+            } else if (DemoDataset.isDemoRouteId(routeSession.activeRoute()?.id.orEmpty())) {
+                routeSession.replaceActive(null)
+                tripSession.replaceStops(emptyList())
+                tripSession.lastOptimizeMode = null
+            }
             backedUpRoute = null
             backedUpTrips = emptyList()
             backedUpOptimizeMode = null
+            holdingRealBackup = false
         }
         revisionCounter.incrementAndGet()
+    }
+
+    /**
+     * If `ff_demo_mode` is on but the active route is not the demo dataset,
+     * seed depot + 6 stops + demo vehicle. Safe to call on every Home bind (ATNA-58).
+     */
+    fun ensureSeededIfDemo(): Boolean {
+        if (!DemoModeCatalog.isEnabled(flags)) return false
+        val active = routeSession.activeRoute()
+        val needsRoute = active == null || !DemoDataset.isDemoRouteId(active.id)
+        val needsVehicle = vehicles.findByRego(DemoDataset.VEHICLE_REGO) == null ||
+            vehicles.activeRego?.let { !DemoDataset.isDemoVehicleRego(it) } == true
+        if (!needsRoute && !needsVehicle && active != null &&
+            active.stops.size == DemoDataset.stops.size
+        ) {
+            vehicles.ensureDemoVehicleLoaded()
+            return false
+        }
+        if (!holdingRealBackup && needsRoute) {
+            // Flag was turned on without going through [setEnabled] — still isolate
+            // by backing up whatever is currently active before replacing.
+            backedUpRoute = active?.takeUnless { DemoDataset.isDemoRouteId(it.id) }
+            backedUpTrips = tripSession.stops().filterNot { stop ->
+                DemoDataset.stops.any { it.id == stop.id }
+            }
+            backedUpOptimizeMode = tripSession.lastOptimizeMode
+            holdingRealBackup = backedUpRoute != null || backedUpTrips.isNotEmpty()
+        }
+        applyDemoDataset()
+        revisionCounter.incrementAndGet()
+        return true
     }
 
     private fun applyDemoDataset() {
