@@ -5,7 +5,7 @@ Feature flags:
 | Flag | Role | Default |
 | --- | --- | --- |
 | `ff_map_home` | Map + sheet | off (on in debug) |
-| `ff_map_location_puck` | Blue my-location + follow/recenter (Recenter also restores default closer zoom) | off (on in debug) |
+| `ff_map_location_puck` | Blue my-location + follow/recenter (Recenter smoothly animates pan+zoom to default closer zoom, then follow) | off (on in debug) |
 | `ff_map_heading_up` | Map-chrome orientation lock (like Recenter): course-up while following; off = north-up | off (on in debug) |
 | `ff_address_autocomplete` | Verified stops | off (on in debug) |
 | `ff_route_start_end` | Create route requires verified **start** + **end** (same place = round trip) | off (on in debug) |

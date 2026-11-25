@@ -20,7 +20,7 @@ android {
         minSdk = 24
         targetSdk = 35
         versionCode = 1
-        versionName = "0.8.20-recenter-zoom"
+        versionName = "0.8.21-recenter-smooth"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
