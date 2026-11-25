@@ -103,9 +103,17 @@ fun MapLibreMap(
     val followStateRef = remember { mutableStateOf(followState) }
     SideEffect { followStateRef.value = followState }
     SideEffect {
-        hostHolder.value?.headingUpEnabled = headingUpEnabled
-        if (locationFollowEnabled && followState.isFollowing) {
-            hostHolder.value?.setCameraFollowing(true)
+        val host = hostHolder.value ?: return@SideEffect
+        host.headingUpEnabled = headingUpEnabled
+        // ATNA-59: do not re-enter TRACKING without zoom while Recenter is applying
+        // default closer zoom (#39 heading-up SideEffect race).
+        if (locationFollowEnabled &&
+            MapLocationFollow.shouldSyncFollowingModeWithoutZoom(
+                isFollowing = followState.isFollowing,
+                recenterInFlight = host.isRecenterInFlight,
+            )
+        ) {
+            host.setCameraFollowing(true)
         }
     }
 
@@ -343,7 +351,15 @@ fun MapLibreMap(
                                     )
                                 },
                             )
-                            mapHost.setCameraFollowing(followStateRef.value.isFollowing)
+                            if (MapLocationFollow.shouldSyncFollowingModeWithoutZoom(
+                                    isFollowing = followStateRef.value.isFollowing,
+                                    recenterInFlight = mapHost.isRecenterInFlight,
+                                )
+                            ) {
+                                mapHost.setCameraFollowing(true)
+                            } else if (!followStateRef.value.isFollowing) {
+                                mapHost.setCameraFollowing(false)
+                            }
                         }
                     } else {
                         mapHost.updatePuck(null, enabled = false)
@@ -680,15 +696,22 @@ private class MapLibreHost(
         }
     }
 
+    /** True while Recenter is applying default closer zoom (ATNA-59). */
+    val isRecenterInFlight: Boolean
+        get() = ignoreTrackingDismiss
+
     fun applyFollowCamera(target: MapCameraTarget, animate: Boolean) {
         val map = mapRef ?: return
         val latLng = LatLng(target.latitude, target.longitude)
+        // Block heading-up SideEffect / AndroidView from re-entering TRACKING without zoom.
         ignoreTrackingDismiss = true
         runCatching {
             if (animate) {
                 // #24 bug: animateCamera(newLatLngZoom) is async; enabling TRACKING
                 // immediately keeps the free-pan zoom. Pass zoom into setCameraMode
                 // (or sync moveCamera before TRACKING) so MapLibre honors it.
+                // ATNA-59 / #39: SideEffect may already have enabled TRACKING without zoom —
+                // exit to NONE first so setCameraMode(..., zoom) is not a no-op.
                 val plan = MapLocationFollow.cameraPlanForRecenter(
                     target.latitude,
                     target.longitude,
@@ -698,6 +721,14 @@ private class MapLibreHost(
                         if (locationActivated) {
                             map.locationComponent.renderMode =
                                 MapLocationFollow.followingRenderModeInt(headingUpEnabled)
+                            if (plan.exitTrackingBeforeApply) {
+                                map.locationComponent.cameraMode = CameraMode.NONE
+                                // Sync zoom immediately so a raced setCameraFollowing cannot
+                                // leave the free-pan zoom if the transition is interrupted.
+                                map.moveCamera(
+                                    CameraUpdateFactory.newLatLngZoom(latLng, plan.target.zoom),
+                                )
+                            }
                             map.locationComponent.setCameraMode(
                                 MapLocationFollow.followingCameraModeInt(headingUpEnabled),
                                 plan.animationDurationMs,
