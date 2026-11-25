@@ -95,7 +95,7 @@
     <!-- TEMPORARY / DEV: Demo mode (ff_demo_mode) + Jump to sample bridges -->
     <string name="map_jump_to_sample_bridges">Jump to sample bridges</string>
     <string name="settings_demo_mode_label">Demo mode</string>
-    <string name="settings_demo_mode_note">Temporary dogfood controls (e.g. Jump to sample bridges). Off hides those controls; a fuller demo dataset may land later.</string>
+    <string name="settings_demo_mode_note">Loads a sample SEQ run (DHL Boronia Rd depot, 6 stops, 3.5 m vehicle) and hides your real vehicles and routes. Off restores your real data and hides the demo run.</string>
     <!-- Create route start/end (ff_route_start_end) -->
     <string name="route_start_label">Start</string>
     <string name="route_end_label">End</string>

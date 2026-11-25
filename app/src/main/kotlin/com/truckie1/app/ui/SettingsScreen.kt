@@ -39,6 +39,11 @@ fun SettingsScreen(
     navigationAppQuery: InstalledNavigationAppQuery? = null,
     featureFlags: LocalFeatureFlags? = null,
     showDemoModeSwitch: Boolean = false,
+    /**
+     * When set, Demo mode toggles go through isolation (ATNA-56) instead of only flipping the flag.
+     * Compose tests may omit this and toggle [DemoModeCatalog] directly via the flag.
+     */
+    onDemoModeChanged: ((Boolean) -> Unit)? = null,
     /** Debug dogfood: show [BuildConfig.VERSION_NAME] so installs of a fix can be confirmed. */
     showAppVersion: Boolean = true,
     appVersionName: String = BuildConfig.VERSION_NAME,
@@ -60,7 +65,10 @@ fun SettingsScreen(
 
     if (showDemoModeSwitch && featureFlags != null) {
         Spacer(modifier = Modifier.height(24.dp))
-        DemoModeSwitchSection(flags = featureFlags)
+        DemoModeSwitchSection(
+            flags = featureFlags,
+            onDemoModeChanged = onDemoModeChanged,
+        )
     }
 
     if (showNavigationAppPicker && navigationAppStore != null && navigationAppQuery != null) {
@@ -73,7 +81,10 @@ fun SettingsScreen(
 }
 
 @Composable
-private fun DemoModeSwitchSection(flags: LocalFeatureFlags) {
+private fun DemoModeSwitchSection(
+    flags: LocalFeatureFlags,
+    onDemoModeChanged: ((Boolean) -> Unit)? = null,
+) {
     var enabled by remember { mutableStateOf(DemoModeCatalog.isEnabled(flags)) }
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -99,7 +110,11 @@ private fun DemoModeSwitchSection(flags: LocalFeatureFlags) {
             checked = enabled,
             onCheckedChange = { checked ->
                 enabled = checked
-                DemoModeCatalog.setEnabled(flags, enabled = checked)
+                if (onDemoModeChanged != null) {
+                    onDemoModeChanged(checked)
+                } else {
+                    DemoModeCatalog.setEnabled(flags, enabled = checked)
+                }
             },
             modifier = Modifier.testTag(DemoModeCatalog.SETTINGS_TEST_TAG),
         )

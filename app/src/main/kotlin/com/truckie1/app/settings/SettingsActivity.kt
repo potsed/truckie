@@ -37,6 +37,9 @@ class SettingsActivity : ComponentActivity() {
                     navigationAppQuery = app.navigationAppQuery,
                     featureFlags = app.featureFlags,
                     showDemoModeSwitch = com.truckie1.app.ui.DemoModeCatalog.showsInSettings,
+                    onDemoModeChanged = { enabled ->
+                        app.demoModeController.setEnabled(enabled)
+                    },
                 )
             }
         }
