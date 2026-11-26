@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -72,6 +73,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -132,20 +134,16 @@ fun MapHomeScreen(
     onOrientationLockChange: (Boolean) -> Unit = {},
     bridges: List<BridgePoint> = emptyList(),
     showBridgeMarkers: Boolean = false,
-    /**
-     * TEMPORARY / DEV: Jump to sample bridges (Demo mode). Map chrome only.
-     * Gated by [JumpToSampleBridges.shouldShow] / `ff_demo_mode`.
-     */
-    showJumpToSampleBridges: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
     var followState by remember { mutableStateOf(MapLocationFollow.initial()) }
     var recenterToken by remember { mutableStateOf(0) }
-    var jumpToBridgesToken by remember { mutableStateOf(0) }
     val dragState = remember {
         AnchoredDraggableState(initialValue = state.sheetValue)
     }
     val flingBehavior = AnchoredDraggableDefaults.flingBehavior(state = dragState)
+    val density = LocalDensity.current
+    val sheetScroll = rememberScrollState()
 
     LaunchedEffect(dragState) {
         snapshotFlow { dragState.settledValue }
@@ -186,6 +184,19 @@ fun MapHomeScreen(
             }
         }
 
+        val rawOffset = dragState.offset
+        val sheetTopOffsetPx = if (rawOffset.isNaN()) {
+            MapHomeCatalog.sheetAnchorOffsets(containerHeightPx)
+                .getValue(dragState.targetValue)
+        } else {
+            rawOffset
+        }
+        val visibleSheetHeightPx = MapHomeCatalog.visibleSheetHeightPx(
+            containerHeightPx = containerHeightPx,
+            sheetTopOffsetPx = sheetTopOffsetPx,
+        )
+        val visibleSheetHeightDp = with(density) { visibleSheetHeightPx.toDp() }
+
         MapLibreMap(
             stops = state.route?.stops.orEmpty(),
             showLocationPuck = showLocationPuck,
@@ -194,7 +205,6 @@ fun MapHomeScreen(
             followState = followState,
             onFollowStateChange = { followState = it },
             recenterToken = recenterToken,
-            jumpToBridgesToken = jumpToBridgesToken,
             routePathPoints = state.navigatePathPoints,
             bridges = bridges,
             showBridgeMarkers = showBridgeMarkers,
@@ -217,15 +227,17 @@ fun MapHomeScreen(
             topEnd = RouteSheetPolishCatalog.topCornerRadiusDp.dp,
         )
         val contentPad = RouteSheetPolishCatalog.contentHorizontalPaddingDp.dp
+        // Visible-height sheet: top offset + height = container bottom. Scroll and
+        // nav/IME insets stay inside the on-screen drawer (ATNA-67).
         Surface(
             modifier = Modifier
                 .align(Alignment.TopStart)
-                .fillMaxSize()
+                .fillMaxWidth()
+                .height(visibleSheetHeightDp)
                 .offset {
                     IntOffset(
                         x = 0,
-                        y = dragState
-                            .requireOffset()
+                        y = sheetTopOffsetPx
                             .roundToInt()
                             .coerceIn(0, containerHeightPx.roundToInt()),
                     )
@@ -249,7 +261,8 @@ fun MapHomeScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .navigationBarsPadding(),
+                    .navigationBarsPadding()
+                    .imePadding(),
             ) {
                 // Drag handle only — no clickable here so vertical drag reaches
                 // AnchoredDraggable (clickable was consuming the gesture).
@@ -306,35 +319,14 @@ fun MapHomeScreen(
                         requireStartEnd = requireStartEnd,
                         showNavigateAction = showNavigateAction,
                         modifier = Modifier
-                            .fillMaxSize()
-                            .verticalScroll(rememberScrollState())
+                            .weight(1f, fill = true)
+                            .fillMaxWidth()
+                            .verticalScroll(sheetScroll)
                             .padding(horizontal = contentPad)
                             .padding(bottom = 24.dp),
                     )
                 }
             }
-        }
-
-        // TEMPORARY / DEV (ff_demo_mode): fly to SEQ sample bridges near Brisbane CBD.
-        if (showJumpToSampleBridges) {
-            val jumpBottom = when {
-                locationFollowEnabled && showLocationPuck && followState.showsRecenter &&
-                    showOrientationLock -> 224.dp
-                locationFollowEnabled && showLocationPuck &&
-                    (followState.showsRecenter || showOrientationLock) -> 160.dp
-                else -> 96.dp
-            }
-            MapJumpToSampleBridgesButton(
-                onClick = {
-                    val jump = JumpToSampleBridges.onJump(followState)
-                    followState = jump.followState
-                    jumpToBridgesToken += 1
-                },
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .navigationBarsPadding()
-                    .padding(end = 16.dp, bottom = jumpBottom),
-            )
         }
 
         if (showOrientationLock && locationFollowEnabled && showLocationPuck) {
@@ -382,30 +374,6 @@ private fun MapOrientationLockButton(
         testTag = MapHeadingUpCatalog.MAP_CONTROL_TEST_TAG,
         modifier = modifier,
     )
-}
-
-@Composable
-private fun MapJumpToSampleBridgesButton(
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Surface(
-        shape = RoundedCornerShape(24.dp),
-        color = MaterialTheme.colorScheme.secondaryContainer,
-        shadowElevation = 4.dp,
-        modifier = modifier
-            .testTag(JumpToSampleBridges.TEST_TAG)
-            .semantics { contentDescription = JumpToSampleBridges.SHORT_LABEL }
-            .clickable(onClick = onClick),
-    ) {
-        Text(
-            text = stringResource(R.string.map_jump_to_sample_bridges),
-            style = MaterialTheme.typography.labelLarge,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onSecondaryContainer,
-            modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
-        )
-    }
 }
 
 @Composable

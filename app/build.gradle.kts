@@ -20,7 +20,7 @@ android {
         minSdk = 24
         targetSdk = 35
         versionCode = 1
-        versionName = "0.8.23-center-lock-follow"
+        versionName = "0.8.24-pull-up-drawer"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 

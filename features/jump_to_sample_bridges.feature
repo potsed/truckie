@@ -1,33 +1,31 @@
 Feature: Jump to sample bridges (temporary demo control)
   As a single-owner-operator driver dogfooding Truckie
-  I want a temporary map control to fly to the SEQ sample bridge cluster
-  So that I can see W5-8 markers when my GPS is elsewhere
+  I want Demo mode without a floating Jump FAB cluttering the map
+  So that home chrome stays map-first while sample bridge helpers stay available to tests
 
   # Product toggle: ff_demo_mode (Settings → Demo mode)
   # Also requires ff_bridge_markers + ff_map_home for markers/surface.
-  # TEMPORARY / DEV affordance — remove when the full AU pack (or a better
-  # discoverability path) lands. Do not expand the full AU dataset here.
-  # Map chrome only (no global header/footer). Out of scope: pack ingest,
-  # GraphHopper routing, Phase C vehicle UI.
+  # ATNA-67: floating Jump control removed from map chrome (dead FAB wiring gone).
+  # Camera target helpers remain for unit tests / future non-FAB entry points.
+  # Out of scope: pack ingest, GraphHopper routing, Phase C vehicle UI.
 
-  Scenario: Jump control is gated by demo mode
+  Scenario: Jump floating control is removed from map chrome
     Given ff_map_home and ff_bridge_markers are enabled
-    And the feature flag ff_demo_mode is off
+    And the feature flag ff_demo_mode is on
     Then the home map does not show Jump to sample bridges
-    When Demo mode is turned on in Settings
-    Then Jump to sample bridges is visible on the MapLibre home map chrome
+    And Demo mode remains available from Settings
 
   Scenario: Settings Demo mode switch turns the flag off
     Given ff_demo_mode is enabled
     When the driver turns Demo mode off in Settings
     Then ff_demo_mode is off
-    And Jump to sample bridges is hidden even if ff_bridge_markers is on
+    And Jump to sample bridges stays hidden even if ff_bridge_markers is on
 
-  Scenario: Tap flies camera to Brisbane CBD sample cluster
+  Scenario: Sample bridge camera target stays centred on CBD cluster
     Given ff_demo_mode and ff_bridge_markers are enabled
     And sample bridges sit on real CBD crossings within 2 km of Brisbane CBD fallback
-    When the driver taps Jump to sample bridges
-    Then the MapLibre camera animates to the SEQ sample cluster near Brisbane CBD
+    When a jump-to-sample-bridges camera target is requested
+    Then the MapLibre camera target is the SEQ sample cluster near Brisbane CBD
     And the zoom shows several W5-8 markers on actual bridges
     And clearance labels use OpenFreeMap Noto Sans so icons are not hidden by glyph 404s
-    And follow mode exits so location updates do not pull the camera away
+    And follow mode would exit so location updates do not pull the camera away

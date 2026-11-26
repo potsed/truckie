@@ -31,6 +31,28 @@ object MapHomeCatalog {
     const val usesMaterial3DragHandle: Boolean = true
     const val usesNestedScrollBridge: Boolean = true
 
+    /**
+     * Sheet Surface height equals the on-screen pull-up area (container − top offset),
+     * not a full-screen Surface shoved down with an off-screen scroll viewport.
+     * Gherkin: features/pull_up_drawer_scroll.feature
+     */
+    const val sizesSheetToVisibleHeight: Boolean = true
+
+    /** Stops / create-route body scrolls inside the visible sheet (weight + verticalScroll). */
+    const val stopsListScrollsWithinVisibleSheet: Boolean = true
+
+    /** Nav-bar / home-indicator padding applies to visible sheet content. */
+    const val appliesNavigationBarInsetsToSheetContent: Boolean = true
+
+    /** IME padding so address fields stay reachable when the keyboard opens. */
+    const val appliesImeInsetsToSheetContent: Boolean = true
+
+    /**
+     * Floating Jump-to-sample-bridges FAB is removed from map chrome.
+     * Demo mode stays in Settings; camera helpers may remain for tests.
+     */
+    const val showsJumpToSampleBridgesFab: Boolean = false
+
     const val composeOnly: Boolean = true
     const val allowsXmlLayouts: Boolean = false
     const val hostActivitySimpleName: String = "MainActivity"
@@ -87,6 +109,16 @@ object MapHomeCatalog {
         return sheetAnchors.associateWith { value ->
             height * (1f - fractionFor(value))
         }
+    }
+
+    /**
+     * On-screen sheet height for a given drag offset (top of sheet from container top).
+     * Keeps scroll / inset math inside the visible drawer — never below the fold.
+     */
+    fun visibleSheetHeightPx(containerHeightPx: Float, sheetTopOffsetPx: Float): Float {
+        val height = containerHeightPx.coerceAtLeast(0f)
+        val offset = sheetTopOffsetPx.coerceIn(0f, height)
+        return (height - offset).coerceIn(0f, height)
     }
 }
 
