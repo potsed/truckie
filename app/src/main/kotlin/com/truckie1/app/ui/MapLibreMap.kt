@@ -61,7 +61,8 @@ import org.maplibre.android.plugins.annotation.SymbolOptions
  * When [locationFollowEnabled] is true, follow mode keeps the puck centred and
  * LocationComponent tracks the camera until the driver pans away. Recenter
  * (owned by the parent overlay) runs **one** animateCamera to lat/lng + default
- * closer zoom, then enters follow with a zero-duration transition (ATNA-61).
+ * closer zoom, then enters follow via a bare camera-mode set after syncing last
+ * location (ATNA-61 / ATNA-66 — not the 0ms timed setCameraMode overload).
  *
  * When [headingUpEnabled] is true (`ff_map_heading_up`), follow uses
  * [CameraMode.TRACKING_GPS] so the map orients to the direction of travel.
@@ -151,16 +152,22 @@ fun MapLibreMap(
                     hasLocationFix = resolved.puck != null,
                 )
                 publishFollow(withFix)
-                // Steady follow: LocationComponent owns the camera — no GPS moveCamera.
-                if (MapLocationFollow.shouldEnableFollowMode(
+                // Steady follow (ATNA-66): LocationComponent TRACKING owns the camera
+                // via forceLocationUpdate — no GPS moveCamera (keeps Recenter single-path).
+                when (
+                    MapLocationFollow.steadyFollowCameraAction(
                         isFollowing = withFix.isFollowing,
+                        hasLocationFix = resolved.puck != null,
                         recenterInFlight = host?.isRecenterInFlight == true,
                         locationComponentAlreadyTracking = host?.isLocationTracking == true,
                     )
                 ) {
-                    host?.setCameraFollowing(true)
-                } else if (withFix.isFollowing && resolved.puck == null) {
-                    host?.applyCamera(resolved.camera)
+                    SteadyFollowCameraAction.EnableTracking -> host?.setCameraFollowing(true)
+                    SteadyFollowCameraAction.RelyOnTracking -> Unit
+                    SteadyFollowCameraAction.None ->
+                        if (withFix.isFollowing && resolved.puck == null) {
+                            host?.applyCamera(resolved.camera)
+                        }
                 }
             } else {
                 hostHolder.value?.applyCamera(cameraTarget)
@@ -414,6 +421,8 @@ private class MapLibreHost(
     /** Style instance managers were last created against (identity check). */
     private var boundStyle: Style? = null
     var hasAppliedInitialCamera: Boolean = false
+    /** Last fused fix pushed to LocationComponent (for follow-enter lastLocation sync). */
+    private var lastFollowFix: Location? = null
 
     /**
      * Loads the basemap style once. Concurrent AndroidView updates coalesce into
@@ -695,7 +704,9 @@ private class MapLibreHost(
         }
         runCatching {
             component.isLocationComponentEnabled = true
-            component.forceLocationUpdate(fix.toAndroidLocation())
+            val androidFix = fix.toAndroidLocation()
+            lastFollowFix = androidFix
+            component.forceLocationUpdate(androidFix)
         }
     }
 
@@ -727,8 +738,9 @@ private class MapLibreHost(
     }
 
     /**
-     * Single Recenter path (ATNA-61): exit TRACKING → one animateCamera(latLng+zoom) →
-     * enter follow with transition duration 0 (no second zoom).
+     * Single Recenter path (ATNA-61 / ATNA-66): exit TRACKING → one
+     * animateCamera(latLng+zoom) → sync last location → bare cameraMode follow enter
+     * (no second zoom, no 0ms timed overload stick risk).
      */
     fun applyRecenter(target: MapCameraTarget) {
         val map = mapRef ?: return
@@ -746,7 +758,7 @@ private class MapLibreHost(
                 plan.animationDurationMs.toInt(),
                 object : CancelableCallback {
                     override fun onFinish() {
-                        enterFollowAfterRecenter()
+                        enterFollowAfterRecenter(plan.target)
                     }
 
                     override fun onCancel() {
@@ -754,14 +766,18 @@ private class MapLibreHost(
                         map.moveCamera(
                             CameraUpdateFactory.newLatLngZoom(latLng, plan.target.zoom),
                         )
-                        enterFollowAfterRecenter()
+                        enterFollowAfterRecenter(plan.target)
                     }
                 },
             )
         }
     }
 
-    private fun enterFollowAfterRecenter() {
+    private fun enterFollowAfterRecenter(framed: MapCameraTarget) {
+        val enter = MapLocationFollow.followEnterAfterFramedRecenter()
+        if (enter.syncsLastLocationBeforeEnter) {
+            syncLastLocationToFramedTarget(framed)
+        }
         setCameraFollowing(
             following = true,
             fromRecenterFinish = true,
@@ -770,9 +786,29 @@ private class MapLibreHost(
     }
 
     /**
-     * Enable/disable LocationComponent follow. Always uses
-     * [MapLocationFollow.FOLLOW_ENTER_TRANSITION_MS] (0) so entering TRACKING does not
-     * run MapLibre's default 750ms second camera animation (#44).
+     * Push framed Recenter lat/lng into LocationComponent before bare follow enter so
+     * MapLibre `Utils.immediateAnimation` sees matching lastLocation (ATNA-66).
+     */
+    private fun syncLastLocationToFramedTarget(framed: MapCameraTarget) {
+        if (!locationActivated) return
+        val map = mapRef ?: return
+        runCatching {
+            val loc = (lastFollowFix?.let { Location(it) } ?: Location("recenter")).apply {
+                latitude = framed.latitude
+                longitude = framed.longitude
+            }
+            lastFollowFix = loc
+            map.locationComponent.forceLocationUpdate(loc)
+        }
+    }
+
+    /**
+     * Enable/disable LocationComponent follow.
+     *
+     * Uses a **bare** `cameraMode = TRACKING|TRACKING_GPS` set (ATNA-66). After Recenter
+     * animate + lastLocation sync, MapLibre takes the immediateAnimation path — no second
+     * zoom. Avoids `setCameraMode(mode, 0, null…)` which can leave isTransitioning stuck
+     * so later forceLocationUpdate moves the puck but not the camera.
      */
     fun setCameraFollowing(
         following: Boolean,
@@ -787,15 +823,23 @@ private class MapLibreHost(
             if (following) {
                 component.renderMode =
                     MapLocationFollow.followingRenderModeInt(headingUpEnabled)
-                // Explicit 0ms transition + null zoom: animateCamera already set zoom.
-                component.setCameraMode(
-                    MapLocationFollow.followingCameraModeInt(headingUpEnabled),
-                    MapLocationFollow.FOLLOW_ENTER_TRANSITION_MS,
-                    /* zoom */ null,
-                    /* bearing */ null,
-                    /* tilt */ null,
-                    /* listener */ null,
-                )
+                val enter = MapLocationFollow.followEnterAfterFramedRecenter()
+                if (enter.usesBareCameraModeSetter) {
+                    // Bare setter — no timed overload, no zoom arg (animateCamera owns zoom).
+                    component.cameraMode =
+                        MapLocationFollow.followingCameraModeInt(headingUpEnabled)
+                } else {
+                    // Defensive: never use 0ms timed overload (stick risk).
+                    val ms = enter.timedTransitionMs?.takeIf { it > 0L } ?: return@runCatching
+                    component.setCameraMode(
+                        MapLocationFollow.followingCameraModeInt(headingUpEnabled),
+                        ms,
+                        /* zoom */ null,
+                        /* bearing */ null,
+                        /* tilt */ null,
+                        /* listener */ null,
+                    )
+                }
             } else {
                 component.cameraMode = CameraMode.NONE
             }

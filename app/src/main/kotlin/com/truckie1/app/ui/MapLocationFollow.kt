@@ -11,13 +11,23 @@ import com.truckie1.maps.MapCameraTarget
  * Default when centred: puck stays locked at map centre and the camera tracks
  * Fused Location updates. Panning exits follow and shows Recenter; tapping
  * Recenter runs **one** smooth animate to lat/lng + default closer zoom, then
- * enters follow with a **zero-duration** LocationComponent transition so there is
- * no second zoom and no camera fight (ATNA-61).
+ * enters follow via a **bare** LocationComponent camera-mode set after syncing
+ * last location (ATNA-61 + ATNA-66).
+ *
+ * Do **not** enter follow with `setCameraMode(mode, transitionMs=0, …)` — MapLibre's
+ * LocationCameraController can leave `isTransitioning` stuck, so later
+ * `forceLocationUpdate` moves the puck but not the camera (center-lock broken while
+ * moving). After Recenter the camera is already framed; sync last location then use
+ * the bare `cameraMode =` setter so `Utils.immediateAnimation` completes cleanly.
+ *
+ * Steady follow: LocationComponent TRACKING / TRACKING_GPS owns the camera via
+ * forceLocationUpdate — no GPS moveCamera (keeps Recenter single-path).
  *
  * With [ff_map_heading_up][FlagKeys.MAP_HEADING_UP], follow uses course-up
  * (MapLibre `TRACKING_GPS`) so the map orients to the direction of travel.
  *
- * Gherkin: features/map_first_home.feature, features/map_heading_up.feature
+ * Gherkin: features/map_first_home.feature, features/map_heading_up.feature,
+ * features/map_center_lock_follow.feature
  */
 object MapLocationFollow {
     const val defaultsToFollowingWhenCentered: Boolean = true
@@ -115,27 +125,29 @@ object MapLocationFollow {
         )
 
     /**
-     * Single Recenter camera path (ATNA-61):
+     * Single Recenter camera path (ATNA-61 / ATNA-66):
      *
      * 1. Exit TRACKING (`CameraMode.NONE`)
      * 2. One [org.maplibre.android.maps.MapLibreMap.animateCamera] to lat/lng + default zoom
-     * 3. Enter follow with **transition duration 0** and **no zoom argument**
+     * 3. Sync last location, then bare `cameraMode = TRACKING|TRACKING_GPS` (no zoom arg,
+     *    no zero-ms timed overload)
      *
-     * MapLibre's bare `setCameraMode(mode)` defaults to a **750ms** transition — that was
-     * the #44 second zoom / off-centre after animate finished. Do not re-introduce sync
-     * [moveCamera], `setCameraMode(..., zoom)`, or GPS `moveCamera` while following.
+     * Do not re-introduce sync [moveCamera] for Recenter, `setCameraMode(..., zoom)`,
+     * GPS `moveCamera` while following, or `setCameraMode(mode, 0, null…)`.
      */
     fun cameraPlanForRecenter(latitude: Double, longitude: Double): RecenterCameraPlan =
         RecenterCameraPlan(
             target = cameraTargetForRecenter(latitude, longitude),
             animationDurationMs = RECENTER_ANIMATION_MS,
-            followEnterTransitionMs = FOLLOW_ENTER_TRANSITION_MS,
-            applyZoomOnFollowEnter = false,
+            followEnter = followEnterAfterFramedRecenter(),
         )
 
+    /** Safe follow enter after Recenter animate has framed lat/lng+zoom. */
+    fun followEnterAfterFramedRecenter(): FollowEnterSpec = FollowEnterSpec.afterFramedRecenter()
+
     /**
-     * Ordered camera ops for Recenter — one animate, then instant follow enter.
-     * Used by tests to assert no second zoom / hard jump.
+     * Ordered camera ops for Recenter — one animate, then safe bare follow enter.
+     * Used by tests to assert no second zoom / hard jump / stuck transition.
      */
     fun cameraOperations(plan: RecenterCameraPlan): List<RecenterCameraOp> = listOf(
         RecenterCameraOp.ExitTracking,
@@ -145,25 +157,58 @@ object MapLocationFollow {
             zoom = plan.target.zoom,
             durationMs = plan.animationDurationMs,
         ),
-        RecenterCameraOp.EnterFollow(
-            transitionMs = plan.followEnterTransitionMs,
-            zoom = if (plan.applyZoomOnFollowEnter) plan.target.zoom else null,
-        ),
+        RecenterCameraOp.EnterFollow(spec = plan.followEnter),
     )
 
-    /** True when the plan is exactly one animate then zero-duration follow (ATNA-61). */
+    /** True when the plan is exactly one animate then safe bare follow enter (ATNA-61/66). */
     fun isSingleCameraPath(plan: RecenterCameraPlan): Boolean =
-        plan.followEnterTransitionMs == 0L && !plan.applyZoomOnFollowEnter
+        plan.followEnter.usesBareCameraModeSetter &&
+            !plan.followEnter.applyZoom &&
+            !plan.followEnter.usesZeroDurationTimedTransitionOverload &&
+            plan.followEnter.syncsLastLocationBeforeEnter
 
     /**
-     * Second zoom = LocationComponent follow-enter transition (>0ms) and/or passing zoom
+     * Second zoom = timed follow-enter transition (>0ms) and/or passing zoom
      * into setCameraMode after animateCamera already set zoom (#44).
      */
     fun causesSecondZoom(plan: RecenterCameraPlan): Boolean =
-        plan.followEnterTransitionMs > 0L || plan.applyZoomOnFollowEnter
+        plan.followEnter.applyZoom ||
+            (plan.followEnter.timedTransitionMs != null && plan.followEnter.timedTransitionMs > 0L)
 
     /** Hard jump = sync moveCamera / instant cameraPosition (ATNA-60 forbids). */
     fun usesHardCameraJump(plan: RecenterCameraPlan): Boolean = false
+
+    /**
+     * Zero-ms timed `setCameraMode(mode, 0, …)` can leave MapLibre
+     * LocationCameraController.isTransitioning stuck (ATNA-66).
+     */
+    fun causesFollowEnterTransitionStickRisk(enter: FollowEnterSpec): Boolean =
+        enter.usesZeroDurationTimedTransitionOverload
+
+    /** Follow enter is safe for subsequent forceLocationUpdate → camera tracking. */
+    fun followEnterAllowsLocationCameraUpdates(enter: FollowEnterSpec): Boolean =
+        !causesFollowEnterTransitionStickRisk(enter) &&
+            (enter.usesBareCameraModeSetter || (enter.timedTransitionMs != null && enter.timedTransitionMs > 0L))
+
+    /**
+     * Steady follow while moving (ATNA-66): LocationComponent owns the camera.
+     * Do not drive moveCamera / animateCamera on GPS ticks (that fought Recenter).
+     */
+    fun steadyFollowCameraAction(
+        isFollowing: Boolean,
+        hasLocationFix: Boolean,
+        recenterInFlight: Boolean,
+        locationComponentAlreadyTracking: Boolean,
+    ): SteadyFollowCameraAction {
+        if (!isFollowing || !hasLocationFix || recenterInFlight) {
+            return SteadyFollowCameraAction.None
+        }
+        return if (locationComponentAlreadyTracking) {
+            SteadyFollowCameraAction.RelyOnTracking
+        } else {
+            SteadyFollowCameraAction.EnableTracking
+        }
+    }
 
     /**
      * Steady follow: LocationComponent owns the camera. Do not drive moveCamera /
@@ -177,14 +222,19 @@ object MapLocationFollow {
 
     /**
      * Bootstrap follow mode once when Compose says FOLLOWING but LocationComponent
-     * is still NONE (initial fix). Not a camera animate — transition duration 0.
+     * is still NONE (initial fix). Uses bare camera-mode set (not 0ms timed overload).
      */
     fun shouldEnableFollowMode(
         isFollowing: Boolean,
         recenterInFlight: Boolean,
         locationComponentAlreadyTracking: Boolean,
     ): Boolean =
-        isFollowing && !recenterInFlight && !locationComponentAlreadyTracking
+        steadyFollowCameraAction(
+            isFollowing = isFollowing,
+            hasLocationFix = true,
+            recenterInFlight = recenterInFlight,
+            locationComponentAlreadyTracking = locationComponentAlreadyTracking,
+        ) == SteadyFollowCameraAction.EnableTracking
 
     /**
      * Heading-up SideEffect must not re-enter TRACKING mid-Recenter animation.
@@ -201,9 +251,10 @@ object MapLocationFollow {
     const val RECENTER_ANIMATION_MS: Long = 750L
 
     /**
-     * MapLibre bare `setCameraMode(mode)` uses 750ms — that re-animates after Recenter.
-     * Enter follow with 0 so animateCamera is the only motion.
+     * Legacy: ATNA-61 used a 0ms timed setCameraMode overload. That is **unsafe**
+     * (ATNA-66 stick risk). Prefer [FollowEnterSpec.afterFramedRecenter].
      */
+    @Deprecated("ATNA-66: use FollowEnterSpec.afterFramedRecenter() bare setter instead")
     const val FOLLOW_ENTER_TRANSITION_MS: Long = 0L
 }
 
@@ -216,16 +267,58 @@ data class RecenterResult(
 )
 
 /**
- * Single Recenter plan: one animateCamera, then enter follow without a second zoom.
+ * Single Recenter plan: one animateCamera, then safe bare follow enter.
  */
 data class RecenterCameraPlan(
     val target: MapCameraTarget,
     val animationDurationMs: Long,
-    /** Must be 0 — MapLibre default 750ms follow-enter was the #44 double zoom. */
-    val followEnterTransitionMs: Long = MapLocationFollow.FOLLOW_ENTER_TRANSITION_MS,
-    /** Must be false — zoom belongs only to animateCamera. */
-    val applyZoomOnFollowEnter: Boolean = false,
-)
+    val followEnter: FollowEnterSpec = FollowEnterSpec.afterFramedRecenter(),
+) {
+    /** Compatibility for older tests — bare enter has no timed transition. */
+    val followEnterTransitionMs: Long
+        get() = followEnter.timedTransitionMs ?: -1L
+
+    val applyZoomOnFollowEnter: Boolean
+        get() = followEnter.applyZoom
+}
+
+/**
+ * How to enter LocationComponent follow after the camera is already framed
+ * (Recenter animate finished) or on first bootstrap.
+ *
+ * ATNA-66: never use [timedTransitionMs] == 0 with the timed setCameraMode overload.
+ */
+data class FollowEnterSpec(
+    val usesBareCameraModeSetter: Boolean,
+    val syncsLastLocationBeforeEnter: Boolean,
+    val applyZoom: Boolean,
+    val timedTransitionMs: Long? = null,
+) {
+    val usesZeroDurationTimedTransitionOverload: Boolean
+        get() = timedTransitionMs == 0L
+
+    companion object {
+        fun afterFramedRecenter(): FollowEnterSpec =
+            FollowEnterSpec(
+                usesBareCameraModeSetter = true,
+                syncsLastLocationBeforeEnter = true,
+                applyZoom = false,
+                timedTransitionMs = null,
+            )
+    }
+}
+
+/** Steady-follow decision while the device moves (center lock). */
+sealed class SteadyFollowCameraAction {
+    /** Recenter in flight, not following, or no fix — do nothing. */
+    data object None : SteadyFollowCameraAction()
+
+    /** Compose FOLLOWING but LocationComponent not yet TRACKING — bare enable. */
+    data object EnableTracking : SteadyFollowCameraAction()
+
+    /** Already TRACKING / TRACKING_GPS — forceLocationUpdate only; no moveCamera. */
+    data object RelyOnTracking : SteadyFollowCameraAction()
+}
 
 /** Explicit ops for the one Recenter path (tests / docs). */
 sealed class RecenterCameraOp {
@@ -239,9 +332,16 @@ sealed class RecenterCameraOp {
     ) : RecenterCameraOp()
 
     data class EnterFollow(
-        val transitionMs: Long,
-        val zoom: Double?,
-    ) : RecenterCameraOp()
+        val spec: FollowEnterSpec,
+    ) : RecenterCameraOp() {
+        @Deprecated("Use spec.timedTransitionMs")
+        val transitionMs: Long
+            get() = spec.timedTransitionMs ?: -1L
+
+        @Deprecated("Use spec.zoomOrNull / applyZoom")
+        val zoom: Double?
+            get() = null
+    }
 }
 
 enum class MapFollowMode {
