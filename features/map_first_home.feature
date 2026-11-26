@@ -45,7 +45,7 @@ Feature: Map-first home with route stop drag sheet
     And a Recenter control is shown on the map overlay
     When the driver taps Recenter
     Then the camera smoothly animates once onto the current location at default closer zoom
-    # ATNA-61: one animateCamera path; follow enter must not run a second zoom or drift off centre
+    # ATNA-61/66: one animateCamera path; bare follow enter (no 0ms timed overload) so puck stays centred while moving
     And follow mode is re-enabled without a second zoom or camera fight
     And the puck stays centred
     And the Recenter control is hidden while centred and following

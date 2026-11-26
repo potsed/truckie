@@ -5,14 +5,14 @@ Feature flags:
 | Flag | Role | Default |
 | --- | --- | --- |
 | `ff_map_home` | Map + sheet | off (on in debug) |
-| `ff_map_location_puck` | Blue my-location + follow/recenter (one animateCamera to default closer zoom, then 0ms follow enter) | off (on in debug) |
+| `ff_map_location_puck` | Blue my-location + follow/recenter (one animateCamera to default closer zoom, then bare follow enter) | off (on in debug) |
 | `ff_map_heading_up` | Map-chrome orientation lock (like Recenter): course-up while following; off = north-up | off (on in debug) |
 | `ff_address_autocomplete` | Verified stops | off (on in debug) |
 | `ff_route_start_end` | Create route requires verified **start** + **end** (same place = round trip) | off (on in debug) |
 | `ff_navigate` | Navigate: in-app GraphHopper path on MapLibre; optional post-route external handoff | off (on in debug) |
 | `ff_bridge_markers` | AU bridge markers on MapLibre home (downloadable pack + sample bootstrap) | off (on in debug) |
 
-Gherkin: [`features/map_first_home.feature`](../features/map_first_home.feature), [`features/map_heading_up.feature`](../features/map_heading_up.feature), [`features/create_route_start_end.feature`](../features/create_route_start_end.feature), [`features/bridge_markers.feature`](../features/bridge_markers.feature).
+Gherkin: [`features/map_first_home.feature`](../features/map_first_home.feature), [`features/map_center_lock_follow.feature`](../features/map_center_lock_follow.feature), [`features/map_heading_up.feature`](../features/map_heading_up.feature), [`features/create_route_start_end.feature`](../features/create_route_start_end.feature), [`features/bridge_markers.feature`](../features/bridge_markers.feature).
 
 ## Screens
 

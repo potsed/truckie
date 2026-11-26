@@ -131,17 +131,19 @@ class MapLocationFollowTest {
     }
 
     @Test
-    fun recenterUsesSingleAnimateThenZeroDurationFollow() {
-        // ATNA-61: one animateCamera; MapLibre bare setCameraMode defaults to 750ms
-        // transition which was the #44 second zoom + off-centre.
+    fun recenterUsesSingleAnimateThenSafeBareFollowEnter() {
+        // ATNA-61/66: one animateCamera; then bare cameraMode set after lastLocation sync.
+        // Do not use setCameraMode(mode, 0, null…) — that can stick isTransitioning.
         val plan = MapLocationFollow.cameraPlanForRecenter(
             latitude = -27.4705,
             longitude = 153.0260,
         )
         assertEquals(MapCameraDefaults.ZOOM, plan.target.zoom, 0.0)
         assertEquals(MapLocationFollow.RECENTER_ANIMATION_MS, plan.animationDurationMs)
-        assertEquals(0L, plan.followEnterTransitionMs)
+        assertTrue(plan.followEnter.usesBareCameraModeSetter)
+        assertTrue(plan.followEnter.syncsLastLocationBeforeEnter)
         assertFalse(plan.applyZoomOnFollowEnter)
+        assertNull(plan.followEnter.timedTransitionMs)
         assertTrue(MapLocationFollow.isSingleCameraPath(plan))
         assertFalse(MapLocationFollow.causesSecondZoom(plan))
         assertFalse(MapLocationFollow.usesHardCameraJump(plan))
@@ -155,14 +157,21 @@ class MapLocationFollowTest {
         assertEquals(MapCameraDefaults.ZOOM, animate.zoom, 0.0)
         assertEquals(MapLocationFollow.RECENTER_ANIMATION_MS, animate.durationMs)
         val enter = ops[2] as RecenterCameraOp.EnterFollow
-        assertEquals(0L, enter.transitionMs)
-        assertNull(enter.zoom)
+        assertTrue(enter.spec.usesBareCameraModeSetter)
+        assertNull(enter.spec.timedTransitionMs)
 
-        // #44 regression model: default 750ms follow-enter = second zoom.
-        val doubleZoom = plan.copy(followEnterTransitionMs = 750L)
+        // #44 regression model: timed follow-enter with duration = second zoom risk.
+        val doubleZoom = plan.copy(
+            followEnter = plan.followEnter.copy(
+                usesBareCameraModeSetter = false,
+                timedTransitionMs = 750L,
+            ),
+        )
         assertTrue(MapLocationFollow.causesSecondZoom(doubleZoom))
         assertFalse(MapLocationFollow.isSingleCameraPath(doubleZoom))
-        val zoomOnEnter = plan.copy(applyZoomOnFollowEnter = true)
+        val zoomOnEnter = plan.copy(
+            followEnter = plan.followEnter.copy(applyZoom = true),
+        )
         assertTrue(MapLocationFollow.causesSecondZoom(zoomOnEnter))
     }
 

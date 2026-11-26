@@ -62,8 +62,10 @@ XML screen layouts were removed; do not add new AppCompat/XML screens.
    `ff_map_location_puck`, **follow mode** keeps the puck centred (camera tracks) until
    the driver pans away; a **Recenter** control then restores follow and resets zoom to
    the default closer zoom (`MapCameraDefaults.ZOOM`) via **one** `animateCamera`, then
-   enters follow with a **0ms** LocationComponent transition (no second zoom / drift).
-   Steady follow leaves the camera to LocationComponent — no GPS `moveCamera` (ATNA-61).
+   enters follow via a **bare** LocationComponent camera-mode set after syncing last
+   location (no second zoom; avoids the 0ms timed `setCameraMode` overload that stuck
+   tracking — ATNA-61 / ATNA-66). Steady follow leaves the camera to LocationComponent —
+   no GPS `moveCamera`.
 10. Route start/end (`ff_route_start_end`) requires verified autocomplete suggestions for
     Create route start and end. Same place (or round-trip checkbox) is a valid round trip.
 11. Navigate (`ff_navigate`) always calculates a GraphHopper path in-app (stub until live)
