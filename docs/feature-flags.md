@@ -32,7 +32,7 @@ XML screen layouts were removed; do not add new AppCompat/XML screens.
 | `ff_bcc_road_height_restrictions` | BCC Road Height Restrictions GIS (ATNA-46): show Brisbane Open Data under-4.6 m local pack entries; off keeps curated CBD samples | off (on in debug) |
 | `ff_vehicle_height_bridge_filter` | Home-map W5-8 conflicts only (ATNA-47): show low bridges where clearance &lt; vehicle height + system buffer; no usable height → show all low | off (on in debug) |
 | `ff_bridge_passage` | Bridge over vs under (ATNA-48): model under/over/both/unknown; height conflicts block under-paths only (OK to drive over deck) | off (on in debug) |
-| `ff_demo_mode` | Demo mode (ATNA-56) — Settings toggle; sample SEQ run (DHL Boronia Rd depot, 6 stops incl. one near a low bridge, 3.5 m vehicle) with hard isolation from real data; also Jump to sample bridges | **off** (including debug — Settings opt-in only) |
+| `ff_demo_mode` | Demo mode (ATNA-56) — Settings toggle; sample SEQ run (DHL Boronia Rd depot, 6 stops incl. one near a low bridge, 3.5 m vehicle) with hard isolation from real data (Jump FAB removed ATNA-67) | **off** (including debug — Settings opt-in only) |
 | `ff_map_heading_up` | Orient map to driving direction — map-chrome lock control (like Recenter); while following, MapLibre `TRACKING_GPS` course-up (off = north-up `TRACKING`) | off (on in debug) |
 | `ff_au_low_bridges_pack` | Consume public AU low-bridges JSON pack (ATNA-50) local-first from GitHub Release when newer | off (on in debug) |
 
@@ -121,8 +121,8 @@ XML screen layouts were removed; do not add new AppCompat/XML screens.
     routes, and trip stops (and the reverse when off). Vehicle isolation follows
     the flag directly ([DualModeVehicleProfileRepository]); Home/Vehicles call
     `ensureSeededIfDemo()` so a flag-on session always has the seeded route
-    (ATNA-58). Also gates **Jump to sample bridges** on map-home chrome (needs
-    `ff_bridge_markers`). Defaults **off** in production **and** debug —
+    (ATNA-58). Floating **Jump to sample bridges** FAB was removed (ATNA-67);
+    Demo mode stays Settings-only. Defaults **off** in production **and** debug —
     Settings opt-in only (`DemoModeCatalog.ENABLED_BY_DEFAULT_IN_DEBUG = false`).
 21. Map heading-up (`ff_map_heading_up`) is a **map-chrome orientation lock** (same overlay
     pattern as Recenter — not a Settings switch). Requires `ff_map_home` +

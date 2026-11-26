@@ -5,18 +5,21 @@ import com.truckie1.maps.MapCameraDefaults
 import com.truckie1.maps.MapCameraTarget
 
 /**
- * TEMPORARY / DEV map-chrome control: fly the MapLibre camera to the SEQ sample
- * bridge cluster near Brisbane CBD (`au_sample_bridges.json` / pack 0.7.0-sample).
+ * TEMPORARY / DEV helpers: fly the MapLibre camera to the SEQ sample bridge
+ * cluster near Brisbane CBD (`au_sample_bridges.json` / pack 0.7.0-sample).
  *
- * Gated by [DemoModeCatalog] (`ff_demo_mode`) **and** [BridgeMarkersCatalog]
- * (`ff_bridge_markers`) on map-home. Remove when the full AU pack (or better
- * discoverability) lands. Does **not** expand the AU dataset.
+ * ATNA-67: the floating map FAB is **removed**. [showsFloatingMapControl] is
+ * always false; Demo mode stays in Settings. Camera helpers remain for unit
+ * tests (and any future non-FAB entry point). Does **not** expand the AU dataset.
  *
  * Gherkin: features/jump_to_sample_bridges.feature
  */
 object JumpToSampleBridges {
     /** Marked temporary so dogfood / PR reviewers treat this as short-lived. */
     const val isTemporaryDevAffordance: Boolean = true
+
+    /** Map chrome FAB removed — do not reintroduce without a product ask. */
+    const val showsFloatingMapControl: Boolean = false
 
     const val SHORT_LABEL: String = "Jump to sample bridges"
     const val TEST_TAG: String = "map_jump_to_sample_bridges"
@@ -29,10 +32,16 @@ object JumpToSampleBridges {
 
     const val ANIMATION_MS: Long = 900L
 
-    fun shouldShow(flags: FeatureFlags, mapHomeEnabled: Boolean): Boolean =
-        mapHomeEnabled &&
+    /**
+     * Always false: floating Jump control is gone from map-home.
+     * Demo mode + bridge markers still gate markers/data elsewhere.
+     */
+    fun shouldShow(flags: FeatureFlags, mapHomeEnabled: Boolean): Boolean {
+        if (!showsFloatingMapControl) return false
+        return mapHomeEnabled &&
             DemoModeCatalog.isEnabled(flags) &&
             BridgeMarkersCatalog.isEnabled(flags)
+    }
 
     /** Brisbane CBD fallback — centre of the SEQ sample cluster. */
     fun cameraTarget(): MapCameraTarget =

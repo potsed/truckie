@@ -41,12 +41,11 @@ Feature: Bridge markers on home map
     And SymbolManagers are rebound on the live style so bridge markers remain visible
     And if the live style identity drifts or a manager layer is missing, managers are recreated
 
-  Scenario: Jump to sample bridges still shows W5-8 markers
+  Scenario: Demo mode CBD sample cluster still shows W5-8 markers
     Given ff_bridge_markers and ff_demo_mode are enabled
     And the pack has seeded SEQ bridges near Brisbane CBD
-    When the driver taps Jump to sample bridges
-    Then the camera is over Brisbane CBD
-    And W5-8 SymbolManager icons remain visible (not orphaned by style reload races)
+    When the MapLibre camera is over the Brisbane CBD sample cluster
+    Then W5-8 SymbolManager icons remain visible (not orphaned by style reload races)
 
   Scenario: Clearance labels use OpenFreeMap-compatible text fonts
     Given ff_bridge_markers is enabled
@@ -55,7 +54,7 @@ Feature: Bridge markers on home map
     Then SymbolOptions text-font is Noto Sans Regular
     And MapLibre’s default Open Sans stack is not requested
     And textOptional is true so icons still paint if glyphs fail
-    And W5-8 icons remain visible after Jump to sample bridges
+    And W5-8 icons remain visible over the Brisbane CBD sample cluster
 
   Scenario: Markers use SymbolManager with optional clearance labels
     Given ff_bridge_markers is enabled

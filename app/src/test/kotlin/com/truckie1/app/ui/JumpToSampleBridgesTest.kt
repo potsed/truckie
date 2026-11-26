@@ -14,43 +14,16 @@ import org.robolectric.annotation.Config
 /**
  * Gherkin: features/jump_to_sample_bridges.feature
  *
- * TEMPORARY / DEV: fly camera to SEQ sample bridges near Brisbane CBD.
- * Gated by ff_demo_mode (Settings) + ff_bridge_markers.
+ * TEMPORARY / DEV: sample-bridge camera helpers. Floating map FAB removed (ATNA-67).
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28])
 class JumpToSampleBridgesTest {
 
     @Test
-    fun catalogIsTemporaryDevAffordanceBehindDemoModeAndBridgeMarkers() {
+    fun floatingMapControlIsRemovedEvenWhenDemoAndBridgesOn() {
         assertTrue(JumpToSampleBridges.isTemporaryDevAffordance)
-        val bridgesOnly = LocalFeatureFlags(
-            mapOf(
-                FlagKeys.MAP_HOME to true,
-                FlagKeys.BRIDGE_MARKERS to true,
-            ),
-        )
-        assertFalse(JumpToSampleBridges.shouldShow(bridgesOnly, mapHomeEnabled = true))
-
-        val demoOnly = LocalFeatureFlags(
-            mapOf(
-                FlagKeys.MAP_HOME to true,
-                FlagKeys.DEMO_MODE to true,
-            ),
-        )
-        assertFalse(JumpToSampleBridges.shouldShow(demoOnly, mapHomeEnabled = true))
-
-        assertFalse(
-            JumpToSampleBridges.shouldShow(
-                LocalFeatureFlags(
-                    mapOf(
-                        FlagKeys.BRIDGE_MARKERS to true,
-                        FlagKeys.DEMO_MODE to true,
-                    ),
-                ),
-                mapHomeEnabled = false,
-            ),
-        )
+        assertFalse(JumpToSampleBridges.showsFloatingMapControl)
 
         val on = LocalFeatureFlags(
             mapOf(
@@ -59,11 +32,19 @@ class JumpToSampleBridgesTest {
                 FlagKeys.DEMO_MODE to true,
             ),
         )
-        assertTrue(JumpToSampleBridges.shouldShow(on, mapHomeEnabled = true))
+        assertFalse(JumpToSampleBridges.shouldShow(on, mapHomeEnabled = true))
+
+        val bridgesOnly = LocalFeatureFlags(
+            mapOf(
+                FlagKeys.MAP_HOME to true,
+                FlagKeys.BRIDGE_MARKERS to true,
+            ),
+        )
+        assertFalse(JumpToSampleBridges.shouldShow(bridgesOnly, mapHomeEnabled = true))
     }
 
     @Test
-    fun turningDemoModeOffHidesJumpEvenWhenBridgesFlagOn() {
+    fun turningDemoModeOffKeepsJumpHidden() {
         val flags = LocalFeatureFlags(
             mapOf(
                 FlagKeys.MAP_HOME to true,
@@ -71,7 +52,7 @@ class JumpToSampleBridgesTest {
                 FlagKeys.DEMO_MODE to true,
             ),
         )
-        assertTrue(JumpToSampleBridges.shouldShow(flags, mapHomeEnabled = true))
+        assertFalse(JumpToSampleBridges.shouldShow(flags, mapHomeEnabled = true))
         DemoModeCatalog.setEnabled(flags, enabled = false)
         assertFalse(flags.isEnabled(FlagKeys.DEMO_MODE))
         assertFalse(JumpToSampleBridges.shouldShow(flags, mapHomeEnabled = true))

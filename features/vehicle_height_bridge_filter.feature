@@ -33,7 +33,7 @@ Feature: Filter home-map bridges by vehicle height
     When there is no active vehicle
     Or the active vehicle has no usable height
     Then all W5-8 low-pack markers are shown (same as today)
-    And Demo Jump to sample bridges still has low markers to fly to
+    And the Brisbane CBD sample cluster still has low markers for dogfood
 
   Scenario: System clearance buffer is used for the conflict threshold
     Given ff_vehicle_height_bridge_filter is enabled

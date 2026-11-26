@@ -506,11 +506,6 @@ private fun MapHomeRoute(
         flags = app.featureFlags,
         mapHomeEnabled = true,
     )
-    // TEMPORARY / DEV: Jump control requires Demo mode + bridge markers.
-    val showJumpToSampleBridges = JumpToSampleBridges.shouldShow(
-        flags = app.featureFlags,
-        mapHomeEnabled = true,
-    )
     var headingUpEnabled by remember {
         mutableStateOf(MapHeadingUpCatalog.isEnabled(app.featureFlags))
     }
@@ -658,7 +653,6 @@ private fun MapHomeRoute(
         },
         bridges = bridges,
         showBridgeMarkers = showBridgeMarkers,
-        showJumpToSampleBridges = showJumpToSampleBridges,
         modifier = Modifier.fillMaxSize(),
     )
 }
