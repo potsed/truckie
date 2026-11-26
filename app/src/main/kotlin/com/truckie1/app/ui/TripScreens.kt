@@ -39,6 +39,8 @@ fun ColumnScope.TripStopsScreen(
     onDelete: (TripStop) -> Unit,
     onModeChange: (OptimizeMode) -> Unit,
     onOptimize: () -> Unit,
+    /** Optional GraphHopper-optimised order / source line (ATNA-68). Default null keeps RootNav call sites unchanged. */
+    optimizeOrderSummary: String? = null,
 ) {
     TruckieBody(text = clearanceSummary)
     Spacer(modifier = Modifier.height(12.dp))
@@ -85,6 +87,10 @@ fun ColumnScope.TripStopsScreen(
         if (optimizeStatus != null) {
             Spacer(modifier = Modifier.height(4.dp))
             TruckieBody(text = optimizeStatus)
+        }
+        if (optimizeOrderSummary != null) {
+            Spacer(modifier = Modifier.height(4.dp))
+            TruckieBody(text = optimizeOrderSummary)
         }
     }
 }

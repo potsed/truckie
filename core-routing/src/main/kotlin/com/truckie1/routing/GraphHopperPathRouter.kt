@@ -118,7 +118,26 @@ class StubGraphHopperPathRouter(
     }
 
     private fun estimateDurationSeconds(points: List<LatLngPoint>): Long {
-        // Rough stub: ~1 minute per segment.
-        return (points.size - 1).coerceAtLeast(1) * 60L
+        // Distance-based stub so multi-stop optimisation can prefer shorter tours.
+        // ~50 km/h average → 13.89 m/s.
+        var metres = 0.0
+        for (i in 1 until points.size) {
+            metres += haversineM(points[i - 1], points[i])
+        }
+        val seconds = (metres / 13.89).toLong()
+        return seconds.coerceAtLeast(1L)
+    }
+
+    private fun haversineM(a: LatLngPoint, b: LatLngPoint): Double {
+        val r = 6_371_000.0
+        val dLat = Math.toRadians(b.latitude - a.latitude)
+        val dLon = Math.toRadians(b.longitude - a.longitude)
+        val sinLat = kotlin.math.sin(dLat / 2)
+        val sinLon = kotlin.math.sin(dLon / 2)
+        val h = sinLat * sinLat +
+            kotlin.math.cos(Math.toRadians(a.latitude)) *
+            kotlin.math.cos(Math.toRadians(b.latitude)) *
+            sinLon * sinLon
+        return 2 * r * kotlin.math.atan2(kotlin.math.sqrt(h), kotlin.math.sqrt(1 - h))
     }
 }

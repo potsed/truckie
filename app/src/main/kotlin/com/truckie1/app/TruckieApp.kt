@@ -16,9 +16,10 @@ import com.truckie1.flags.FlagKeys
 import com.truckie1.flags.LocalFeatureFlags
 import com.truckie1.maps.MapLibreNativeEngine
 import com.truckie1.profiles.VehicleProfileRepository
-import com.truckie1.routing.DefaultTourCandidates
+import com.truckie1.routing.GraphHopperPathRouterFactory
+import com.truckie1.routing.MultiStopTourComposer
+import com.truckie1.routing.PathRouter
 import com.truckie1.routing.StubGraphHopperRouter
-import com.truckie1.routing.VehicleTripOptimizer
 import com.truckie1.trips.ClearanceBuffer
 import com.truckie1.trips.RouteSession
 import com.truckie1.trips.TripSession
@@ -42,15 +43,28 @@ class TruckieApp : Application() {
     val router = StubGraphHopperRouter()
 
     /**
-     * Stub optimizer: GraphHopper Custom Model constraints applied via SafeRouteSelector.
-     * Candidate duration/cost vary with stop order so Fastest/Cheapest can reorder.
+     * Optional live GraphHopper base URL (no trailing path). Empty / null → stub
+     * even when [FlagKeys.GRAPHHOPPER_LIVE] is on.
      */
-    val routeOptimizer = VehicleTripOptimizer(
-        candidatesForOrder = { orderedStops ->
-            val orderKey = orderedStops.map { it.id }.joinToString().hashCode().and(0xff)
-            DefaultTourCandidates.forStops(orderedStops.size, orderKey = orderKey)
-        },
+    var graphHopperBaseUrl: String? = null
+
+    /**
+     * Resolves stub vs live PathRouter from `ff_graphhopper_live` + [graphHopperBaseUrl].
+     */
+    fun pathRouter(): PathRouter = GraphHopperPathRouterFactory.create(
+        liveEnabled = featureFlags.isEnabled(FlagKeys.GRAPHHOPPER_LIVE),
+        baseUrl = graphHopperBaseUrl,
     )
+
+    /**
+     * Multi-stop GraphHopper tour optimiser (ATNA-68). Uses PathRouter legs +
+     * truck Custom Model; under-passage hard-block when `ff_bridge_passage` is on.
+     */
+    val routeOptimizer: MultiStopTourComposer
+        get() = MultiStopTourComposer(
+            pathRouter = pathRouter(),
+            bridgePassageEnabled = featureFlags.isEnabled(FlagKeys.BRIDGE_PASSAGE),
+        )
 
     /** System clearance buffer (Settings only). Clamped 0.15–1.0 m. */
     var clearanceBufferM: Double = ClearanceBuffer.DEFAULT_M

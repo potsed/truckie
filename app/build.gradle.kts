@@ -20,7 +20,7 @@ android {
         minSdk = 24
         targetSdk = 35
         versionCode = 1
-        versionName = "0.8.24-pull-up-drawer"
+        versionName = "0.8.25-route-optimisation-gh"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
