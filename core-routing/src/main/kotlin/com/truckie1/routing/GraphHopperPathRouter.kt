@@ -7,12 +7,11 @@ import com.truckie1.trips.RouteEndpoint
  * (Navigate + map polyline) and Optimise.
  *
  * Always runs in-app with [TruckRoutingPreferences] (bridges, weight, tolls,
- * residential avoidance). Live HTTP GraphHopper is not wired yet —
- * [StubGraphHopperPathRouter] returns synthetic geometry and records the
- * Custom Model request shape for Phase D.
+ * residential avoidance). [path] is **suspend** (ATNA-88): live HTTP hops off
+ * the caller thread; [StubGraphHopperPathRouter] stays instantaneous.
  */
 interface PathRouter {
-    fun path(
+    suspend fun path(
         start: RouteEndpoint,
         end: RouteEndpoint,
         preferences: TruckRoutingPreferences = TruckRoutingPreferences.DEFAULT,
@@ -58,7 +57,7 @@ sealed class PathResult {
 class StubGraphHopperPathRouter(
     private val intermediatePoints: Int = 6,
 ) : PathRouter {
-    override fun path(
+    override suspend fun path(
         start: RouteEndpoint,
         end: RouteEndpoint,
         preferences: TruckRoutingPreferences,

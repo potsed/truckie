@@ -142,6 +142,12 @@ object FlagKeys {
      * Defaults on.
      */
     const val ROUTE_PATH_FROM_LOCATION = "ff_route_path_from_location"
+    /**
+     * Async GraphHopper + Nominatim I/O (ATNA-88 / P1-3): live PathRouter and
+     * Nominatim are suspend and hop off the Compose main thread. Sync-on-main
+     * live HTTP is deleted. Defaults on. Does not enable [GRAPHHOPPER_LIVE].
+     */
+    const val ASYNC_ROUTING_IO = "ff_async_routing_io"
 }
 
 /**

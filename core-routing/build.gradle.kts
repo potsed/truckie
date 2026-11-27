@@ -9,5 +9,7 @@ kotlin {
 dependencies {
     implementation(project(":core-profiles"))
     implementation(project(":core-trips"))
+    implementation(libs.kotlinx.coroutines.core)
     testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
 }

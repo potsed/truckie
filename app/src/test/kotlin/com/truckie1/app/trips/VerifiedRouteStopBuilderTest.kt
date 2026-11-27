@@ -5,6 +5,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import kotlinx.coroutines.runBlocking
 
 /**
  * Gherkin: verified_address_autocomplete.feature — persist formatted address + lat/lng.
@@ -87,7 +88,7 @@ class VerifiedRouteStopBuilderTest {
     }
 
     @Test
-    fun fakeProviderSuggestionBuildsVerifiedStop() {
+    fun fakeProviderSuggestionBuildsVerifiedStop() = runBlocking {
         val fake = AddressAutocomplete { query ->
             if (query.contains("Brisbane", ignoreCase = true)) listOf(brisbane) else emptyList()
         }

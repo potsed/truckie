@@ -3,6 +3,7 @@ package com.truckie1.app.trips
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import kotlinx.coroutines.runBlocking
 
 /**
  * NoOp provider used when ff_address_autocomplete is off.
@@ -10,7 +11,7 @@ import org.junit.Test
 class AddressAutocompleteStubTest {
 
     @Test
-    fun noOpReturnsNoSuggestions() {
+    fun noOpReturnsNoSuggestions() = runBlocking {
         assertTrue(NoOpAddressAutocomplete.suggest("Brisbane").isEmpty())
         assertTrue(NoOpAddressAutocomplete.suggest("").isEmpty())
     }

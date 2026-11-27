@@ -24,6 +24,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import kotlinx.coroutines.runBlocking
 
 /**
  * Gherkin: features/navigate_multi_stop_path.feature — Navigate path ==
@@ -87,7 +88,7 @@ class ActiveTourPathParityTest {
     )
 
     @Test
-    fun navigatePathMatchesComposerGeometryForSameRoute() {
+    fun navigatePathMatchesComposerGeometryForSameRoute() = runBlocking {
         val router = StubGraphHopperPathRouter()
         val composer = MultiStopTourComposer(pathRouter = router)
         val route = multiStopRoute()
@@ -116,7 +117,7 @@ class ActiveTourPathParityTest {
     }
 
     @Test
-    fun navigatePathIsNotStartToEndOnlyWhenStopsExist() {
+    fun navigatePathIsNotStartToEndOnlyWhenStopsExist() = runBlocking {
         val router = StubGraphHopperPathRouter()
         val composer = MultiStopTourComposer(pathRouter = router)
         val route = multiStopRoute()
@@ -146,7 +147,7 @@ class ActiveTourPathParityTest {
     }
 
     @Test
-    fun navigateAndPolylineShareActiveTourPathGeometry() {
+    fun navigateAndPolylineShareActiveTourPathGeometry() = runBlocking {
         val router = StubGraphHopperPathRouter()
         val composer = MultiStopTourComposer(pathRouter = router)
         val route = multiStopRoute()
@@ -186,7 +187,7 @@ class ActiveTourPathParityTest {
     }
 
     @Test
-    fun navigatePrefersCachedOptimisedTourGeometry() {
+    fun navigatePrefersCachedOptimisedTourGeometry() = runBlocking {
         val router = RecordingPathRouter(StubGraphHopperPathRouter())
         val composer = MultiStopTourComposer(pathRouter = router)
         val optimised = RoutePath(
@@ -223,7 +224,7 @@ class ActiveTourPathParityTest {
         var calls: Int = 0
             private set
 
-        override fun path(
+        override suspend fun path(
             start: RouteEndpoint,
             end: RouteEndpoint,
             preferences: TruckRoutingPreferences,

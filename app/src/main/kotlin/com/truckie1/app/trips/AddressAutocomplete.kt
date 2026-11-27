@@ -5,13 +5,16 @@ package com.truckie1.app.trips
  *
  * Daniel requirement: stop addresses must be verified via autocomplete —
  * no free-text-only unverified addresses when [VerifiedAddressCatalog] is on.
+ *
+ * [suggest] is **suspend** (ATNA-88): live Nominatim hops off the Compose
+ * main thread. Providers must not be invoked from Compose `remember`.
  */
 fun interface AddressAutocomplete {
     /**
      * @param query free-text typed in Add / Find stops
      * @return provider-verified suggestions (formatted label + coordinates)
      */
-    fun suggest(query: String): List<AddressSuggestion>
+    suspend fun suggest(query: String): List<AddressSuggestion>
 }
 
 /**
@@ -30,7 +33,7 @@ data class AddressSuggestion(
 
 /** No-op when the verified-address flag is off or no provider is wired. */
 object NoOpAddressAutocomplete : AddressAutocomplete {
-    override fun suggest(query: String): List<AddressSuggestion> = emptyList()
+    override suspend fun suggest(query: String): List<AddressSuggestion> = emptyList()
 }
 
 /**

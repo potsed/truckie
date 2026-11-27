@@ -26,6 +26,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import kotlinx.coroutines.runBlocking
 
 /**
  * Gherkin: features/map_route_polyline.feature — constrained PathRouter geometry.
@@ -81,7 +82,7 @@ class MapRoutePolylineGeometryTest {
         )
 
     @Test
-    fun flagOffReturnsEmptyPoints() {
+    fun flagOffReturnsEmptyPoints() = runBlocking {
         val flags = LocalFeatureFlags()
         val result = MapRoutePolylineGeometry.resolve(
             flags = flags,
@@ -97,7 +98,7 @@ class MapRoutePolylineGeometryTest {
     }
 
     @Test
-    fun prefersOptimisedTourGeometryWhenAvailable() {
+    fun prefersOptimisedTourGeometryWhenAvailable() = runBlocking {
         val flags = LocalFeatureFlags(mapOf(FlagKeys.MAP_ROUTE_POLYLINE to true))
         val optimised = RoutePath(
             id = "optimised-tour",
@@ -128,7 +129,7 @@ class MapRoutePolylineGeometryTest {
     }
 
     @Test
-    fun composesPathRouterLegsInCurrentOrderWhenNoOptimisedPath() {
+    fun composesPathRouterLegsInCurrentOrderWhenNoOptimisedPath() = runBlocking {
         val flags = LocalFeatureFlags(mapOf(FlagKeys.MAP_ROUTE_POLYLINE to true))
         val router = StubGraphHopperPathRouter()
         val result = MapRoutePolylineGeometry.resolve(
@@ -151,7 +152,7 @@ class MapRoutePolylineGeometryTest {
     }
 
     @Test
-    fun prefersNavigateActivePathWhenPresent() {
+    fun prefersNavigateActivePathWhenPresent() = runBlocking {
         val flags = LocalFeatureFlags(mapOf(FlagKeys.MAP_ROUTE_POLYLINE to true))
         val navigate = RoutePath(
             id = "navigate-path",
@@ -191,7 +192,7 @@ class MapRoutePolylineGeometryTest {
     }
 
     @Test
-    fun hardBlocksUnderPassageUsingComposerAndPackBridges() {
+    fun hardBlocksUnderPassageUsingComposerAndPackBridges() = runBlocking {
         val underLow = RoutingBridgeConstraint(
             id = "under-low",
             latitude = -27.55,
@@ -207,7 +208,7 @@ class MapRoutePolylineGeometryTest {
         )
         // Path that crosses the under-low bridge corridor.
         val crossing = object : PathRouter {
-            override fun path(
+            override suspend fun path(
                 start: com.truckie1.trips.RouteEndpoint,
                 end: com.truckie1.trips.RouteEndpoint,
                 preferences: com.truckie1.routing.TruckRoutingPreferences,
@@ -258,7 +259,7 @@ class MapRoutePolylineGeometryTest {
     }
 
     @Test
-    fun customModelEncodesAgreedConstraintsAndTollWhenFlagged() {
+    fun customModelEncodesAgreedConstraintsAndTollWhenFlagged() = runBlocking {
         val flagsOn = LocalFeatureFlags(
             mapOf(
                 FlagKeys.MAP_ROUTE_POLYLINE to true,
@@ -289,7 +290,7 @@ class MapRoutePolylineGeometryTest {
     }
 
     @Test
-    fun composeOrderedReusesMultiStopTourComposerWithoutPermutation() {
+    fun composeOrderedReusesMultiStopTourComposerWithoutPermutation() = runBlocking {
         val router = StubGraphHopperPathRouter()
         val composer = MultiStopTourComposer(pathRouter = router)
         val stops = listOf(
@@ -317,7 +318,7 @@ class MapRoutePolylineGeometryTest {
         var calls: Int = 0
             private set
 
-        override fun path(
+        override suspend fun path(
             start: com.truckie1.trips.RouteEndpoint,
             end: com.truckie1.trips.RouteEndpoint,
             preferences: com.truckie1.routing.TruckRoutingPreferences,

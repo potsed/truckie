@@ -5,6 +5,7 @@ import com.truckie1.trips.Cargo
 import com.truckie1.trips.CargoAction
 import com.truckie1.trips.OptimizeMode
 import com.truckie1.trips.TripStop
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
@@ -55,7 +56,7 @@ class MultiStopTourComposerTest {
     )
 
     @Test
-    fun composesLegsAndPicksShorterTourForFastest() {
+    fun composesLegsAndPicksShorterTourForFastest() = runBlocking {
         val composer = MultiStopTourComposer(pathRouter = StubGraphHopperPathRouter())
         val result = composer.optimize(
             stops = listOf(depot, far, near),
@@ -74,9 +75,7 @@ class MultiStopTourComposerTest {
     }
 
     @Test
-    fun picksLongerCheaperGeometryWhenModeIsCheapest() {
-        // Far then near is a longer tour (higher stub duration → higher stub cost);
-        // composer still returns a feasible Ok — cost ranking uses duration-based stub cents.
+    fun picksLongerCheaperGeometryWhenModeIsCheapest() = runBlocking {
         val composer = MultiStopTourComposer(pathRouter = StubGraphHopperPathRouter())
         val fastest = composer.optimize(
             stops = listOf(depot, far, near),
@@ -90,13 +89,12 @@ class MultiStopTourComposerTest {
             bufferM = 0.15,
             mode = OptimizeMode.CHEAPEST,
         ) as OptimizeResult.Ok
-        // With duration-proportional stub cost, Fastest and Cheapest agree on order.
         assertEquals(fastest.orderedStops.map { it.id }, cheapest.orderedStops.map { it.id })
         assertTrue(cheapest.route.costCents >= 1L)
     }
 
     @Test
-    fun blocksTourWhenUnderBridgeConflictsAlongPath() {
+    fun blocksTourWhenUnderBridgeConflictsAlongPath() = runBlocking {
         val underLow = RoutingBridgeConstraint(
             id = "low-under",
             latitude = -27.425,
@@ -104,7 +102,6 @@ class MultiStopTourComposerTest {
             clearanceHeightM = 1.9,
             passage = RoutingBridgePassage.UNDER,
         )
-        // Stub interpolates depot→near through the under-bridge corridor.
         val composer = MultiStopTourComposer(
             pathRouter = StubGraphHopperPathRouter(intermediatePoints = 8),
             bridges = listOf(underLow),
@@ -122,7 +119,7 @@ class MultiStopTourComposerTest {
     }
 
     @Test
-    fun blocksWhenOnBoardMassExceedsGvm() {
+    fun blocksWhenOnBoardMassExceedsGvm() = runBlocking {
         val heavyPick = near.copy(
             cargo = listOf(Cargo("steel", 2.0, 2.0, 4.0, 20.0, CargoAction.PICK_UP)),
         )
@@ -142,7 +139,7 @@ class MultiStopTourComposerTest {
     }
 
     @Test
-    fun requiresCoordinatesOnStops() {
+    fun requiresCoordinatesOnStops() = runBlocking {
         val composer = MultiStopTourComposer(pathRouter = StubGraphHopperPathRouter())
         val result = composer.optimize(
             stops = listOf(

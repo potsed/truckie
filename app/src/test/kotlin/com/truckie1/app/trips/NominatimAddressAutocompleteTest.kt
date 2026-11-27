@@ -3,6 +3,7 @@ package com.truckie1.app.trips
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import kotlinx.coroutines.runBlocking
 
 /**
  * Gherkin: verified_address_autocomplete.feature — Nominatim AU provider + JSON parse.
@@ -10,7 +11,7 @@ import org.junit.Test
 class NominatimAddressAutocompleteTest {
 
     @Test
-    fun blankQueryReturnsEmptyWithoutCallingClient() {
+    fun blankQueryReturnsEmptyWithoutCallingClient() = runBlocking {
         var called = false
         val client = AddressHttpClient { _, _ ->
             called = true
@@ -23,7 +24,7 @@ class NominatimAddressAutocompleteTest {
     }
 
     @Test
-    fun parsesNominatimJsonIntoVerifiedSuggestions() {
+    fun parsesNominatimJsonIntoVerifiedSuggestions() = runBlocking {
         val json = """
             [
               {
@@ -57,7 +58,7 @@ class NominatimAddressAutocompleteTest {
     }
 
     @Test
-    fun searchUrlBiasesToAustraliaAndIncludesUserAgent() {
+    fun searchUrlBiasesToAustraliaAndIncludesUserAgent() = runBlocking {
         var capturedUrl: String? = null
         var capturedUserAgent: String? = null
         val client = AddressHttpClient { url, userAgent ->
@@ -82,7 +83,7 @@ class NominatimAddressAutocompleteTest {
     }
 
     @Test
-    fun malformedOrEmptyBodyYieldsNoSuggestions() {
+    fun malformedOrEmptyBodyYieldsNoSuggestions() = runBlocking {
         val bad = NominatimAddressAutocomplete(client = AddressHttpClient { _, _ -> "not-json" })
         assertTrue(bad.suggest("x").isEmpty())
         val empty = NominatimAddressAutocomplete(client = AddressHttpClient { _, _ -> "" })

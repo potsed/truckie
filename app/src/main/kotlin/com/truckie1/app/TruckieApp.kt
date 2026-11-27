@@ -6,6 +6,7 @@ import com.truckie1.app.profiles.VehicleDatabase
 import com.truckie1.app.settings.NavigationAppStore
 import com.truckie1.app.settings.PackageManagerNavigationAppQuery
 import com.truckie1.app.settings.SharedNavigationAppStore
+import com.truckie1.app.routing.AsyncRoutingIoCatalog
 import com.truckie1.app.routing.RoutingBridgePackMapper
 import com.truckie1.app.trips.RouteNavigateSession
 import com.truckie1.app.ui.ActiveTourCatalog
@@ -77,10 +78,11 @@ class TruckieApp : Application() {
 
     /**
      * Single app-owned PathRouter: stub vs live from `ff_graphhopper_live` +
-     * [graphHopperBaseUrl]. Injected into Navigate **and** Optimise.
+     * [graphHopperBaseUrl], gated by async routing I/O (ATNA-88). Injected into
+     * Navigate **and** Optimise. Live HTTP is suspend / off-main.
      */
     fun pathRouter(): PathRouter = GraphHopperPathRouterFactory.create(
-        liveEnabled = featureFlags.isEnabled(FlagKeys.GRAPHHOPPER_LIVE),
+        liveEnabled = AsyncRoutingIoCatalog.allowsLiveGraphHopper(featureFlags),
         baseUrl = graphHopperBaseUrl,
     )
 
@@ -127,6 +129,11 @@ class TruckieApp : Application() {
         featureFlags.setEnabled(
             FlagKeys.ROUTE_PATH_FROM_LOCATION,
             RoutePathFromLocationCatalog.DEFAULT_ENABLED,
+        )
+        // ATNA-88: async GH + Nominatim — defaults on; sync-on-main live path deleted.
+        featureFlags.setEnabled(
+            FlagKeys.ASYNC_ROUTING_IO,
+            AsyncRoutingIoCatalog.DEFAULT_ENABLED,
         )
         // ATNA-75: Real (Room + tour) vs Demo (read-only seed). Demo flag swaps store.
         dataSource = DualModeAppDataSource(

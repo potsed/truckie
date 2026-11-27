@@ -7,36 +7,42 @@ import java.io.OutputStreamWriter
 import java.net.HttpURLConnection
 import java.net.URI
 import kotlin.math.roundToLong
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /**
- * Live GraphHopper HTTP PathRouter (ATNA-9 fold-in for optimisation / Navigate).
+ * Live GraphHopper HTTP PathRouter (ATNA-9 fold-in; ATNA-88 async I/O).
  *
  * Expects a GraphHopper-compatible `/route` JSON response with `paths[].points`
  * GeoJSON coordinates `[lon, lat]` and `time` in milliseconds.
  *
- * Transport is injectable for unit tests. Production uses [defaultHttpClient].
- * Parsing stays dependency-free (no org.json) so `:core-routing` remains a plain JVM module.
+ * [path] is **suspend** and always hops to [ioDispatcher] before blocking HTTP
+ * so Compose / main never owns the network call. Transport is injectable for
+ * unit tests. Parsing stays dependency-free (no org.json) so `:core-routing`
+ * remains a plain JVM module.
  */
 class LiveGraphHopperPathRouter(
     private val baseUrl: String,
     private val httpClient: (url: String, body: String) -> String = ::defaultHttpClient,
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) : PathRouter {
 
-    override fun path(
+    override suspend fun path(
         start: RouteEndpoint,
         end: RouteEndpoint,
         preferences: TruckRoutingPreferences,
         customModel: GraphHopperCustomModelStub?,
-    ): PathResult {
+    ): PathResult = withContext(ioDispatcher) {
         val model = customModel ?: GraphHopperCustomModelStub.default(preferences = preferences)
         val body = buildRequestBody(start, end, model)
         val url = baseUrl.trimEnd('/') + "/route"
         val raw = try {
             httpClient(url, body)
         } catch (e: Exception) {
-            return PathResult.Blocked(reason = "GraphHopper request failed: ${e.message}")
+            return@withContext PathResult.Blocked(reason = "GraphHopper request failed: ${e.message}")
         }
-        return parseResponse(raw, preferences, model.toRequestSnippet())
+        parseResponse(raw, preferences, model.toRequestSnippet())
     }
 
     private fun buildRequestBody(

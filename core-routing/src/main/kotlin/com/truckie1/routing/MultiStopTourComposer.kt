@@ -25,7 +25,7 @@ class MultiStopTourComposer(
     private val tollPreference: TollPreference = TollPreference.ALLOW_ALL,
     private val preferences: TruckRoutingPreferences = TruckRoutingPreferences.DEFAULT,
 ) {
-    fun optimize(
+    suspend fun optimize(
         stops: List<TripStop>,
         vehicle: Vehicle,
         bufferM: Double,
@@ -38,7 +38,7 @@ class MultiStopTourComposer(
         legacyMode = mode,
     )
 
-    fun optimize(
+    suspend fun optimize(
         stops: List<TripStop>,
         vehicle: Vehicle,
         bufferM: Double,
@@ -112,7 +112,7 @@ class MultiStopTourComposer(
      * Compose PathRouter legs in the **given** stop order (no permutation).
      * Same Custom Model + under-passage hard-block as [optimize].
      */
-    fun composeOrdered(
+    suspend fun composeOrdered(
         stops: List<TripStop>,
         vehicle: Vehicle,
         bufferM: Double,
@@ -163,7 +163,7 @@ class MultiStopTourComposer(
         }
     }
 
-    private fun composeTour(
+    private suspend fun composeTour(
         ordered: List<TripStop>,
         model: GraphHopperCustomModelStub,
         vehicleHeightM: Double,

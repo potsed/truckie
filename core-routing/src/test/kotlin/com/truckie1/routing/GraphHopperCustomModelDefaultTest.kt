@@ -1,5 +1,6 @@
 package com.truckie1.routing
 
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -21,7 +22,7 @@ class GraphHopperCustomModelDefaultTest {
     }
 
     @Test
-    fun stubPathRouterUsesSharedDefaultWhenModelNull() {
+    fun stubPathRouterUsesSharedDefaultWhenModelNull() = runBlocking {
         val router = StubGraphHopperPathRouter()
         val start = com.truckie1.trips.RouteEndpoint("A", -27.4, 153.0)
         val end = com.truckie1.trips.RouteEndpoint("B", -27.5, 153.1)
@@ -40,7 +41,7 @@ class GraphHopperCustomModelDefaultTest {
     }
 
     @Test
-    fun livePathRouterUsesSharedDefaultWhenModelNull() {
+    fun livePathRouterUsesSharedDefaultWhenModelNull() = runBlocking {
         val json = """
             {
               "paths": [{

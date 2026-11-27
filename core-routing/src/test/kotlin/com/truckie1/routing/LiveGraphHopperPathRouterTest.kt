@@ -1,6 +1,7 @@
 package com.truckie1.routing
 
 import com.truckie1.trips.RouteEndpoint
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -11,7 +12,7 @@ import org.junit.Test
 class LiveGraphHopperPathRouterTest {
 
     @Test
-    fun parsesPointsFromGraphHopperJson() {
+    fun parsesPointsFromGraphHopperJson() = runBlocking {
         val json = """
             {
               "paths": [{
@@ -45,7 +46,7 @@ class LiveGraphHopperPathRouterTest {
     }
 
     @Test
-    fun blocksWhenResponseHasNoPaths() {
+    fun blocksWhenResponseHasNoPaths() = runBlocking {
         val router = LiveGraphHopperPathRouter(
             baseUrl = "https://gh.example",
             httpClient = { _, _ -> """{"paths":[]}""" },

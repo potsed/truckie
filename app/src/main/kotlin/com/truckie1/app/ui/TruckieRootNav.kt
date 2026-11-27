@@ -35,7 +35,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -509,40 +511,21 @@ private fun MapHomeRoute(
     val activeVehicle = remember(app.vehicleProfiles.activeRego, demoRevision) {
         app.vehicleProfiles.activeRego?.let { app.vehicleProfiles.findByRego(it) }
     }
-    val displayPathPoints = remember(
-        route,
-        navigatePathPoints,
-        showRoutePolyline,
-        activeVehicle,
-        app.clearanceBufferM,
-        polylineRevision,
-        demoRevision,
-        currentLocation,
-        app.featureFlags.isEnabled(FlagKeys.MAP_ROUTE_POLYLINE),
-        app.featureFlags.isEnabled(FlagKeys.ROUTE_PATH_FROM_LOCATION),
-        app.featureFlags.isEnabled(FlagKeys.BRIDGE_PASSAGE),
-        app.featureFlags.isEnabled(FlagKeys.TOLLS),
-        app.featureFlags.isEnabled(FlagKeys.GRAPHHOPPER_LIVE),
-    ) {
-        when {
-            navigatePathPoints.size >= 2 -> navigatePathPoints
-            showRoutePolyline -> MapRoutePolylineGeometry.pointsOrEmpty(
-                MapRoutePolylineGeometry.resolve(
-                    flags = app.featureFlags,
-                    mapHomeEnabled = true,
-                    route = route,
-                    vehicle = activeVehicle,
-                    bufferM = app.clearanceBufferM,
-                    pathRouter = app.pathRouter(),
-                    composer = app.routeOptimizer,
-                    optimisedPath = app.mapRoutePolylineSession.lastOptimisedPath(),
-                    navigatePath = app.routeNavigateSession.activePath(),
-                    currentLocation = currentLocation,
-                ),
-            )
-            else -> emptyList()
-        }
-    }
+    val routingScope = rememberCoroutineScope()
+    val displayPathPoints = MapRoutePolylineState.rememberDisplayPoints(
+        flags = app.featureFlags,
+        mapHomeEnabled = true,
+        route = route,
+        vehicle = activeVehicle,
+        bufferM = app.clearanceBufferM,
+        pathRouter = app.pathRouter(),
+        composer = app.routeOptimizer,
+        session = app.mapRoutePolylineSession,
+        navigatePathPoints = navigatePathPoints,
+        showRoutePolyline = showRoutePolyline,
+        revision = polylineRevision + demoRevision,
+        currentLocation = currentLocation,
+    )
     var headingUpEnabled by remember {
         mutableStateOf(MapHeadingUpCatalog.isEnabled(app.featureFlags))
     }
@@ -656,30 +639,32 @@ private fun MapHomeRoute(
             val selection = app.navigationAppStore.selection { pkg ->
                 app.navigationAppQuery.list().firstOrNull { it.packageName == pkg }?.label
             }
-            when (
-                val result = app.routeNavigateSession.start(
-                    flags = app.featureFlags,
-                    route = route,
-                    vehicle = activeVehicle,
-                    bufferM = app.clearanceBufferM,
-                    selection = selection,
-                    optimisedPath = app.mapRoutePolylineSession.lastOptimisedPath(),
-                    currentLocation = currentLocation,
-                )
-            ) {
-                is com.truckie1.app.trips.RouteNavigateSession.Result.Ready -> {
-                    navigatePathPoints = result.path.points
-                    polylineRevision += 1
-                    result.externalHandoff?.let { handoff ->
-                        val intent = com.truckie1.app.settings.ExternalNavigationHandoff.buildIntent(
-                            packageName = handoff.packageName,
-                            latitude = handoff.destination.latitude,
-                            longitude = handoff.destination.longitude,
-                        )
-                        runCatching { context.startActivity(intent) }
+            routingScope.launch {
+                when (
+                    val result = app.routeNavigateSession.start(
+                        flags = app.featureFlags,
+                        route = route,
+                        vehicle = activeVehicle,
+                        bufferM = app.clearanceBufferM,
+                        selection = selection,
+                        optimisedPath = app.mapRoutePolylineSession.lastOptimisedPath(),
+                        currentLocation = currentLocation,
+                    )
+                ) {
+                    is com.truckie1.app.trips.RouteNavigateSession.Result.Ready -> {
+                        navigatePathPoints = result.path.points
+                        polylineRevision += 1
+                        result.externalHandoff?.let { handoff ->
+                            val intent = com.truckie1.app.settings.ExternalNavigationHandoff.buildIntent(
+                                packageName = handoff.packageName,
+                                latitude = handoff.destination.latitude,
+                                longitude = handoff.destination.longitude,
+                            )
+                            runCatching { context.startActivity(intent) }
+                        }
                     }
+                    else -> Unit
                 }
-                else -> Unit
             }
         },
         onNavigatePrimary = onNavigatePrimary,
@@ -749,6 +734,7 @@ private fun ColumnScope.TripStopsRoute(
     onBlocked: (String) -> Unit,
 ) {
     val context = LocalContext.current
+    val optimizeScope = rememberCoroutineScope()
     var stops by remember { mutableStateOf(app.tripSession.stops()) }
     var clearanceSummary by remember { mutableStateOf("") }
     var showOptimize by remember {
@@ -809,27 +795,29 @@ private fun ColumnScope.TripStopsRoute(
                 Toast.makeText(context, context.getString(R.string.optimize_need_stops), Toast.LENGTH_SHORT).show()
                 return@TripStopsScreen
             }
-            when (
-                val result = app.routeOptimizer.optimize(
-                    stops = currentStops,
-                    vehicle = vehicle,
-                    bufferM = app.clearanceBufferM,
-                    goals = optimizeGoals,
-                )
-            ) {
-                is OptimizeResult.Ok -> {
-                    app.tripSession.replaceStops(result.orderedStops)
-                    app.tripSession.lastOptimizeMode =
-                        optimizeGoals.asLegacyMode() ?: OptimizeMode.FASTEST
-                    app.mapRoutePolylineSession.rememberOptimised(result.path)
-                    optimizeStatus = context.getString(
-                        R.string.optimize_success,
-                        result.mode.name.lowercase().replaceFirstChar { it.titlecase() },
-                        result.route.durationSeconds,
+            optimizeScope.launch {
+                when (
+                    val result = app.routeOptimizer.optimize(
+                        stops = currentStops,
+                        vehicle = vehicle,
+                        bufferM = app.clearanceBufferM,
+                        goals = optimizeGoals,
                     )
-                    bindList()
+                ) {
+                    is OptimizeResult.Ok -> {
+                        app.tripSession.replaceStops(result.orderedStops)
+                        app.tripSession.lastOptimizeMode =
+                            optimizeGoals.asLegacyMode() ?: OptimizeMode.FASTEST
+                        app.mapRoutePolylineSession.rememberOptimised(result.path)
+                        optimizeStatus = context.getString(
+                            R.string.optimize_success,
+                            result.mode.name.lowercase().replaceFirstChar { it.titlecase() },
+                            result.route.durationSeconds,
+                        )
+                        bindList()
+                    }
+                    is OptimizeResult.Blocked -> onBlocked(result.reason)
                 }
-                is OptimizeResult.Blocked -> onBlocked(result.reason)
             }
         },
     )

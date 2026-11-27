@@ -20,7 +20,7 @@ android {
         minSdk = 24
         targetSdk = 35
         versionCode = 1
-        versionName = "0.8.36-route-path-from-location"
+        versionName = "0.8.37-async-routing-io"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 

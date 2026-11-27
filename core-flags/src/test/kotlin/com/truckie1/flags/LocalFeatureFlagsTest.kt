@@ -245,4 +245,13 @@ class LocalFeatureFlagsTest {
         flags.setEnabled(FlagKeys.ROUTE_PATH_FROM_LOCATION, true)
         assertTrue(flags.isEnabled(FlagKeys.ROUTE_PATH_FROM_LOCATION))
     }
+
+    @Test
+    fun asyncRoutingIoFlagKey() {
+        assertTrue(FlagKeys.ASYNC_ROUTING_IO == "ff_async_routing_io")
+        val flags = LocalFeatureFlags()
+        assertFalse(flags.isEnabled(FlagKeys.ASYNC_ROUTING_IO))
+        flags.setEnabled(FlagKeys.ASYNC_ROUTING_IO, true)
+        assertTrue(flags.isEnabled(FlagKeys.ASYNC_ROUTING_IO))
+    }
 }

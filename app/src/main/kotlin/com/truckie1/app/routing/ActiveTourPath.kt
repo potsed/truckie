@@ -92,7 +92,7 @@ object ActiveTourPath {
      * [currentLocation] is set) → [MultiStopTourComposer.composeOrdered] for
      * [orderedWaypoints].
      */
-    fun compose(
+    suspend fun compose(
         route: Route,
         vehicle: Vehicle?,
         bufferM: Double,
