@@ -65,6 +65,9 @@ data class GraphHopperCustomModelStub(
           "residential_delivery_access_ok": true,
           "avoid_low_bridges": ${preferences.avoidLowBridges},
           "avoid_weight_restricted": ${preferences.avoidWeightRestrictedRoads},
+          "block_under_low_clearance": ${preferences.avoidLowBridges},
+          "over_deck_ok": true,
+          "bridge_passage_rule": "under_hard_block_over_ok",
           "optimize": "$optimize"
         }
         """.trimIndent()

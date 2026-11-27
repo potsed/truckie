@@ -92,6 +92,12 @@ object FlagKeys {
      * Recenter), not Settings. Off = north-up TRACKING.
      */
     const val MAP_HEADING_UP = "ff_map_heading_up"
+    /**
+     * Live GraphHopper HTTP PathRouter (ATNA-9 / ATNA-68). When on **and** a
+     * base URL is configured, Navigate / multi-stop optimisation use live GH;
+     * otherwise stub (`graphhopper-stub`).
+     */
+    const val GRAPHHOPPER_LIVE = "ff_graphhopper_live"
 }
 
 /**

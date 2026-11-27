@@ -12,6 +12,8 @@ sealed class OptimizeResult {
         val route: RouteCandidate,
         val mode: OptimizeMode,
         val customModel: GraphHopperCustomModelStub,
+        /** Composed GraphHopper path for the winning tour (multi-stop composer). */
+        val path: RoutePath? = null,
     ) : OptimizeResult()
 
     data class Blocked(val reason: String) : OptimizeResult()

@@ -48,6 +48,8 @@ class TruckRoutingPreferencesTest {
         assertTrue(snippet.contains("\"residential_delivery_access_ok\": true"))
         assertTrue(snippet.contains("\"toll\": \"ALLOW_ALL\""))
         assertTrue(snippet.contains("\"optimize\": \"FASTEST\""))
+        assertTrue(snippet.contains("\"block_under_low_clearance\": true"))
+        assertTrue(snippet.contains("\"over_deck_ok\": true"))
         assertTrue(model.preferNonResidentialThroughRoutes)
     }
 

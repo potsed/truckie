@@ -28,6 +28,7 @@ class TripStopsActivity : ComponentActivity() {
     private var showOptimize by mutableStateOf(false)
     private var optimizeMode by mutableStateOf(OptimizeMode.FASTEST)
     private var optimizeStatus by mutableStateOf<String?>(null)
+    private var optimizeOrderSummary by mutableStateOf<String?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,6 +56,7 @@ class TripStopsActivity : ComponentActivity() {
                     showOptimize = showOptimize,
                     optimizeMode = optimizeMode,
                     optimizeStatus = optimizeStatus,
+                    optimizeOrderSummary = optimizeOrderSummary,
                     onAddStop = { startActivity(Intent(this@TripStopsActivity, AddStopActivity::class.java)) },
                     onMoveUp = { index ->
                         if (index > 0) {
@@ -118,9 +120,11 @@ class TripStopsActivity : ComponentActivity() {
                     result.mode.name.lowercase().replaceFirstChar { it.titlecase() },
                     result.route.durationSeconds,
                 )
+                optimizeOrderSummary = OptimizeResultSummary.combined(result)
                 bindList()
             }
             is OptimizeResult.Blocked -> {
+                optimizeOrderSummary = null
                 startActivity(
                     Intent(this, BlockedRouteActivity::class.java)
                         .putExtra(BlockedRouteActivity.EXTRA_REASON, result.reason),
