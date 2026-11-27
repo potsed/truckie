@@ -93,6 +93,12 @@ object FlagKeys {
      */
     const val MAP_HEADING_UP = "ff_map_heading_up"
     /**
+     * Prefer street / road name labels over POI clutter on OpenFreeMap Liberty
+     * (ATNA-78). Runtime layer visibility + minzoom tweaks after style load;
+     * keeps the same OSS style URL (no paid / rehosted tiles).
+     */
+    const val MAP_STREET_LABELS = "ff_map_street_labels"
+    /**
      * Live GraphHopper HTTP PathRouter (ATNA-9 / ATNA-68). When on **and** a
      * base URL is configured, Navigate / multi-stop optimisation use live GH;
      * otherwise stub (`graphhopper-stub`).

@@ -75,6 +75,9 @@ import org.maplibre.android.plugins.annotation.SymbolOptions
  * When [showBridgeMarkers] is true (`ff_bridge_markers`), a separate SymbolManager
  * draws Australia-first bridge fixtures with optional clearance labels.
  *
+ * When [prioritiseStreetLabels] is true (`ff_map_street_labels`), runtime
+ * OpenFreeMap Liberty layer tweaks prefer highway names over bus-stop / POI clutter.
+ *
  * When the native MapView cannot be created (e.g. Robolectric unit tests),
  * a high-contrast placeholder keeps the Compose tree testable.
  */
@@ -95,6 +98,8 @@ fun MapLibreMap(
     routePathPoints: List<LatLngPoint> = emptyList(),
     bridges: List<BridgePoint> = emptyList(),
     showBridgeMarkers: Boolean = false,
+    /** Prefer street names over POI clutter (`ff_map_street_labels`). */
+    prioritiseStreetLabels: Boolean = false,
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -350,6 +355,11 @@ fun MapLibreMap(
                 // SymbolManagers / LineManager / LocationComponent bound to the old style
                 // (root cause of invisible bridge markers after location updates).
                 mapHost.ensureStyle(map) { style ->
+                    // ATNA-78: runtime Liberty layer tweaks (same style URL).
+                    mapHost.applyStreetLabelPriority(
+                        style = style,
+                        enabled = prioritiseStreetLabels,
+                    )
                     if (!mapHost.hasAppliedInitialCamera) {
                         map.cameraPosition = CameraPosition.Builder()
                             .target(LatLng(cameraTarget.latitude, cameraTarget.longitude))
@@ -453,6 +463,8 @@ private class MapLibreHost(
     private val pendingStyleReady = mutableListOf<(Style) -> Unit>()
     /** Style instance managers were last created against (identity check). */
     private var boundStyle: Style? = null
+    /** Street-label tweaks applied for the current [boundStyle] (`ff_map_street_labels`). */
+    private var streetLabelPriorityApplied: Boolean = false
     var hasAppliedInitialCamera: Boolean = false
     /** Last fused fix pushed to LocationComponent (for follow-enter lastLocation sync). */
     private var lastFollowFix: Location? = null
@@ -491,6 +503,7 @@ private class MapLibreHost(
                 map.setStyle(Style.Builder().fromUri(MapCameraDefaults.STYLE_URI)) { style ->
                     resetAnnotationManagers()
                     boundStyle = style
+                    streetLabelPriorityApplied = false
                     styleReady = true
                     styleLoading = false
                     val callbacks = pendingStyleReady.toList()
@@ -499,6 +512,17 @@ private class MapLibreHost(
                 }
             }
         }
+    }
+
+    /**
+     * Idempotent OpenFreeMap Liberty label priority (`ff_map_street_labels`).
+     * Applied once per loaded style instance so recompositions do not thrash layers.
+     */
+    fun applyStreetLabelPriority(style: Style, enabled: Boolean) {
+        if (!enabled) return
+        if (streetLabelPriorityApplied && boundStyle === style) return
+        MapStreetLabelPolicy.applyToStyle(style, enabled = true)
+        streetLabelPriorityApplied = true
     }
 
     private fun resetAnnotationManagers() {

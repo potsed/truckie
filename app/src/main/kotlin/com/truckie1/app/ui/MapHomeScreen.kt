@@ -134,6 +134,8 @@ fun MapHomeScreen(
     onOrientationLockChange: (Boolean) -> Unit = {},
     bridges: List<BridgePoint> = emptyList(),
     showBridgeMarkers: Boolean = false,
+    /** Prefer street names over POI clutter (`ff_map_street_labels`). */
+    prioritiseStreetLabels: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
     var followState by remember { mutableStateOf(MapLocationFollow.initial()) }
@@ -208,6 +210,7 @@ fun MapHomeScreen(
             routePathPoints = state.navigatePathPoints,
             bridges = bridges,
             showBridgeMarkers = showBridgeMarkers,
+            prioritiseStreetLabels = prioritiseStreetLabels,
             modifier = Modifier
                 .fillMaxSize()
                 .testTag("map_libre_surface"),

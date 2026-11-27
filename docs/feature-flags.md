@@ -35,6 +35,7 @@ XML screen layouts were removed; do not add new AppCompat/XML screens.
 | `ff_bridge_passage` | Bridge over vs under (ATNA-48 / ATNA-73): model under/over/both/unknown; shared `BridgePassagePolicy` blocks under-paths only (OK to drive over deck); home-map uses `BridgeVisibilityPipeline` | off (on in debug) |
 | `ff_demo_mode` | Demo mode (ATNA-56 / ATNA-75) — Settings toggle selects the demo `AppDataSource` (same Vehicle/Route/TripStop schema; read-only sample SEQ run). Real data stays in the real store. Floating **DEMO MODE** pill is the only in-app demo label; dataset copy is neutral. Jump FAB removed (ATNA-67) | **off** (including debug — Settings opt-in only) |
 | `ff_map_heading_up` | Orient map to driving direction — map-chrome lock control (like Recenter); while following, MapLibre `TRACKING_GPS` course-up (off = north-up `TRACKING`) | off (on in debug) |
+| `ff_map_street_labels` | Prefer street/road name labels over POI clutter on OpenFreeMap Liberty (ATNA-78): runtime visibility + minzoom tweaks; same OSS style URL | off (on in debug) |
 | `ff_au_low_bridges_pack` | Consume public AU low-bridges JSON pack (ATNA-50) local-first from GitHub Release when newer | off (on in debug) |
 
 ## Rules
@@ -137,3 +138,8 @@ XML screen layouts were removed; do not add new AppCompat/XML screens.
     unlocked → north-up `TRACKING`. Free pan exits rotation; Recenter restores follow
     (and course-up when lock is on). While already following, orientation lock syncs
     modes via the same [MapFollowReconcile] path (does not exit follow or touch zoom).
+22. Street labels (`ff_map_street_labels`, ATNA-78) keep the OpenFreeMap Liberty style
+    URL and apply **runtime** layer visibility / minzoom tweaks after load: ensure
+    `highway-name-major` / `highway-name-minor` are visible, lower minor-road name
+    minzoom to 14, and hide `poi_transit` (bus stops) plus ranked POI label layers
+    (`poi_r1` / `poi_r7` / `poi_r20`). No custom hosted style; OSS free-for-commercial.
