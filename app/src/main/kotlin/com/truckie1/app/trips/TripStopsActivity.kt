@@ -19,6 +19,7 @@ import com.truckie1.flags.FlagKeys
 import com.truckie1.routing.OptimizeResult
 import com.truckie1.trips.ClearanceCalculator
 import com.truckie1.trips.OptimizeMode
+import com.truckie1.trips.TourOptimizeGoals
 import com.truckie1.trips.TripStop
 
 /** Legacy multi-activity host when `ff_nav_chrome` is off. */
@@ -26,7 +27,7 @@ class TripStopsActivity : ComponentActivity() {
     private var stops by mutableStateOf<List<TripStop>>(emptyList())
     private var clearanceSummary by mutableStateOf("")
     private var showOptimize by mutableStateOf(false)
-    private var optimizeMode by mutableStateOf(OptimizeMode.FASTEST)
+    private var optimizeGoals by mutableStateOf(TourOptimizeGoals.DEFAULT)
     private var optimizeStatus by mutableStateOf<String?>(null)
     private var optimizeOrderSummary by mutableStateOf<String?>(null)
 
@@ -54,7 +55,7 @@ class TripStopsActivity : ComponentActivity() {
                     stops = stops,
                     clearanceSummary = clearanceSummary,
                     showOptimize = showOptimize,
-                    optimizeMode = optimizeMode,
+                    optimizeGoals = optimizeGoals,
                     optimizeStatus = optimizeStatus,
                     optimizeOrderSummary = optimizeOrderSummary,
                     onAddStop = { startActivity(Intent(this@TripStopsActivity, AddStopActivity::class.java)) },
@@ -74,7 +75,7 @@ class TripStopsActivity : ComponentActivity() {
                         app.tripSession.removeStop(stop.id)
                         bindList()
                     },
-                    onModeChange = { optimizeMode = it },
+                    onGoalsChange = { optimizeGoals = it },
                     onOptimize = { runOptimize() },
                 )
             }
@@ -109,12 +110,14 @@ class TripStopsActivity : ComponentActivity() {
                 stops = currentStops,
                 vehicle = vehicle,
                 bufferM = app.clearanceBufferM,
-                mode = optimizeMode,
+                goals = optimizeGoals,
             )
         ) {
             is OptimizeResult.Ok -> {
                 app.tripSession.replaceStops(result.orderedStops)
-                app.tripSession.lastOptimizeMode = result.mode
+                app.tripSession.lastOptimizeMode =
+                    optimizeGoals.asLegacyMode() ?: OptimizeMode.FASTEST
+                app.mapRoutePolylineSession.rememberOptimised(result.path)
                 optimizeStatus = getString(
                     R.string.optimize_success,
                     result.mode.name.lowercase().replaceFirstChar { it.titlecase() },

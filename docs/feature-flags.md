@@ -27,6 +27,7 @@ XML screen layouts were removed; do not add new AppCompat/XML screens.
 | `ff_navigate` | Navigate: GraphHopper path always in-app on MapLibre; Settings may pick installed app for post-route handoff only | off (on in debug) |
 | `ff_bridge_markers` | Low-bridge markers on MapLibre home (Australia-first sample JSON asset; SymbolManager + optional clearance label) | off (on in debug) |
 | `ff_stop_markers` | Route stop markers on MapLibre home (ATNA-81): pickup vs drop-off SymbolManager icons from active AppDataSource route; shares bridge SymbolManager / style lifecycle bind path | off (on in debug) |
+| `ff_map_route_polyline` | Active route polyline on MapLibre home (ATNA-82): PathRouter / MultiStopTourComposer constrained geometry via shared LineManager with Navigate; Fastest + Cost Effective checkboxes both on by default (AND); stub geometry only when stub PathRouter is active | off (on in debug) |
 | `ff_verified_cbd_clearances` | Verified CBD sample clearances (ATNA-42): labels only for published road heights; unknown / not_applicable omit invented mocks | off (on in debug) |
 | `ff_queensland_rail_clearances` | Queensland Rail SEQ road-under-rail clearances (ATNA-44): show published QR railbridges pack entries; off keeps BCC CBD samples only | off (on in debug) |
 | `ff_w5_8_low_only` | W5-8 only for low / restricted clearances (ATNA-45): AU W5-8 diamond only when verified ≤ 4.6 m or QR published underbridge | off (on in debug) |
@@ -52,7 +53,9 @@ XML screen layouts were removed; do not add new AppCompat/XML screens.
    `GraphHopperPathRouterFactory` (`TruckieApp.pathRouter()`). Pack bridges map into the
    composer when `ff_bridge_passage` is on. Live HTTP only when `ff_graphhopper_live` + base URL;
    otherwise stub. Toll preference stays stubbed as allow-all passthrough until `ff_tolls`
-   is implemented.
+   is implemented. **Fastest** and **Cost Effective** are checkboxes (not radio), both on by
+   default — AND selection via `TourOptimizeGoals` / `TourPathSelector` (prefer fast and
+   cost-effective together).
 6. Nav chrome (`ff_nav_chrome`) hosts Material3 `CenterAlignedTopAppBar` + bottom
    `NavigationBar` **once** on `MainActivity` around a Compose NavHost (global fixed
    chrome; content scrolls in between). Plan trip / Vehicles tabs still require
@@ -150,3 +153,10 @@ XML screen layouts were removed; do not add new AppCompat/XML screens.
     `highway-name-major` / `highway-name-minor` are visible, lower minor-road name
     minzoom to 14, and hide `poi_transit` (bus stops) plus ranked POI label layers
     (`poi_r1` / `poi_r7` / `poi_r20`). No custom hosted style; OSS free-for-commercial.
+23. Map route polyline (`ff_map_route_polyline`, ATNA-82) draws the constrained active
+    route on MapLibre home via shared LineManager (`MapLineBind` /
+    `MapRoutePathAnnotations`) with Navigate. Geometry from PathRouter /
+    MultiStopTourComposer only (optimised tour when cached; else AND tour select with
+    Fastest + Cost Effective checkboxes both on). Same under-passage / weight / soft
+    residential / over-deck OK / toll-when-flagged constraints as Optimize/Navigate.
+    Stub geometry only when stub PathRouter is the active factory. No satellite peek.

@@ -32,9 +32,23 @@ object TripStopSummary {
         }
         val modeLabel = when (optimizeMode) {
             OptimizeMode.FASTEST -> " · Fastest"
-            OptimizeMode.CHEAPEST -> " · Cheapest"
+            OptimizeMode.CHEAPEST -> " · Cost Effective"
             null -> ""
         }
         return "Trip: ${stops.size} stops$modeLabel · $path"
+    }
+
+    fun tripOverview(stops: List<TripStop>, goals: TourOptimizeGoals): String {
+        if (stops.isEmpty()) return "No stops yet"
+        val labels = stops.map { it.addressLabel }
+        val path = when {
+            labels.size <= 3 -> labels.joinToString(" → ")
+            else -> "${labels.first()} → … → ${labels.last()}"
+        }
+        val parts = mutableListOf<String>()
+        if (goals.preferFastest) parts += "Fastest"
+        if (goals.preferCostEffective) parts += "Cost Effective"
+        val goalsLabel = if (parts.isEmpty()) "" else " · ${parts.joinToString(" + ")}"
+        return "Trip: ${stops.size} stops$goalsLabel · $path"
     }
 }

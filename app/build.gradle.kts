@@ -20,7 +20,7 @@ android {
         minSdk = 24
         targetSdk = 35
         versionCode = 1
-        versionName = "0.8.31-map-stop-markers"
+        versionName = "0.8.32-map-route-polyline"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 

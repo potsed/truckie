@@ -14,6 +14,7 @@ import com.truckie1.app.ui.CachedBridgePackRepository
 import com.truckie1.app.ui.DemoAppDataSource
 import com.truckie1.app.ui.DemoModeController
 import com.truckie1.app.ui.DualModeAppDataSource
+import com.truckie1.app.ui.MapRoutePolylineSession
 import com.truckie1.app.ui.RealAppDataSource
 import com.truckie1.flags.FlagKeys
 import com.truckie1.flags.LocalFeatureFlags
@@ -61,6 +62,8 @@ class TruckieApp : Application() {
      * hard-wired Stub that ignores `ff_graphhopper_live`.
      */
     val routeNavigateSession = RouteNavigateSession(pathRouterProvider = { pathRouter() })
+    /** Last Optimise tour path for home map polyline (`ff_map_route_polyline`). */
+    val mapRoutePolylineSession = MapRoutePolylineSession()
     val mapEngine = MapLibreNativeEngine()
 
     /**
@@ -143,6 +146,8 @@ class TruckieApp : Application() {
             featureFlags.setEnabled(FlagKeys.BRIDGE_MARKERS, true)
             // Route stop markers: pickup vs drop-off on MapLibre home (ATNA-81).
             featureFlags.setEnabled(FlagKeys.STOP_MARKERS, true)
+            // Constrained PathRouter route line on MapLibre home (ATNA-82).
+            featureFlags.setEnabled(FlagKeys.MAP_ROUTE_POLYLINE, true)
             // Verified CBD clearances: no mock heights (ATNA-42).
             featureFlags.setEnabled(FlagKeys.VERIFIED_CBD_CLEARANCES, true)
             // Queensland Rail SEQ road-under-rail clearances (ATNA-44).

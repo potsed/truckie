@@ -39,5 +39,42 @@ data class Trip(
 
 enum class OptimizeMode {
     FASTEST,
+    /** @deprecated Product goal is cost-effective; use [TourOptimizeGoals]. */
     CHEAPEST,
+}
+
+/**
+ * Fastest and Cost Effective are **checkboxes** (not radio), both **on by
+ * default** — AND preference: prefer tours that are fast and cost-effective
+ * together. Map route polyline and Optimize share this model.
+ */
+data class TourOptimizeGoals(
+    val preferFastest: Boolean = true,
+    val preferCostEffective: Boolean = true,
+) {
+    companion object {
+        /** Both checkboxes selected — product default. */
+        val DEFAULT: TourOptimizeGoals = TourOptimizeGoals(
+            preferFastest = true,
+            preferCostEffective = true,
+        )
+
+        fun fromLegacyMode(mode: OptimizeMode): TourOptimizeGoals = when (mode) {
+            OptimizeMode.FASTEST -> TourOptimizeGoals(
+                preferFastest = true,
+                preferCostEffective = false,
+            )
+            OptimizeMode.CHEAPEST -> TourOptimizeGoals(
+                preferFastest = false,
+                preferCostEffective = true,
+            )
+        }
+    }
+
+    /** Legacy single-axis view when exactly one checkbox is on. */
+    fun asLegacyMode(): OptimizeMode? = when {
+        preferFastest && !preferCostEffective -> OptimizeMode.FASTEST
+        !preferFastest && preferCostEffective -> OptimizeMode.CHEAPEST
+        else -> null
+    }
 }

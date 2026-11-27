@@ -65,6 +65,7 @@ import com.truckie1.routing.OptimizeResult
 import com.truckie1.trips.CargoAction
 import com.truckie1.trips.ClearanceCalculator
 import com.truckie1.trips.OptimizeMode
+import com.truckie1.trips.TourOptimizeGoals
 import com.truckie1.trips.TripStop
 
 /**
@@ -499,12 +500,15 @@ private fun MapHomeRoute(
     var navigatePathPoints by remember {
         mutableStateOf(app.routeNavigateSession.activePath()?.points.orEmpty())
     }
+    var polylineRevision by remember { mutableStateOf(0) }
     LaunchedEffect(demoRevision) {
         // ATNA-75: data source already swapped; just rebind active route.
         route = app.routeSession.activeRoute()
         if (DemoModeCatalog.isEnabled(app.featureFlags)) {
             app.routeNavigateSession.clear()
+            app.mapRoutePolylineSession.clear()
             navigatePathPoints = emptyList()
+            polylineRevision += 1
             if (route != null && route!!.stops.isNotEmpty()) {
                 sheetValue = RouteSheetValue.Half
             }
@@ -526,10 +530,48 @@ private fun MapHomeRoute(
         flags = app.featureFlags,
         mapHomeEnabled = true,
     )
+    val showRoutePolyline = MapRoutePolylineCatalog.shouldShow(
+        flags = app.featureFlags,
+        mapHomeEnabled = true,
+    )
     val prioritiseStreetLabels = MapStreetLabelPolicy.shouldApply(
         flags = app.featureFlags,
         mapHomeEnabled = true,
     )
+    val activeVehicle = remember(app.vehicleProfiles.activeRego, demoRevision) {
+        app.vehicleProfiles.activeRego?.let { app.vehicleProfiles.findByRego(it) }
+    }
+    val displayPathPoints = remember(
+        route,
+        navigatePathPoints,
+        showRoutePolyline,
+        activeVehicle,
+        app.clearanceBufferM,
+        polylineRevision,
+        demoRevision,
+        app.featureFlags.isEnabled(FlagKeys.MAP_ROUTE_POLYLINE),
+        app.featureFlags.isEnabled(FlagKeys.BRIDGE_PASSAGE),
+        app.featureFlags.isEnabled(FlagKeys.TOLLS),
+        app.featureFlags.isEnabled(FlagKeys.GRAPHHOPPER_LIVE),
+    ) {
+        when {
+            navigatePathPoints.size >= 2 -> navigatePathPoints
+            showRoutePolyline -> MapRoutePolylineGeometry.pointsOrEmpty(
+                MapRoutePolylineGeometry.resolve(
+                    flags = app.featureFlags,
+                    mapHomeEnabled = true,
+                    route = route,
+                    vehicle = activeVehicle,
+                    bufferM = app.clearanceBufferM,
+                    pathRouter = app.pathRouter(),
+                    composer = app.routeOptimizer,
+                    optimisedPath = app.mapRoutePolylineSession.lastOptimisedPath(),
+                    navigatePath = app.routeNavigateSession.activePath(),
+                ),
+            )
+            else -> emptyList()
+        }
+    }
     var headingUpEnabled by remember {
         mutableStateOf(MapHeadingUpCatalog.isEnabled(app.featureFlags))
     }
@@ -566,7 +608,7 @@ private fun MapHomeRoute(
             route = route,
             sheetValue = sheetValue,
             summaryStrip = summary,
-            navigatePathPoints = navigatePathPoints,
+            navigatePathPoints = displayPathPoints,
         ),
         onSheetValueChange = { sheetValue = it },
         onCreateRoute = { input ->
@@ -598,7 +640,9 @@ private fun MapHomeRoute(
                 end = end,
             )
             app.routeNavigateSession.clear()
+            app.mapRoutePolylineSession.clear()
             navigatePathPoints = emptyList()
+            polylineRevision += 1
             sheetValue = RouteSheetValue.Half
         },
         onAddStop = { addressLabel, kind, suggestion ->
@@ -616,6 +660,8 @@ private fun MapHomeRoute(
                 is com.truckie1.app.trips.VerifiedRouteStopBuilder.Result.Ok -> {
                     app.routeSession.addStop(built.stop)
                     route = app.routeSession.activeRoute()
+                    app.mapRoutePolylineSession.clear()
+                    polylineRevision += 1
                 }
                 is com.truckie1.app.trips.VerifiedRouteStopBuilder.Result.Err -> {
                     // Verified mode: ignore free-text-only / incomplete attempts.
@@ -635,6 +681,7 @@ private fun MapHomeRoute(
             ) {
                 is com.truckie1.app.trips.RouteNavigateSession.Result.Ready -> {
                     navigatePathPoints = result.path.points
+                    polylineRevision += 1
                     result.externalHandoff?.let { handoff ->
                         val intent = com.truckie1.app.settings.ExternalNavigationHandoff.buildIntent(
                             packageName = handoff.packageName,
@@ -715,7 +762,7 @@ private fun ColumnScope.TripStopsRoute(
     var showOptimize by remember {
         mutableStateOf(OptimizeForVehicleGate.isAvailable(app.featureFlags))
     }
-    var optimizeMode by remember { mutableStateOf(OptimizeMode.FASTEST) }
+    var optimizeGoals by remember { mutableStateOf(TourOptimizeGoals.DEFAULT) }
     var optimizeStatus by remember { mutableStateOf<String?>(null) }
 
     fun bindList() {
@@ -731,7 +778,7 @@ private fun ColumnScope.TripStopsRoute(
         stops = stops,
         clearanceSummary = clearanceSummary,
         showOptimize = showOptimize,
-        optimizeMode = optimizeMode,
+        optimizeGoals = optimizeGoals,
         optimizeStatus = optimizeStatus,
         onAddStop = onAddStop,
         onMoveUp = { index ->
@@ -750,7 +797,7 @@ private fun ColumnScope.TripStopsRoute(
             app.tripSession.removeStop(stop.id)
             bindList()
         },
-        onModeChange = { optimizeMode = it },
+        onGoalsChange = { optimizeGoals = it },
         onOptimize = {
             if (!OptimizeForVehicleGate.isAvailable(app.featureFlags)) {
                 Toast.makeText(
@@ -775,12 +822,14 @@ private fun ColumnScope.TripStopsRoute(
                     stops = currentStops,
                     vehicle = vehicle,
                     bufferM = app.clearanceBufferM,
-                    mode = optimizeMode,
+                    goals = optimizeGoals,
                 )
             ) {
                 is OptimizeResult.Ok -> {
                     app.tripSession.replaceStops(result.orderedStops)
-                    app.tripSession.lastOptimizeMode = result.mode
+                    app.tripSession.lastOptimizeMode =
+                        optimizeGoals.asLegacyMode() ?: OptimizeMode.FASTEST
+                    app.mapRoutePolylineSession.rememberOptimised(result.path)
                     optimizeStatus = context.getString(
                         R.string.optimize_success,
                         result.mode.name.lowercase().replaceFirstChar { it.titlecase() },

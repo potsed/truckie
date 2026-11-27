@@ -551,18 +551,6 @@ private class MapLibreHost(
         followGesturesBound = false
     }
 
-    private fun dropLineManagerIfOrphaned(style: Style): LineManager? {
-        val current = lineManager ?: return null
-        val recreate = MapLibreStyleLifecycle.mustRecreateAnnotationManager(
-            hasManager = true,
-            styleContainsManagerLayer = style.getLayer(current.layerId) != null,
-        )
-        if (!recreate) return current
-        runCatching { current.onDestroy() }
-        lineManager = null
-        return null
-    }
-
     fun bindStops(
         mapView: MapView,
         map: MapLibreMap,
@@ -610,8 +598,14 @@ private class MapLibreHost(
         points: List<LatLngPoint>,
     ) {
         mapRef = map
-        dropLineManagerIfOrphaned(style)
-        val manager = lineManager ?: LineManager(mapView, map, style).also { lineManager = it }
+        val manager = MapLineBind.obtain(
+            current = lineManager,
+            mapView = mapView,
+            map = map,
+            style = style,
+            clear = { lineManager = null },
+            assign = { lineManager = it },
+        )
         manager.deleteAll()
         if (points.size < 2) return
         val latLngs = points.map { LatLng(it.latitude, it.longitude) }
