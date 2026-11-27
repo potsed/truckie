@@ -1,70 +1,66 @@
 package com.truckie1.app.ui
 
 import com.truckie1.flags.FeatureFlags
-import com.truckie1.profiles.InMemoryVehicleProfileRepository
 import com.truckie1.profiles.Vehicle
 import com.truckie1.profiles.VehicleProfileRepository
 
 /**
- * Hard isolation between real and demo vehicle stores (ATNA-56 / ATNA-58).
+ * Thin vehicle-only view of [DualModeAppDataSource] for call sites that still
+ * inject [VehicleProfileRepository] (ATNA-75). Prefer the full [AppDataSource].
  *
- * **Source of truth is `ff_demo_mode`**, not a separate mutable latch — so a Settings
- * toggle that flips the flag always hides real vehicles (and vice versa), even if
- * seeding of the demo route is handled separately by [DemoModeController].
+ * Isolation follows `ff_demo_mode` via [dataSource] — no separate latch, no
+ * auto-seed on read (demo store is pre-seeded and read-only).
  *
  * Gherkin: features/demo_mode.feature
  */
 class DualModeVehicleProfileRepository(
-    private val real: VehicleProfileRepository,
-    private val flags: FeatureFlags,
-    private val demo: VehicleProfileRepository = InMemoryVehicleProfileRepository(),
+    private val dataSource: DualModeAppDataSource,
 ) : VehicleProfileRepository {
-    private fun useDemo(): Boolean = DemoModeCatalog.isEnabled(flags)
+    /** @deprecated Prefer constructing via [DualModeAppDataSource]. */
+    constructor(
+        real: VehicleProfileRepository,
+        flags: FeatureFlags,
+        demo: VehicleProfileRepository? = null,
+    ) : this(
+        DualModeAppDataSource(
+            real = RealAppDataSource(vehicles = real),
+            demo = if (demo != null) {
+                object : AppDataSource {
+                    override val vehicles = ReadOnlyVehicleProfileRepository(demo)
+                    override val routes = ReadOnlyRouteRepository(
+                        com.truckie1.trips.RouteSession().also {
+                            it.replaceActive(DemoDataset.buildRoute())
+                        },
+                    )
+                    override val trips = ReadOnlyTripRepository(
+                        com.truckie1.trips.TripSession().also { session ->
+                            val route = DemoDataset.buildRoute()
+                            session.replaceStops(route.stops.toTripStops())
+                        },
+                    )
+                }
+            } else {
+                DemoAppDataSource.create()
+            },
+            flags = flags,
+        ),
+    )
 
-    private fun activeStore(): VehicleProfileRepository {
-        if (useDemo()) {
-            ensureDemoVehicleLoaded()
-            return demo
-        }
-        return real
-    }
-
-    /** Seeds the in-memory demo store when empty so `all()` is never an empty demo gap. */
-    fun ensureDemoVehicleLoaded() {
-        if (demo.findByRego(DemoDataset.VEHICLE_REGO) == null) {
-            demo.save(DemoDataset.vehicle)
-        }
-        if (demo.activeRego == null || !DemoDataset.isDemoVehicleRego(demo.activeRego!!)) {
-            demo.setActive(DemoDataset.VEHICLE_REGO)
-        }
-    }
-
-    /** @deprecated Prefer flag-driven [useDemo]; kept for tests that flip isolation explicitly. */
-    @Deprecated("Isolation follows ff_demo_mode", ReplaceWith("DemoModeCatalog.isEnabled(flags)"))
-    var demoModeEnabled: Boolean
-        get() = useDemo()
-        set(@Suppress("UNUSED_PARAMETER") value) {
-            // No-op: flag is the source of truth (ATNA-58).
-        }
+    private fun active(): VehicleProfileRepository = dataSource.vehicles
 
     override fun save(vehicle: Vehicle) {
-        activeStore().save(vehicle)
+        active().save(vehicle)
     }
 
-    override fun findByRego(rego: String): Vehicle? = activeStore().findByRego(rego)
+    override fun findByRego(rego: String): Vehicle? = active().findByRego(rego)
 
-    override fun all(): List<Vehicle> = activeStore().all()
+    override fun all(): List<Vehicle> = active().all()
 
     override var activeRego: String?
-        get() = activeStore().activeRego
+        get() = active().activeRego
         set(value) {
-            activeStore().activeRego = value
+            active().activeRego = value
         }
 
-    override fun setActive(rego: String): Boolean = activeStore().setActive(rego)
-
-    fun loadDemoVehicle() {
-        demo.save(DemoDataset.vehicle)
-        demo.setActive(DemoDataset.VEHICLE_REGO)
-    }
+    override fun setActive(rego: String): Boolean = active().setActive(rego)
 }

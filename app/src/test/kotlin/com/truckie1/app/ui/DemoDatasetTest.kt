@@ -66,6 +66,8 @@ class DemoDatasetTest {
         assertEquals(3.5, vehicle.heightM, 0.001)
         assertTrue(DemoDataset.isDemoVehicleRego(vehicle.rego))
         assertFalse(DemoDataset.isDemoVehicleRego("ABC123"))
+        assertFalse(vehicle.nickname.contains("demo", ignoreCase = true))
+        assertFalse(vehicle.rego.contains("demo", ignoreCase = true))
     }
 
     @Test

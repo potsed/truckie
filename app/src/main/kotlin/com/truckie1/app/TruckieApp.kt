@@ -11,8 +11,10 @@ import com.truckie1.app.trips.RouteNavigateSession
 import com.truckie1.app.ui.AuLowBridgesPack
 import com.truckie1.app.ui.BridgePackRepository
 import com.truckie1.app.ui.CachedBridgePackRepository
+import com.truckie1.app.ui.DemoAppDataSource
 import com.truckie1.app.ui.DemoModeController
-import com.truckie1.app.ui.DualModeVehicleProfileRepository
+import com.truckie1.app.ui.DualModeAppDataSource
+import com.truckie1.app.ui.RealAppDataSource
 import com.truckie1.flags.FlagKeys
 import com.truckie1.flags.LocalFeatureFlags
 import com.truckie1.maps.MapLibreNativeEngine
@@ -21,12 +23,14 @@ import com.truckie1.routing.GraphHopperPathRouterFactory
 import com.truckie1.routing.MultiStopTourComposer
 import com.truckie1.routing.PathRouter
 import com.truckie1.trips.ClearanceBuffer
+import com.truckie1.trips.RouteRepository
 import com.truckie1.trips.RouteSession
+import com.truckie1.trips.TripRepository
 import com.truckie1.trips.TripSession
 
 class TruckieApp : Application() {
     val featureFlags = LocalFeatureFlags()
-    lateinit var vehicleProfiles: VehicleProfileRepository
+    lateinit var dataSource: DualModeAppDataSource
         private set
     lateinit var demoModeController: DemoModeController
         private set
@@ -36,8 +40,22 @@ class TruckieApp : Application() {
         private set
     lateinit var bridgePackRepository: BridgePackRepository
         private set
-    val tripSession = TripSession()
-    val routeSession = RouteSession()
+
+    /**
+     * Active vehicle/route/trip stores — swap with [dataSource] when
+     * `ff_demo_mode` flips. Same repository contracts for Real and Demo (ATNA-75).
+     */
+    val vehicleProfiles: VehicleProfileRepository
+        get() = if (::dataSource.isInitialized) dataSource.vehicles else error("TruckieApp not initialised")
+    val tripSession: TripRepository
+        get() = if (::dataSource.isInitialized) dataSource.trips else bootstrapTrips
+    val routeSession: RouteRepository
+        get() = if (::dataSource.isInitialized) dataSource.routes else bootstrapRoutes
+
+    /** Real stores held until [onCreate] wires Room + dual mode. */
+    private val bootstrapRoutes = RouteSession()
+    private val bootstrapTrips = TripSession()
+
     /**
      * Navigate session shares the app [pathRouter] factory (ATNA-71) — never a
      * hard-wired Stub that ignores `ff_graphhopper_live`.
@@ -92,17 +110,18 @@ class TruckieApp : Application() {
     override fun onCreate() {
         super.onCreate()
         val db = VehicleDatabase.build(this)
-        val dualVehicles = DualModeVehicleProfileRepository(
-            real = RoomVehicleProfileRepository(db.vehicleDao()),
+        // ATNA-75: one AppDataSource abstraction — Real (Room + sessions) vs
+        // Demo (pre-seeded read-only). Flag selects the store; same domain types.
+        dataSource = DualModeAppDataSource(
+            real = RealAppDataSource(
+                vehicles = RoomVehicleProfileRepository(db.vehicleDao()),
+                routes = bootstrapRoutes,
+                trips = bootstrapTrips,
+            ),
+            demo = DemoAppDataSource.create(),
             flags = featureFlags,
         )
-        vehicleProfiles = dualVehicles
-        demoModeController = DemoModeController(
-            flags = featureFlags,
-            vehicles = dualVehicles,
-            routeSession = routeSession,
-            tripSession = tripSession,
-        )
+        demoModeController = DemoModeController(flags = featureFlags)
         navigationAppStore = SharedNavigationAppStore(this)
         navigationAppQuery = PackageManagerNavigationAppQuery(packageManager)
         // Dogfood: enable shipped capabilities in debug builds only.

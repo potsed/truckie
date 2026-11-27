@@ -64,8 +64,8 @@ object FlagKeys {
      */
     const val BCC_ROAD_HEIGHT_RESTRICTIONS = "ff_bcc_road_height_restrictions"
     /**
-     * Demo mode (ATNA-56) — sample SEQ run + hard isolation from real data.
-     * Jump-to-sample-bridges map FAB removed (ATNA-67); Demo stays Settings-only.
+     * Demo mode (ATNA-56 / ATNA-75) — Settings selects demo AppDataSource
+     * (same schema, read-only sample). Jump FAB removed (ATNA-67).
      */
     const val DEMO_MODE = "ff_demo_mode"
     /**

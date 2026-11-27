@@ -1,28 +1,43 @@
 package com.truckie1.trips
 
 /**
+ * Trip stop list store (reorder / add / delete).
+ * Real and demo modes share this contract — only the backing dataset differs.
+ */
+interface TripRepository {
+    /** Last successful optimize mode (Fastest / Cheapest), if any. */
+    var lastOptimizeMode: OptimizeMode?
+
+    fun stops(): List<TripStop>
+    fun addStop(stop: TripStop)
+    fun removeStop(id: String)
+    fun moveStop(fromIndex: Int, toIndex: Int)
+    fun replaceStops(newStops: List<TripStop>)
+    fun updateStop(stop: TripStop)
+}
+
+/**
  * In-memory editable trip stop list (reorder / add / delete).
  */
 class TripSession(
     initialStops: List<TripStop> = emptyList(),
-) {
+) : TripRepository {
     private val stops = initialStops.toMutableList()
 
-    /** Last successful optimize mode (Fastest / Cheapest), if any. */
-    var lastOptimizeMode: OptimizeMode? = null
+    override var lastOptimizeMode: OptimizeMode? = null
 
-    fun stops(): List<TripStop> = stops.toList()
+    override fun stops(): List<TripStop> = stops.toList()
 
-    fun addStop(stop: TripStop) {
+    override fun addStop(stop: TripStop) {
         require(stops.none { it.id == stop.id }) { "Duplicate stop id: ${stop.id}" }
         stops.add(stop)
     }
 
-    fun removeStop(id: String) {
+    override fun removeStop(id: String) {
         stops.removeAll { it.id == id }
     }
 
-    fun moveStop(fromIndex: Int, toIndex: Int) {
+    override fun moveStop(fromIndex: Int, toIndex: Int) {
         require(fromIndex in stops.indices) { "fromIndex out of range" }
         require(toIndex in stops.indices) { "toIndex out of range" }
         if (fromIndex == toIndex) return
@@ -30,12 +45,12 @@ class TripSession(
         stops.add(toIndex, item)
     }
 
-    fun replaceStops(newStops: List<TripStop>) {
+    override fun replaceStops(newStops: List<TripStop>) {
         stops.clear()
         stops.addAll(newStops)
     }
 
-    fun updateStop(stop: TripStop) {
+    override fun updateStop(stop: TripStop) {
         val index = stops.indexOfFirst { it.id == stop.id }
         require(index >= 0) { "Unknown stop id: ${stop.id}" }
         stops[index] = stop

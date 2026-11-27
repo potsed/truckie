@@ -4,12 +4,11 @@ import java.time.LocalDate
 import java.util.UUID
 
 /**
- * In-memory editable active [Route] for the map-first home drag sheet.
+ * Active [Route] store for the map-first home drag sheet.
+ * Real and demo modes share this contract — only the backing dataset differs.
  */
-class RouteSession {
-    private var active: Route? = null
-
-    fun activeRoute(): Route? = active
+interface RouteRepository {
+    fun activeRoute(): Route?
 
     fun createRoute(
         name: String?,
@@ -18,6 +17,31 @@ class RouteSession {
         customDate: LocalDate? = null,
         start: RouteEndpoint? = null,
         end: RouteEndpoint? = null,
+    ): Route
+
+    fun addStop(stop: RouteStop)
+    fun removeStop(id: String)
+    fun clear()
+
+    /** Replaces the active route in one shot. Pass null to clear. */
+    fun replaceActive(route: Route?)
+}
+
+/**
+ * In-memory editable active [Route] for the map-first home drag sheet.
+ */
+class RouteSession : RouteRepository {
+    private var active: Route? = null
+
+    override fun activeRoute(): Route? = active
+
+    override fun createRoute(
+        name: String?,
+        dateChoice: RouteDateChoice,
+        today: LocalDate,
+        customDate: LocalDate?,
+        start: RouteEndpoint?,
+        end: RouteEndpoint?,
     ): Route {
         val date = when (dateChoice) {
             RouteDateChoice.TODAY -> today
@@ -39,29 +63,25 @@ class RouteSession {
         return route
     }
 
-    fun addStop(stop: RouteStop) {
+    override fun addStop(stop: RouteStop) {
         val route = requireNotNull(active) { "Create a route before adding stops" }
         require(route.stops.none { it.id == stop.id }) { "Duplicate stop id: ${stop.id}" }
         val ordered = stop.copy(order = route.stops.size)
         active = route.copy(stops = route.stops + ordered, status = RouteStatus.ACTIVE)
     }
 
-    fun removeStop(id: String) {
+    override fun removeStop(id: String) {
         val route = active ?: return
         val remaining = route.stops.filterNot { it.id == id }
             .mapIndexed { index, stop -> stop.copy(order = index) }
         active = route.copy(stops = remaining)
     }
 
-    fun clear() {
+    override fun clear() {
         active = null
     }
 
-    /**
-     * Replaces the active route in one shot (used by Demo mode isolation).
-     * Pass null to clear without creating a new route.
-     */
-    fun replaceActive(route: Route?) {
+    override fun replaceActive(route: Route?) {
         active = route
     }
 }

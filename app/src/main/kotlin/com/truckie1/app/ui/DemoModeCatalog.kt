@@ -5,11 +5,11 @@ import com.truckie1.flags.FlagKeys
 import com.truckie1.flags.LocalFeatureFlags
 
 /**
- * Demo mode (`ff_demo_mode`, ATNA-56) — Settings toggle for dogfood affordances.
+ * Demo mode (`ff_demo_mode`, ATNA-56 / ATNA-75) — Settings toggle selects the
+ * demo [AppDataSource]. Same app functions; only the dataset differs.
  *
- * When on: [DemoDataset] (DHL Boronia Rd depot, 6 stops, 3.5 m vehicle) via
- * [DemoModeController] with hard isolation from real vehicles/routes.
- * Floating Jump-to-sample-bridges FAB was removed (ATNA-67).
+ * Product chrome: floating [DemoModePillCatalog] only. Dataset labels are neutral.
+ * Demo stores are read-only.
  *
  * Off by default in production **and** debug — opt-in via Settings only.
  * Gherkin: features/demo_mode.feature

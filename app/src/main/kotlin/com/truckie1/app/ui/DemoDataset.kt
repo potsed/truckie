@@ -18,22 +18,27 @@ enum class DemoStopAreaKind {
 }
 
 /**
- * Fixed SEQ demo run for `ff_demo_mode` (ATNA-56): DHL Boronia Rd depot, six stops
- * (2 pickup / 4 delivery; industrial Yatala/Lytton-style + one residential near a
- * verified low bridge), and a 3.5 m demo vehicle. Used for route-optimisation and
- * W5-8 / clearance-filter dogfood.
+ * Fixed SEQ sample run for `ff_demo_mode` (ATNA-56 / ATNA-75): DHL Boronia Rd
+ * depot, six stops (2 pickup / 4 delivery; industrial Yatala/Lytton-style + one
+ * residential near a verified low bridge), and a 3.5 m vehicle.
+ *
+ * Product surface labels are **neutral** (look like normal driver data). The only
+ * in-app "demo" chrome is the floating DEMO MODE pill — not route/vehicle copy.
  *
  * Gherkin: features/demo_mode.feature
  */
 object DemoDataset {
+    /** Stable internal id — not shown as a "Demo …" label in UI. */
     const val ROUTE_ID: String = "demo-route-seq-dhl"
-    const val ROUTE_NAME: String = "Demo SEQ run"
-    const val VEHICLE_REGO: String = "DEMO350"
+    /** Neutral route name shown in the sheet (no "Demo" wording). */
+    const val ROUTE_NAME: String = "Airport run"
+    /** Neutral rego shown in Vehicles (no DEMO* prefix). */
+    const val VEHICLE_REGO: String = "104YQ3"
 
     /**
-     * QR SEQ underbridge next to the residential demo stop
+     * QR SEQ underbridge next to the residential sample stop
      * (`qld-qr-wynnum-colina-street-berrima-street`, 1.9 m) — conflicts with the
-     * 3.5 m demo vehicle so W5-8 filtering is exercisable on the demo route.
+     * 3.5 m vehicle so W5-8 filtering is exercisable on the sample route.
      */
     const val NEAR_LOW_BRIDGE_ID: String = "qld-qr-wynnum-colina-street-berrima-street"
     const val NEAR_LOW_BRIDGE_NAME: String = "Colina Street / Berrima Street (Wynnum)"
@@ -52,10 +57,10 @@ object DemoDataset {
 
     val vehicle: Vehicle = Vehicle(
         rego = VEHICLE_REGO,
-        nickname = "Demo 3.5 m",
+        nickname = "Rigid 3.5",
         vehicleType = "Rigid",
-        make = "Demo",
-        model = "Sample",
+        make = "Hino",
+        model = "500",
         year = 2024,
         heightM = 3.5,
         widthM = 2.5,
@@ -65,7 +70,7 @@ object DemoDataset {
         gvmT = 12.0,
         gcmT = 12.0,
         axleCount = 2,
-        notes = "Demo mode only — not a real vehicle",
+        notes = null,
     )
 
     data class DemoStop(
@@ -174,6 +179,13 @@ object DemoDataset {
                 )
             },
         )
+
+    /** True when visible product copy would reveal demo mode (forbidden except pill). */
+    fun hasDemoRevealingProductCopy(routeName: String?, vehicleNickname: String?, vehicleNotes: String?): Boolean {
+        fun looksDemo(value: String?): Boolean =
+            value?.contains("demo", ignoreCase = true) == true
+        return looksDemo(routeName) || looksDemo(vehicleNickname) || looksDemo(vehicleNotes)
+    }
 
     private fun haversineM(
         lat1: Double,

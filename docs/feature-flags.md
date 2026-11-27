@@ -33,7 +33,7 @@ XML screen layouts were removed; do not add new AppCompat/XML screens.
 | `ff_bcc_road_height_restrictions` | BCC Road Height Restrictions GIS (ATNA-46): show Brisbane Open Data under-4.6 m local pack entries; off keeps curated CBD samples | off (on in debug) |
 | `ff_vehicle_height_bridge_filter` | Home-map W5-8 conflicts only (ATNA-47): show low bridges where clearance &lt; vehicle height + system buffer; no usable height → show all low | off (on in debug) |
 | `ff_bridge_passage` | Bridge over vs under (ATNA-48 / ATNA-73): model under/over/both/unknown; shared `BridgePassagePolicy` blocks under-paths only (OK to drive over deck); home-map uses `BridgeVisibilityPipeline` | off (on in debug) |
-| `ff_demo_mode` | Demo mode (ATNA-56) — Settings toggle; sample SEQ run (DHL Boronia Rd depot, 6 stops incl. one near a low bridge, 3.5 m vehicle) with hard isolation from real data (Jump FAB removed ATNA-67) | **off** (including debug — Settings opt-in only) |
+| `ff_demo_mode` | Demo mode (ATNA-56 / ATNA-75) — Settings toggle selects the demo `AppDataSource` (same Vehicle/Route/TripStop schema; read-only sample SEQ run). Real data stays in the real store. Floating **DEMO MODE** pill is the only in-app demo label; dataset copy is neutral. Jump FAB removed (ATNA-67) | **off** (including debug — Settings opt-in only) |
 | `ff_map_heading_up` | Orient map to driving direction — map-chrome lock control (like Recenter); while following, MapLibre `TRACKING_GPS` course-up (off = north-up `TRACKING`) | off (on in debug) |
 | `ff_au_low_bridges_pack` | Consume public AU low-bridges JSON pack (ATNA-50) local-first from GitHub Release when newer | off (on in debug) |
 
@@ -121,17 +121,16 @@ XML screen layouts were removed; do not add new AppCompat/XML screens.
     Height conflicts (and future routing) block driving **under** a restricted
     structure — OK to drive **over** the deck. Bootstrap `0.7.0-sample`. Never
     invents clearances.
-20. Demo mode (`ff_demo_mode`, ATNA-56 / ATNA-58) is a Settings switch. When on,
-    [DemoModeController] loads [DemoDataset]: DHL Boronia Rd depot, **6 stops**
-    (2 pickup / 4 delivery; industrial Yatala/Lytton-style + one residential
-    beside QR Colina St / Berrima St Wynnum 1.9 m underbridge for W5-8 dogfood),
-    and a **3.5 m** demo vehicle — with **hard isolation** from real vehicles,
-    routes, and trip stops (and the reverse when off). Vehicle isolation follows
-    the flag directly ([DualModeVehicleProfileRepository]); Home/Vehicles call
-    `ensureSeededIfDemo()` so a flag-on session always has the seeded route
-    (ATNA-58). Floating **Jump to sample bridges** FAB was removed (ATNA-67);
-    Demo mode stays Settings-only. Defaults **off** in production **and** debug —
-    Settings opt-in only (`DemoModeCatalog.ENABLED_BY_DEFAULT_IN_DEBUG = false`).
+20. Demo mode (`ff_demo_mode`, ATNA-56 / ATNA-75) is a Settings switch that selects
+    the demo [AppDataSource] (same Vehicle / Route / TripStop schema as real).
+    [DualModeAppDataSource] swaps stores from the flag — no backup/restore /
+    `ensureSeededIfDemo` paths. Demo stores are **read-only**. Dataset labels are
+    neutral (e.g. "Airport run", "Rigid 3.5"); the only in-app demo label is the
+    floating **DEMO MODE** pill. Sample content: DHL Boronia Rd depot, **6 stops**
+    (2 pickup / 4 delivery; industrial + one residential beside QR Colina St /
+    Berrima St Wynnum 1.9 m underbridge), **3.5 m** vehicle. Jump FAB removed
+    (ATNA-67). Defaults **off** in production **and** debug — Settings opt-in only
+    (`DemoModeCatalog.ENABLED_BY_DEFAULT_IN_DEBUG = false`).
 21. Map heading-up (`ff_map_heading_up`) is a **map-chrome orientation lock** (same overlay
     pattern as Recenter — not a Settings switch). Requires `ff_map_home` +
     `ff_map_location_puck` follow. Locked → course-up (`TRACKING_GPS` + GPS puck);

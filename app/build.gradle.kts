@@ -20,7 +20,7 @@ android {
         minSdk = 24
         targetSdk = 35
         versionCode = 1
-        versionName = "0.8.29-bridge-passage-pipeline"
+        versionName = "0.8.30-demo-data-parity"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 

@@ -40,8 +40,9 @@ fun SettingsScreen(
     featureFlags: LocalFeatureFlags? = null,
     showDemoModeSwitch: Boolean = false,
     /**
-     * When set, Demo mode toggles go through isolation (ATNA-56) instead of only flipping the flag.
-     * Compose tests may omit this and toggle [DemoModeCatalog] directly via the flag.
+     * Required when [showDemoModeSwitch] is true — flips `ff_demo_mode` via
+     * [DemoModeController] so [DualModeAppDataSource] swaps stores (ATNA-75).
+     * Catalog-only fallback removed: flag-alone toggles skipped route isolation.
      */
     onDemoModeChanged: ((Boolean) -> Unit)? = null,
     /** Debug dogfood: show [BuildConfig.VERSION_NAME] so installs of a fix can be confirmed. */
@@ -110,14 +111,11 @@ private fun DemoModeSwitchSection(
             checked = enabled,
             onCheckedChange = { checked ->
                 enabled = checked
-                // ATNA-58: never flip the flag alone — isolation + seed must run together.
-                if (onDemoModeChanged != null) {
-                    onDemoModeChanged(checked)
-                } else {
-                    // Tests without a controller still flip the flag; production always
-                    // passes onDemoModeChanged from TruckieRootNav / SettingsActivity.
-                    DemoModeCatalog.setEnabled(flags, enabled = checked)
+                // ATNA-75: require controller callback — no catalog-only fork.
+                val callback = requireNotNull(onDemoModeChanged) {
+                    "Demo mode switch requires onDemoModeChanged (DemoModeController)"
                 }
+                callback(checked)
             },
             modifier = Modifier.testTag(DemoModeCatalog.SETTINGS_TEST_TAG),
         )
