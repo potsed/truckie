@@ -1,8 +1,11 @@
 package com.truckie1.app.trips
 
 import com.truckie1.app.settings.NavigationAppSelection
+import com.truckie1.app.ui.NavigateMultiStopCatalog
 import com.truckie1.flags.FlagKeys
 import com.truckie1.flags.LocalFeatureFlags
+import com.truckie1.profiles.Vehicle
+import com.truckie1.routing.MultiStopTourComposer
 import com.truckie1.routing.PathResult
 import com.truckie1.routing.PathRouter
 import com.truckie1.routing.RoutePath
@@ -18,12 +21,44 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * Gherkin: create_route_start_end.feature — in-app GraphHopper Navigate + optional handoff.
+ * Gherkin: create_route_start_end.feature + navigate_multi_stop_path.feature —
+ * in-app GraphHopper Navigate via ActiveTourPath + optional handoff.
  */
 class RouteNavigateSessionTest {
 
     private val start = RouteEndpoint("Depot", -27.45, 153.01)
     private val end = RouteEndpoint("Customer", -27.47, 153.03)
+
+    private val vehicle = Vehicle(
+        rego = "ABC123",
+        nickname = "Rigid",
+        vehicleType = "Rigid",
+        make = "Volvo",
+        model = "FM",
+        year = 2019,
+        heightM = 3.5,
+        widthM = 2.5,
+        lengthM = 12.5,
+        massT = 10.0,
+        tareT = 8.5,
+        gvmT = 26.0,
+        gcmT = 42.5,
+        axleCount = 3,
+        networkClass = "GML",
+    )
+
+    private fun flagsNavigateOn(): LocalFeatureFlags = LocalFeatureFlags(
+        mapOf(
+            FlagKeys.NAVIGATE to true,
+            FlagKeys.NAVIGATE_MULTI_STOP to true,
+        ),
+    )
+
+    private fun session(
+        router: PathRouter = StubGraphHopperPathRouter(),
+    ): RouteNavigateSession = RouteNavigateSession(
+        composerProvider = { MultiStopTourComposer(pathRouter = router) },
+    )
 
     @Test
     fun flagKeyDefaultsOff() {
@@ -36,9 +71,9 @@ class RouteNavigateSessionTest {
     }
 
     @Test
-    fun canNavigateRequiresFlagAndEndpoints() {
+    fun canNavigateRequiresFlagEndpointsAndVehicle() {
         val flagsOff = LocalFeatureFlags()
-        val flagsOn = LocalFeatureFlags(mapOf(FlagKeys.NAVIGATE to true))
+        val flagsOn = flagsNavigateOn()
         val ready = Route(
             id = "r1",
             dateEpochDay = 20_000,
@@ -46,34 +81,44 @@ class RouteNavigateSessionTest {
             start = start,
             end = end,
         )
-        assertFalse(RouteNavigateCatalog.canNavigate(flagsOff, ready))
-        assertFalse(RouteNavigateCatalog.canNavigate(flagsOn, null))
+        assertFalse(RouteNavigateCatalog.canNavigate(flagsOff, ready, vehicle))
+        assertFalse(RouteNavigateCatalog.canNavigate(flagsOn, null, vehicle))
         assertFalse(
             RouteNavigateCatalog.canNavigate(
                 flagsOn,
                 Route(id = "x", dateEpochDay = 1),
+                vehicle,
             ),
         )
-        assertTrue(RouteNavigateCatalog.canNavigate(flagsOn, ready))
-        assertTrue(RouteNavigateCatalog.canNavigate(flagsOn, ready.copy(end = start)))
+        assertFalse(RouteNavigateCatalog.canNavigate(flagsOn, ready, vehicle = null))
+        assertTrue(RouteNavigateCatalog.canNavigate(flagsOn, ready, vehicle))
+        assertTrue(RouteNavigateCatalog.canNavigate(flagsOn, ready.copy(end = start), vehicle))
     }
 
     @Test
     fun startAlwaysComputesInAppGraphHopperPath() {
-        val flags = LocalFeatureFlags(mapOf(FlagKeys.NAVIGATE to true))
-        val session = RouteNavigateSession(StubGraphHopperPathRouter())
+        val flags = flagsNavigateOn()
+        val navigateSession = session()
         val route = Route(
             id = "r1",
             dateEpochDay = 20_000,
             start = start,
             end = end,
         )
-        when (val result = session.start(flags, route, NavigationAppSelection.InAppTruckie)) {
+        when (
+            val result = navigateSession.start(
+                flags = flags,
+                route = route,
+                vehicle = vehicle,
+                bufferM = 0.15,
+                selection = NavigationAppSelection.InAppTruckie,
+            )
+        ) {
             is RouteNavigateSession.Result.Ready -> {
                 assertEquals(RoutePath.SOURCE_STUB, result.path.source)
                 assertTrue(result.path.points.size >= 2)
                 assertNull(result.externalHandoff)
-                assertEquals(result.path, session.activePath())
+                assertEquals(result.path, navigateSession.activePath())
             }
             else -> error("expected Ready, got $result")
         }
@@ -81,28 +126,41 @@ class RouteNavigateSessionTest {
 
     @Test
     fun startRoundTripStillYieldsInAppPath() {
-        val flags = LocalFeatureFlags(mapOf(FlagKeys.NAVIGATE to true))
-        val session = RouteNavigateSession(StubGraphHopperPathRouter())
+        val flags = flagsNavigateOn()
+        val navigateSession = session()
         val route = Route(id = "r1", dateEpochDay = 20_000, start = start, end = start)
-        val result = session.start(flags, route, NavigationAppSelection.InAppTruckie)
+        val result = navigateSession.start(
+            flags = flags,
+            route = route,
+            vehicle = vehicle,
+            bufferM = 0.15,
+            selection = NavigationAppSelection.InAppTruckie,
+        )
         assertTrue(result is RouteNavigateSession.Result.Ready)
-        assertNotNull(session.activePath())
+        assertNotNull(navigateSession.activePath())
         assertNull((result as RouteNavigateSession.Result.Ready).externalHandoff)
     }
 
     @Test
     fun externalSelectionStillComputesPathThenOffersHandoff() {
-        val flags = LocalFeatureFlags(mapOf(FlagKeys.NAVIGATE to true))
-        val session = RouteNavigateSession(StubGraphHopperPathRouter())
+        val flags = flagsNavigateOn()
+        val navigateSession = session()
         val route = Route(id = "r1", dateEpochDay = 20_000, start = start, end = end)
         val selection = NavigationAppSelection.External(
             packageName = "com.example.maps",
             label = "Example Maps",
         )
-        when (val result = session.start(flags, route, selection)) {
+        when (
+            val result = navigateSession.start(
+                flags = flags,
+                route = route,
+                vehicle = vehicle,
+                bufferM = 0.15,
+                selection = selection,
+            )
+        ) {
             is RouteNavigateSession.Result.Ready -> {
-                // GraphHopper path always calculated and held for the map.
-                assertNotNull(session.activePath())
+                assertNotNull(navigateSession.activePath())
                 assertEquals(RoutePath.SOURCE_STUB, result.path.source)
                 assertTrue(result.path.points.size >= 2)
                 val handoff = requireNotNull(result.externalHandoff)
@@ -118,41 +176,89 @@ class RouteNavigateSessionTest {
     @Test
     fun startGatesFlagAndMissingEndpoints() {
         val flagsOff = LocalFeatureFlags()
-        val flagsOn = LocalFeatureFlags(mapOf(FlagKeys.NAVIGATE to true))
-        val session = RouteNavigateSession()
+        val flagsOn = flagsNavigateOn()
+        val navigateSession = session()
         val route = Route(id = "r1", dateEpochDay = 20_000, start = start, end = end)
         assertEquals(
             RouteNavigateSession.Result.FlagOff,
-            session.start(flagsOff, route, NavigationAppSelection.InAppTruckie),
+            navigateSession.start(
+                flags = flagsOff,
+                route = route,
+                vehicle = vehicle,
+                bufferM = 0.15,
+                selection = NavigationAppSelection.InAppTruckie,
+            ),
         )
         assertEquals(
             RouteNavigateSession.Result.MissingEndpoints,
-            session.start(
-                flagsOn,
-                Route(id = "x", dateEpochDay = 1),
-                NavigationAppSelection.InAppTruckie,
+            navigateSession.start(
+                flags = flagsOn,
+                route = Route(id = "x", dateEpochDay = 1),
+                vehicle = vehicle,
+                bufferM = 0.15,
+                selection = NavigationAppSelection.InAppTruckie,
             ),
         )
     }
 
     @Test
-    fun blockedPathPropagatesWithoutHandoff() {
+    fun multiStopFlagOffBlocksNavigate() {
         val flags = LocalFeatureFlags(mapOf(FlagKeys.NAVIGATE to true))
+        assertFalse(NavigateMultiStopCatalog.isEnabled(flags))
+        val navigateSession = session()
+        val route = Route(id = "r1", dateEpochDay = 20_000, start = start, end = end)
+        assertEquals(
+            RouteNavigateSession.Result.FlagOff,
+            navigateSession.start(
+                flags = flags,
+                route = route,
+                vehicle = vehicle,
+                bufferM = 0.15,
+            ),
+        )
+    }
+
+    @Test
+    fun missingVehicleBlocksNavigate() {
+        val flags = flagsNavigateOn()
+        val navigateSession = session()
+        val route = Route(id = "r1", dateEpochDay = 20_000, start = start, end = end)
+        assertEquals(
+            RouteNavigateSession.Result.Blocked("Active vehicle required for constrained Navigate"),
+            navigateSession.start(
+                flags = flags,
+                route = route,
+                vehicle = null,
+                bufferM = 0.15,
+            ),
+        )
+        assertNull(navigateSession.activePath())
+    }
+
+    @Test
+    fun blockedPathPropagatesWithoutHandoff() {
+        val flags = flagsNavigateOn()
         val blocked = object : PathRouter {
             override fun path(
-                start: com.truckie1.trips.RouteEndpoint,
-                end: com.truckie1.trips.RouteEndpoint,
+                start: RouteEndpoint,
+                end: RouteEndpoint,
                 preferences: com.truckie1.routing.TruckRoutingPreferences,
                 customModel: com.truckie1.routing.GraphHopperCustomModelStub?,
             ): PathResult = PathResult.Blocked("no path")
         }
-        val session = RouteNavigateSession(blocked)
+        val navigateSession = session(blocked)
         val route = Route(id = "r1", dateEpochDay = 20_000, start = start, end = end)
         val selection = NavigationAppSelection.External("com.example.maps", "Maps")
         assertEquals(
             RouteNavigateSession.Result.Blocked("no path"),
-            session.start(flags, route, selection),
+            navigateSession.start(
+                flags = flags,
+                route = route,
+                vehicle = vehicle,
+                bufferM = 0.15,
+                selection = selection,
+            ),
         )
-        assertNull(session.activePath())
+        assertNull(navigateSession.activePath())
     }
 }

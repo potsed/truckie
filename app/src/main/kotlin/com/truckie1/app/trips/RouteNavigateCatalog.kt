@@ -1,12 +1,13 @@
 package com.truckie1.app.trips
 
+import com.truckie1.app.routing.ActiveTourPath
 import com.truckie1.app.settings.NavigationAppSelection
+import com.truckie1.app.ui.NavigateMultiStopCatalog
 import com.truckie1.flags.FeatureFlags
 import com.truckie1.flags.FlagKeys
-import com.truckie1.routing.PathResult
-import com.truckie1.routing.PathRouter
+import com.truckie1.profiles.Vehicle
+import com.truckie1.routing.MultiStopTourComposer
 import com.truckie1.routing.RoutePath
-import com.truckie1.routing.StubGraphHopperPathRouter
 import com.truckie1.trips.Route
 import com.truckie1.trips.RouteEndpoint
 
@@ -16,6 +17,10 @@ import com.truckie1.trips.RouteEndpoint
  * Path finding is **always** in-app GraphHopper (stub until live HTTP) so vehicle
  * constraints can apply. Settings may select an installed nav app for **optional
  * post-route handoff** only — never as a substitute for GraphHopper.
+ *
+ * With `ff_navigate_multi_stop` (defaults on), geometry comes from
+ * [ActiveTourPath] / [MultiStopTourComposer] — same ordered PathRouter legs as
+ * Optimise + map polyline (ATNA-87). Start→end-only Navigate is deleted.
  */
 object RouteNavigateCatalog {
     const val FLAG: String = FlagKeys.NAVIGATE
@@ -23,25 +28,30 @@ object RouteNavigateCatalog {
     fun isEnabled(flags: FeatureFlags): Boolean =
         flags.isEnabled(FlagKeys.NAVIGATE)
 
-    fun canNavigate(flags: FeatureFlags, route: Route?): Boolean =
-        isEnabled(flags) && route != null && route.hasEndpoints
+    fun canNavigate(
+        flags: FeatureFlags,
+        route: Route?,
+        vehicle: Vehicle? = null,
+    ): Boolean {
+        if (!isEnabled(flags) || route == null || !route.hasEndpoints) return false
+        if (NavigateMultiStopCatalog.isEnabled(flags) && vehicle == null) return false
+        return true
+    }
 
     fun showsNavigateAction(flags: FeatureFlags): Boolean = isEnabled(flags)
 }
 
 /**
- * Starts Navigate: always computes a GraphHopper path in-app, draws it on MapLibre,
- * then optionally offers external handoff when Settings selects an installed app.
+ * Starts Navigate: always computes a constrained GraphHopper tour in-app,
+ * draws it on MapLibre, then optionally offers external handoff when Settings
+ * selects an installed app.
  *
- * [pathRouterProvider] must be the app-owned factory result (same as Optimise).
- * Production wiring: `TruckieApp.pathRouter()` — do not hard-wire Stub at the app.
+ * [composerProvider] must be the app-owned [MultiStopTourComposer] (same as
+ * Optimise / polyline). Production wiring: `TruckieApp.routeOptimizer`.
  */
 class RouteNavigateSession(
-    private val pathRouterProvider: () -> PathRouter = { StubGraphHopperPathRouter() },
+    private val composerProvider: () -> MultiStopTourComposer,
 ) {
-    /** Test / DI convenience — wraps a fixed [PathRouter] instance. */
-    constructor(pathRouter: PathRouter) : this({ pathRouter })
-
     private var activePath: RoutePath? = null
 
     fun activePath(): RoutePath? = activePath
@@ -78,20 +88,32 @@ class RouteNavigateSession(
     fun start(
         flags: FeatureFlags,
         route: Route?,
+        vehicle: Vehicle?,
+        bufferM: Double,
         selection: NavigationAppSelection = NavigationAppSelection.InAppTruckie,
+        optimisedPath: RoutePath? = null,
     ): Result {
         if (!RouteNavigateCatalog.isEnabled(flags)) return Result.FlagOff
-        val start = route?.start
-        val end = route?.end
-        if (start == null || end == null) return Result.MissingEndpoints
+        if (!NavigateMultiStopCatalog.isEnabled(flags)) return Result.FlagOff
+        if (route == null || !route.hasEndpoints) return Result.MissingEndpoints
 
-        // Always calculate in-app first — external apps never replace GraphHopper.
-        val path = when (val pathResult = pathRouterProvider().path(start, end)) {
-            is PathResult.Ok -> pathResult.path
-            is PathResult.Blocked -> return Result.Blocked(pathResult.reason)
+        val composed = ActiveTourPath.compose(
+            route = route,
+            vehicle = vehicle,
+            bufferM = bufferM,
+            composer = composerProvider(),
+            optimisedPath = optimisedPath,
+        )
+        val path = when (composed) {
+            is ActiveTourPath.Result.Ready -> composed.path
+            is ActiveTourPath.Result.MissingEndpoints -> return Result.MissingEndpoints
+            is ActiveTourPath.Result.MissingVehicle ->
+                return Result.Blocked("Active vehicle required for constrained Navigate")
+            is ActiveTourPath.Result.Blocked -> return Result.Blocked(composed.reason)
         }
         activePath = path
 
+        val end = requireNotNull(route.end)
         val handoff = if (!selection.isInApp) {
             ExternalHandoff(
                 packageName = selection.packageName,

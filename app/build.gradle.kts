@@ -20,7 +20,7 @@ android {
         minSdk = 24
         targetSdk = 35
         versionCode = 1
-        versionName = "0.8.34-active-tour"
+        versionName = "0.8.35-navigate-multi-stop"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 

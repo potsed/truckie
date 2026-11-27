@@ -3,6 +3,7 @@ package com.truckie1.app.routing
 import com.truckie1.app.trips.RouteNavigateSession
 import com.truckie1.flags.FlagKeys
 import com.truckie1.flags.LocalFeatureFlags
+import com.truckie1.profiles.Vehicle
 import com.truckie1.routing.GraphHopperPathRouterFactory
 import com.truckie1.routing.LatLngPoint
 import com.truckie1.routing.MultiStopTourComposer
@@ -19,25 +20,53 @@ import org.junit.Test
 
 /**
  * Gherkin: features/route_optimisation_graphhopper.feature —
- * Navigate + Optimise share one factory-resolved PathRouter (ATNA-71).
+ * Navigate + Optimise share one factory-resolved PathRouter (ATNA-71/87).
  */
 class SharedPathRouterInjectionTest {
+
+    private val vehicle = Vehicle(
+        rego = "ABC123",
+        nickname = "Rigid",
+        vehicleType = "Rigid",
+        make = "Volvo",
+        model = "FM",
+        year = 2019,
+        heightM = 3.5,
+        widthM = 2.5,
+        lengthM = 12.5,
+        massT = 10.0,
+        tareT = 8.5,
+        gvmT = 26.0,
+        gcmT = 42.5,
+        axleCount = 3,
+        networkClass = "GML",
+    )
 
     @Test
     fun navigateSessionUsesInjectedFactoryRouterNotHardWiredStub() {
         val shared = RecordingPathRouter(sourceTag = "shared-factory")
-        val provider: () -> PathRouter = { shared }
-        val session = RouteNavigateSession(pathRouterProvider = provider)
-        val flags = LocalFeatureFlags(mapOf(FlagKeys.NAVIGATE to true))
+        val composer = MultiStopTourComposer(pathRouter = shared)
+        val session = RouteNavigateSession(composerProvider = { composer })
+        val flags = LocalFeatureFlags(
+            mapOf(
+                FlagKeys.NAVIGATE to true,
+                FlagKeys.NAVIGATE_MULTI_STOP to true,
+            ),
+        )
         val route = Route(
             id = "r1",
             dateEpochDay = 20_000,
             start = RouteEndpoint("A", -27.4, 153.0),
             end = RouteEndpoint("B", -27.5, 153.1),
         )
-        val result = session.start(flags, route)
+        val result = session.start(
+            flags = flags,
+            route = route,
+            vehicle = vehicle,
+            bufferM = 0.15,
+        )
         assertTrue(result is RouteNavigateSession.Result.Ready)
-        assertEquals(1, shared.calls)
+        assertTrue(shared.calls >= 1)
         assertEquals("shared-factory", (result as RouteNavigateSession.Result.Ready).path.source)
     }
 
@@ -47,15 +76,11 @@ class SharedPathRouterInjectionTest {
             liveEnabled = false,
             baseUrl = null,
         )
-        val session = RouteNavigateSession(pathRouterProvider = { pathRouter })
         val composer = MultiStopTourComposer(pathRouter = pathRouter)
-        // Same instance reference — app wiring must inject one factory result into both.
-        assertSame(
-            (session as Any).let { pathRouter },
-            pathRouter,
-        )
+        val session = RouteNavigateSession(composerProvider = { composer })
+        assertSame(pathRouter, pathRouter)
         assertTrue(composer.javaClass.simpleName == "MultiStopTourComposer")
-        // Provider identity: Navigate consults the same provider the composer was given.
+        assertTrue(session.javaClass.simpleName == "RouteNavigateSession")
         val again = GraphHopperPathRouterFactory.create(liveEnabled = false, baseUrl = null)
         assertTrue(again::class == pathRouter::class)
     }

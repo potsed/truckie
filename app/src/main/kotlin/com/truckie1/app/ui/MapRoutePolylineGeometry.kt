@@ -1,10 +1,10 @@
 package com.truckie1.app.ui
 
+import com.truckie1.app.routing.ActiveTourPath
 import com.truckie1.flags.FeatureFlags
 import com.truckie1.profiles.Vehicle
 import com.truckie1.routing.LatLngPoint
 import com.truckie1.routing.MultiStopTourComposer
-import com.truckie1.routing.OptimizeResult
 import com.truckie1.routing.PathRouter
 import com.truckie1.routing.RoutePath
 import com.truckie1.trips.Route
@@ -18,8 +18,7 @@ import com.truckie1.trips.TripStop
  * Preference order:
  * 1. Navigate active [RoutePath] (already PathRouter)
  * 2. Cached optimised tour geometry when available
- * 3. [MultiStopTourComposer.optimize] with [TourOptimizeGoals.DEFAULT]
- *    (Fastest + Cost Effective checkboxes both on = AND)
+ * 3. [ActiveTourPath.compose] ordered PathRouter legs (same as Navigate, ATNA-87)
  *
  * Toll preference applied when `ff_tolls`; under-passage / weight via the same
  * composer + BridgePassagePolicy + pack bridges as Optimize/Navigate.
@@ -40,39 +39,9 @@ object MapRoutePolylineGeometry {
 
     /**
      * Tour waypoints: start → ordered stops → end (verified coords only).
-     * Round-trip end is included so the return leg is PathRouter-composed.
+     * Delegates to [ActiveTourPath] so Navigate and polyline share one SoT.
      */
-    fun tourStopsFrom(route: Route): List<TripStop> {
-        val out = mutableListOf<TripStop>()
-        route.start?.let { start ->
-            out += TripStop(
-                id = "start",
-                addressLabel = start.addressLabel,
-                latitude = start.latitude,
-                longitude = start.longitude,
-            )
-        }
-        for (stop in route.stops) {
-            val lat = stop.latitude ?: continue
-            val lng = stop.longitude ?: continue
-            out += TripStop(
-                id = stop.id,
-                addressLabel = stop.addressLabel,
-                latitude = lat,
-                longitude = lng,
-                cargo = stop.cargo,
-            )
-        }
-        route.end?.let { end ->
-            out += TripStop(
-                id = "end",
-                addressLabel = end.addressLabel,
-                latitude = end.latitude,
-                longitude = end.longitude,
-            )
-        }
-        return out
-    }
+    fun tourStopsFrom(route: Route): List<TripStop> = ActiveTourPath.tourStopsFrom(route)
 
     fun resolve(
         flags: FeatureFlags,
@@ -100,33 +69,23 @@ object MapRoutePolylineGeometry {
         navigatePath?.takeIf { it.points.size >= 2 }?.let {
             return Result.Ready(it)
         }
-        optimisedPath?.takeIf { it.points.size >= 2 }?.let {
-            return Result.Ready(it)
-        }
 
-        val tourStops = tourStopsFrom(route)
-        if (tourStops.size < 2) {
-            return Result.MissingEndpoints
-        }
-        if (vehicle == null) {
-            return Result.Blocked("Active vehicle required for constrained map route")
-        }
-
-        // Toll preference lives on the injected composer (same as Optimize).
         require(MapRoutePolylineCatalog.usesSamePathRouterAsOptimizeAndNavigate)
-        val composed = composer.optimize(
-            stops = tourStops,
-            vehicle = vehicle,
-            bufferM = bufferM,
-            goals = goals,
-        )
-        return when (composed) {
-            is OptimizeResult.Ok -> {
-                val path = composed.path
-                    ?: return Result.Blocked("Optimised tour missing PathRouter geometry")
-                Result.Ready(path)
-            }
-            is OptimizeResult.Blocked -> Result.Blocked(composed.reason)
+        return when (
+            val composed = ActiveTourPath.compose(
+                route = route,
+                vehicle = vehicle,
+                bufferM = bufferM,
+                composer = composer,
+                optimisedPath = optimisedPath,
+                goals = goals,
+            )
+        ) {
+            is ActiveTourPath.Result.Ready -> Result.Ready(composed.path)
+            is ActiveTourPath.Result.MissingEndpoints -> Result.MissingEndpoints
+            is ActiveTourPath.Result.MissingVehicle ->
+                Result.Blocked("Active vehicle required for constrained map route")
+            is ActiveTourPath.Result.Blocked -> Result.Blocked(composed.reason)
         }
     }
 }

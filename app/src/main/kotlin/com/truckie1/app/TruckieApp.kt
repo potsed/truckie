@@ -16,6 +16,7 @@ import com.truckie1.app.ui.DemoAppDataSource
 import com.truckie1.app.ui.DemoModeController
 import com.truckie1.app.ui.DualModeAppDataSource
 import com.truckie1.app.ui.MapRoutePolylineSession
+import com.truckie1.app.ui.NavigateMultiStopCatalog
 import com.truckie1.app.ui.RealAppDataSource
 import com.truckie1.flags.FlagKeys
 import com.truckie1.flags.LocalFeatureFlags
@@ -59,10 +60,10 @@ class TruckieApp : Application() {
     private val bootstrapTour = ActiveTourSession()
 
     /**
-     * Navigate session shares the app [pathRouter] factory (ATNA-71) — never a
-     * hard-wired Stub that ignores `ff_graphhopper_live`.
+     * Navigate session shares the app [routeOptimizer] / PathRouter (ATNA-71/87)
+     * via ActiveTourPath — never a start→end-only stub that skips stops.
      */
-    val routeNavigateSession = RouteNavigateSession(pathRouterProvider = { pathRouter() })
+    val routeNavigateSession = RouteNavigateSession(composerProvider = { routeOptimizer })
     /** Last Optimise tour path for home map polyline (`ff_map_route_polyline`). */
     val mapRoutePolylineSession = MapRoutePolylineSession()
     val mapEngine = MapLibreNativeEngine()
@@ -116,6 +117,11 @@ class TruckieApp : Application() {
         val db = VehicleDatabase.build(this)
         // ATNA-86: active-tour SoT — defaults on; dual Route/Trip path deleted.
         featureFlags.setEnabled(FlagKeys.ACTIVE_TOUR, ActiveTourCatalog.DEFAULT_ENABLED)
+        // ATNA-87: Navigate multi-stop — defaults on; start→end-only path deleted.
+        featureFlags.setEnabled(
+            FlagKeys.NAVIGATE_MULTI_STOP,
+            NavigateMultiStopCatalog.DEFAULT_ENABLED,
+        )
         // ATNA-75: Real (Room + tour) vs Demo (read-only seed). Demo flag swaps store.
         dataSource = DualModeAppDataSource(
             real = RealAppDataSource(
@@ -167,6 +173,7 @@ class TruckieApp : Application() {
             // OSS AU low-bridges pack refresh (ATNA-50) — local-first when newer.
             featureFlags.setEnabled(FlagKeys.AU_LOW_BRIDGES_PACK, true)
             // Active tour SoT (ATNA-86) — already DEFAULT_ENABLED above.
+            // Navigate multi-stop (ATNA-87) — already DEFAULT_ENABLED above.
             // Demo mode stays off by default (even in debug) — opt-in via Settings.
             // Do not set FlagKeys.DEMO_MODE here; see DemoModeCatalog.ENABLED_BY_DEFAULT_IN_DEBUG.
         }

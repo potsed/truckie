@@ -7,8 +7,8 @@ Feature: Active tour single source of truth
   # Refactor (P1-1 / ATNA-86): one ActiveTourSession facade. Dual RouteSession +
   # TripSession path is deleted. TripStop remains a projection for Optimise /
   # clearance / mass (MultiStopTourComposer).
-  # Out of scope: Navigate multi-stop (P1-2), async GraphHopper (P1-3), Room persist (P1-4),
-  # god-file splits (P1-5).
+  # Out of scope: async GraphHopper (P1-3), Room persist (P1-4), god-file splits (P1-5).
+  # Navigate multi-stop (P1-2 / ATNA-87): see navigate_multi_stop_path.feature.
 
   Scenario: Active tour is feature-flagged and defaults on
     Given a fresh app start

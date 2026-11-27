@@ -654,7 +654,10 @@ private fun MapHomeRoute(
                 val result = app.routeNavigateSession.start(
                     flags = app.featureFlags,
                     route = route,
+                    vehicle = activeVehicle,
+                    bufferM = app.clearanceBufferM,
                     selection = selection,
+                    optimisedPath = app.mapRoutePolylineSession.lastOptimisedPath(),
                 )
             ) {
                 is com.truckie1.app.trips.RouteNavigateSession.Result.Ready -> {
