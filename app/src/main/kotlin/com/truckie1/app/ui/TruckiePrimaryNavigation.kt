@@ -12,8 +12,10 @@ import com.truckie1.app.trips.TripStopsActivity
 import com.truckie1.flags.FlagKeys
 
 /**
- * Cross-activity navigation for the legacy (`ff_nav_chrome` off) multi-Activity path.
- * With chrome on, [TruckieRootApp] navigates inside a single-activity NavHost instead.
+ * Cross-activity navigation for the legacy multi-Activity path only.
+ * When [PrimaryNavigation.shouldUseChromeHost] is true, [TruckieRootApp] owns
+ * primary tabs via [PrimaryNavigation] inside the single-activity NavHost;
+ * legacy Activities should [redirectToChromeHostIfEnabled] instead.
  */
 fun Activity.navigateToPrimaryDestination(destination: TruckiePrimaryDestination) {
     val app = application as TruckieApp
@@ -21,6 +23,7 @@ fun Activity.navigateToPrimaryDestination(destination: TruckiePrimaryDestination
         TruckiePrimaryDestination.HOME -> {
             startActivity(
                 Intent(this, MainActivity::class.java)
+                    .putExtra(MainActivity.EXTRA_ROUTE, TruckieRoutes.HOME)
                     .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP),
             )
         }

@@ -184,4 +184,13 @@ class NavChromeCatalogTest {
         assertFalse(NavChromeCatalog.showBottomBarForRoute(TruckieRoutes.HOME, true))
         assertTrue(NavChromeCatalog.showBottomBarForRoute(TruckieRoutes.HOME, false))
     }
+
+    @Test
+    fun primaryNavigationIsSinglePathSharedWithChromeHost() {
+        assertTrue(PrimaryNavigation.singlePath)
+        assertEquals(
+            NavChromeCatalog.rootHostActivitySimpleName,
+            PrimaryNavigation.chromeHostActivitySimpleName,
+        )
+    }
 }

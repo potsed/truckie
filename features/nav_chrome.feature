@@ -38,3 +38,10 @@ Feature: Compose header and footer navigation
     And the header and footer stay pinned while destination content scrolls in between
     And switching Home, Trip, Vehicles, or Settings does not remount the chrome
     And chrome is Material3 Compose only with no XML layouts or AppCompat ActionBar
+
+  Scenario: Settings Home uses the single PrimaryNavigation path
+    Given ff_nav_chrome and ff_map_home are enabled
+    When the driver taps Home from Settings
+    Then PrimaryNavigation remounts map home fresh without restoreState
+    And the global bottom bar stays hidden on map home
+    # Detail: features/settings_home_nav.feature
