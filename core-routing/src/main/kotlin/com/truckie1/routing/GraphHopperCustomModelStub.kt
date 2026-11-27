@@ -74,6 +74,26 @@ data class GraphHopperCustomModelStub(
     }
 
     companion object {
+        /** Shared Navigate/Optimise fallback when no vehicle-derived model is supplied. */
+        const val DEFAULT_CLEARANCE_HEIGHT_M: Double = 4.0
+        const val DEFAULT_MASS_T: Double = 12.0
+        const val DEFAULT_WIDTH_M: Double = 2.5
+        const val DEFAULT_LENGTH_M: Double = 12.0
+
+        /**
+         * Single default Custom Model builder (ATNA-71). Stub and live PathRouters
+         * must use this — do not re-hardcode 4.0 m / 12 t literals at call sites.
+         */
+        fun default(
+            preferences: TruckRoutingPreferences = TruckRoutingPreferences.DEFAULT,
+        ): GraphHopperCustomModelStub = GraphHopperCustomModelStub(
+            requiredClearanceHeightM = DEFAULT_CLEARANCE_HEIGHT_M,
+            requiredMassT = DEFAULT_MASS_T,
+            vehicleWidthM = DEFAULT_WIDTH_M,
+            vehicleLengthM = DEFAULT_LENGTH_M,
+            preferences = preferences,
+        )
+
         fun from(
             vehicle: Vehicle,
             requiredClearanceHeightM: Double,

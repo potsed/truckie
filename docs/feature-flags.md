@@ -46,8 +46,11 @@ XML screen layouts were removed; do not add new AppCompat/XML screens.
 5. Route optimize (`ff_route_optimize`) hard-filters by effective clearance (height + buffer) and
    on-board operating mass vs GVM / route max weight. Multi-stop tours compose GraphHopper legs
    (`MultiStopTourComposer`); under-passage low bridges hard-block when `ff_bridge_passage` is on
-   (over deck OK). Live HTTP only when `ff_graphhopper_live` + base URL; otherwise stub.
-   Toll preference stays stubbed as allow-all passthrough until `ff_tolls` is implemented.
+   (over deck OK). **Navigate and Optimise share one app-owned `PathRouter`** from
+   `GraphHopperPathRouterFactory` (`TruckieApp.pathRouter()`). Pack bridges map into the
+   composer when `ff_bridge_passage` is on. Live HTTP only when `ff_graphhopper_live` + base URL;
+   otherwise stub. Toll preference stays stubbed as allow-all passthrough until `ff_tolls`
+   is implemented.
 6. Nav chrome (`ff_nav_chrome`) hosts Material3 `CenterAlignedTopAppBar` + bottom
    `NavigationBar` **once** on `MainActivity` around a Compose NavHost (global fixed
    chrome; content scrolls in between). Plan trip / Vehicles tabs still require

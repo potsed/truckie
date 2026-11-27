@@ -6,6 +6,7 @@ import com.truckie1.app.profiles.VehicleDatabase
 import com.truckie1.app.settings.NavigationAppStore
 import com.truckie1.app.settings.PackageManagerNavigationAppQuery
 import com.truckie1.app.settings.SharedNavigationAppStore
+import com.truckie1.app.routing.RoutingBridgePackMapper
 import com.truckie1.app.trips.RouteNavigateSession
 import com.truckie1.app.ui.AuLowBridgesPack
 import com.truckie1.app.ui.BridgePackRepository
@@ -19,7 +20,6 @@ import com.truckie1.profiles.VehicleProfileRepository
 import com.truckie1.routing.GraphHopperPathRouterFactory
 import com.truckie1.routing.MultiStopTourComposer
 import com.truckie1.routing.PathRouter
-import com.truckie1.routing.StubGraphHopperRouter
 import com.truckie1.trips.ClearanceBuffer
 import com.truckie1.trips.RouteSession
 import com.truckie1.trips.TripSession
@@ -38,9 +38,12 @@ class TruckieApp : Application() {
         private set
     val tripSession = TripSession()
     val routeSession = RouteSession()
-    val routeNavigateSession = RouteNavigateSession()
+    /**
+     * Navigate session shares the app [pathRouter] factory (ATNA-71) — never a
+     * hard-wired Stub that ignores `ff_graphhopper_live`.
+     */
+    val routeNavigateSession = RouteNavigateSession(pathRouterProvider = { pathRouter() })
     val mapEngine = MapLibreNativeEngine()
-    val router = StubGraphHopperRouter()
 
     /**
      * Optional live GraphHopper base URL (no trailing path). Empty / null → stub
@@ -49,7 +52,8 @@ class TruckieApp : Application() {
     var graphHopperBaseUrl: String? = null
 
     /**
-     * Resolves stub vs live PathRouter from `ff_graphhopper_live` + [graphHopperBaseUrl].
+     * Single app-owned PathRouter: stub vs live from `ff_graphhopper_live` +
+     * [graphHopperBaseUrl]. Injected into Navigate **and** Optimise.
      */
     fun pathRouter(): PathRouter = GraphHopperPathRouterFactory.create(
         liveEnabled = featureFlags.isEnabled(FlagKeys.GRAPHHOPPER_LIVE),
@@ -57,14 +61,27 @@ class TruckieApp : Application() {
     )
 
     /**
-     * Multi-stop GraphHopper tour optimiser (ATNA-68). Uses PathRouter legs +
-     * truck Custom Model; under-passage hard-block when `ff_bridge_passage` is on.
+     * Multi-stop GraphHopper tour optimiser (ATNA-68/71). Same [pathRouter] as
+     * Navigate; pack bridges → routing constraints when `ff_bridge_passage` is
+     * on (additive composer args — passage UI policy owned by sibling).
      */
     val routeOptimizer: MultiStopTourComposer
-        get() = MultiStopTourComposer(
-            pathRouter = pathRouter(),
-            bridgePassageEnabled = featureFlags.isEnabled(FlagKeys.BRIDGE_PASSAGE),
-        )
+        get() {
+            val passageOn = featureFlags.isEnabled(FlagKeys.BRIDGE_PASSAGE)
+            val packBridges = if (::bridgePackRepository.isInitialized) {
+                bridgePackRepository.loadActive().bridges
+            } else {
+                emptyList()
+            }
+            return MultiStopTourComposer(
+                pathRouter = pathRouter(),
+                bridges = RoutingBridgePackMapper.bridgesForComposer(
+                    packBridges = packBridges,
+                    bridgePassageEnabled = passageOn,
+                ),
+                bridgePassageEnabled = passageOn,
+            )
+        }
 
     /** System clearance buffer (Settings only). Clamped 0.15–1.0 m. */
     var clearanceBufferM: Double = ClearanceBuffer.DEFAULT_M
