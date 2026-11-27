@@ -83,8 +83,9 @@ class BridgeMarkersVisibilityTest {
             BridgeMarkersVisibility.symbolTextFont.single(),
         )
         assertTrue(
-            "W5-8 iconSize should stay neighbourhood-readable (0.9–1.5), was ${BridgeMarkersVisibility.iconSize}",
-            BridgeMarkersVisibility.iconSize in 0.9f..1.5f,
+            "W5-8 iconSize should stay neighbourhood-readable " +
+                "(${MapSymbolBind.IconSize.neighbourhoodReadableRange}), was ${BridgeMarkersVisibility.iconSize}",
+            MapSymbolBind.IconSize.isNeighbourhoodReadable(BridgeMarkersVisibility.iconSize),
         )
     }
 

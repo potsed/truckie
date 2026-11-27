@@ -20,7 +20,7 @@ android {
         minSdk = 24
         targetSdk = 35
         versionCode = 1
-        versionName = "0.8.30-demo-data-parity"
+        versionName = "0.8.31-map-stop-markers"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 

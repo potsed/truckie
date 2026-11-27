@@ -141,6 +141,8 @@ class TruckieApp : Application() {
             featureFlags.setEnabled(FlagKeys.ROUTE_START_END, true)
             featureFlags.setEnabled(FlagKeys.NAVIGATE, true)
             featureFlags.setEnabled(FlagKeys.BRIDGE_MARKERS, true)
+            // Route stop markers: pickup vs drop-off on MapLibre home (ATNA-81).
+            featureFlags.setEnabled(FlagKeys.STOP_MARKERS, true)
             // Verified CBD clearances: no mock heights (ATNA-42).
             featureFlags.setEnabled(FlagKeys.VERIFIED_CBD_CLEARANCES, true)
             // Queensland Rail SEQ road-under-rail clearances (ATNA-44).

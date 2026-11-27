@@ -522,6 +522,10 @@ private fun MapHomeRoute(
         flags = app.featureFlags,
         mapHomeEnabled = true,
     )
+    val showStopMarkers = MapStopMarkersCatalog.shouldShow(
+        flags = app.featureFlags,
+        mapHomeEnabled = true,
+    )
     val prioritiseStreetLabels = MapStreetLabelPolicy.shouldApply(
         flags = app.featureFlags,
         mapHomeEnabled = true,
@@ -664,6 +668,7 @@ private fun MapHomeRoute(
         },
         bridges = bridges,
         showBridgeMarkers = showBridgeMarkers,
+        showStopMarkers = showStopMarkers,
         prioritiseStreetLabels = prioritiseStreetLabels,
         modifier = Modifier.fillMaxSize(),
     )

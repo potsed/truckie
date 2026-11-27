@@ -134,6 +134,7 @@ fun MapHomeScreen(
     onOrientationLockChange: (Boolean) -> Unit = {},
     bridges: List<BridgePoint> = emptyList(),
     showBridgeMarkers: Boolean = false,
+    showStopMarkers: Boolean = false,
     /** Prefer street names over POI clutter (`ff_map_street_labels`). */
     prioritiseStreetLabels: Boolean = false,
     modifier: Modifier = Modifier,
@@ -210,6 +211,7 @@ fun MapHomeScreen(
             routePathPoints = state.navigatePathPoints,
             bridges = bridges,
             showBridgeMarkers = showBridgeMarkers,
+            showStopMarkers = showStopMarkers,
             prioritiseStreetLabels = prioritiseStreetLabels,
             modifier = Modifier
                 .fillMaxSize()

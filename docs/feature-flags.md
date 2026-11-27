@@ -26,6 +26,7 @@ XML screen layouts were removed; do not add new AppCompat/XML screens.
 | `ff_route_start_end` | Create route requires verified start + end (same place = round trip) on the map-home sheet | off (on in debug) |
 | `ff_navigate` | Navigate: GraphHopper path always in-app on MapLibre; Settings may pick installed app for post-route handoff only | off (on in debug) |
 | `ff_bridge_markers` | Low-bridge markers on MapLibre home (Australia-first sample JSON asset; SymbolManager + optional clearance label) | off (on in debug) |
+| `ff_stop_markers` | Route stop markers on MapLibre home (ATNA-81): pickup vs drop-off SymbolManager icons from active AppDataSource route; shares bridge SymbolManager / style lifecycle bind path | off (on in debug) |
 | `ff_verified_cbd_clearances` | Verified CBD sample clearances (ATNA-42): labels only for published road heights; unknown / not_applicable omit invented mocks | off (on in debug) |
 | `ff_queensland_rail_clearances` | Queensland Rail SEQ road-under-rail clearances (ATNA-44): show published QR railbridges pack entries; off keeps BCC CBD samples only | off (on in debug) |
 | `ff_w5_8_low_only` | W5-8 only for low / restricted clearances (ATNA-45): AU W5-8 diamond only when verified ≤ 4.6 m or QR published underbridge | off (on in debug) |
@@ -83,14 +84,20 @@ XML screen layouts were removed; do not add new AppCompat/XML screens.
     MapLibre map. Settings key `navigation_app_package` defaults to `com.truckie1.in_app`;
     an installed nav app is optional **post-route** handoff only.
 12. Bridge markers (`ff_bridge_markers`) draw Australia-first bridges on the map-first home
-    via a separate Annotation **SymbolManager**. Long-term source is a **downloadable
-    updatable pack** (`BridgePackRepository`: versioned cache + refresh). The baked-in
+    via an Annotation **SymbolManager** obtained through shared [MapSymbolBind] (same path
+    as stop markers). Long-term source is a **downloadable updatable pack**
+    (`BridgePackRepository`: versioned cache + refresh). The baked-in
     `assets/bridges/au_sample_bridges.json` only **seeds** an empty cache (**local-first**:
     `loadActive` never networks; refresh downloads only when the remote version is newer).
     Demo samples sit on real Brisbane CBD crossings. Optional short clearance labels appear
     when `clearanceHeightM` is present (text-font **Noto Sans Regular** for OpenFreeMap
     Liberty — default Open Sans stack 404s and hides icons). Requires map home to be the
     active surface; does not change create-route or vehicle UI.
+12b. Stop markers (`ff_stop_markers`, ATNA-81) plot active-route pickup/drop-off stops on the
+    same MapLibre home via the **same** [MapSymbolBind] / [MapLibreStyleLifecycle] path as
+    bridges (distinct SymbolManager instance, shared obtain/defaults — not a parallel stack).
+    Stops come from [AppDataSource] (demo or real). Distinct icons for pickup/load vs
+    drop-off/unload. Satellite peek is out of scope.
 13. Verified CBD clearances (`ff_verified_cbd_clearances`, ATNA-42) replace mock demo heights
     with BCC/QR/TMR-sourced road clearances (or omit height as unknown / not_applicable).
     When on, map labels show only `clearanceStatus=verified` heights. Pack meta cites sources
