@@ -4,25 +4,27 @@ import com.truckie1.flags.FeatureFlags
 import com.truckie1.profiles.InMemoryVehicleProfileRepository
 import com.truckie1.profiles.Vehicle
 import com.truckie1.profiles.VehicleProfileRepository
+import com.truckie1.trips.ActiveTourSession
+import com.truckie1.trips.OptimizeMode
 import com.truckie1.trips.Route
 import com.truckie1.trips.RouteDateChoice
 import com.truckie1.trips.RouteEndpoint
 import com.truckie1.trips.RouteRepository
-import com.truckie1.trips.RouteSession
 import com.truckie1.trips.RouteStop
 import com.truckie1.trips.TripRepository
-import com.truckie1.trips.TripSession
 import com.truckie1.trips.TripStop
-import com.truckie1.trips.OptimizeMode
 import java.time.LocalDate
 
 /**
- * One abstraction for vehicles / routes / stops (ATNA-75).
+ * One abstraction for vehicles / routes / stops (ATNA-75 + ATNA-86).
  *
- * Real and Demo implementations share [Vehicle], [Route], and [TripStop] —
- * selecting demo only swaps the backing [AppDataSource], not UI or routing paths.
+ * Real and Demo share [Vehicle], [Route], and projected [TripStop] — selecting
+ * demo only swaps the backing [AppDataSource], not UI or routing paths.
  *
- * Gherkin: features/demo_mode.feature
+ * [routes] and [trips] are always the same [ActiveTourSession] (single SoT).
+ * [TripStop] is a projection via [com.truckie1.trips.TripStopProjection].
+ *
+ * Gherkin: features/demo_mode.feature, features/active_tour.feature
  */
 interface AppDataSource {
     val vehicles: VehicleProfileRepository
@@ -30,16 +32,22 @@ interface AppDataSource {
     val trips: TripRepository
 }
 
-/** Mutable in-memory / Room-backed stores for real driver data. */
+/**
+ * Real driver stores: Room vehicles + one in-memory [ActiveTourSession] for
+ * map-home Route and Plan Trip / Optimise projections.
+ */
 class RealAppDataSource(
     override val vehicles: VehicleProfileRepository,
-    override val routes: RouteRepository = RouteSession(),
-    override val trips: TripRepository = TripSession(),
-) : AppDataSource
+    val tour: ActiveTourSession = ActiveTourSession(),
+) : AppDataSource {
+    override val routes: RouteRepository get() = tour
+    override val trips: TripRepository get() = tour
+}
 
 /**
  * Pre-seeded demo dataset wrapped as read-only stores.
- * Mutations no-op so dogfood cannot corrupt the sample run.
+ * One [ActiveTourSession] seeds Route (+ cargo); TripStop is projected.
+ * [ReadOnlyActiveTour] is a single facade instance for both [routes] and [trips].
  */
 object DemoAppDataSource {
     fun create(today: LocalDate = LocalDate.now()): AppDataSource {
@@ -47,18 +55,15 @@ object DemoAppDataSource {
         vehicles.save(DemoDataset.vehicle)
         vehicles.setActive(DemoDataset.VEHICLE_REGO)
 
-        val routes = RouteSession()
-        val demoRoute = DemoDataset.buildRoute(today = today)
-        routes.replaceActive(demoRoute)
-
-        val trips = TripSession()
-        trips.replaceStops(DemoDataset.buildTripStops())
+        val tour = ActiveTourSession()
+        tour.replaceActive(DemoDataset.buildRoute(today = today))
+        val readOnlyTour = ReadOnlyActiveTour(tour)
 
         return object : AppDataSource {
             override val vehicles: VehicleProfileRepository =
                 ReadOnlyVehicleProfileRepository(vehicles)
-            override val routes: RouteRepository = ReadOnlyRouteRepository(routes)
-            override val trips: TripRepository = ReadOnlyTripRepository(trips)
+            override val routes: RouteRepository = readOnlyTour
+            override val trips: TripRepository = readOnlyTour
         }
     }
 }
@@ -112,10 +117,13 @@ class ReadOnlyVehicleProfileRepository(
     override fun setActive(rego: String): Boolean = false
 }
 
-/** No-op write wrapper for [RouteRepository]. */
-class ReadOnlyRouteRepository(
-    private val inner: RouteRepository,
-) : RouteRepository {
+/**
+ * Read-only active-tour facade for demo: implements both [RouteRepository] and
+ * [TripRepository] so [AppDataSource.routes] === [AppDataSource.trips].
+ */
+class ReadOnlyActiveTour(
+    private val inner: ActiveTourSession,
+) : RouteRepository, TripRepository {
     override fun activeRoute(): Route? = inner.activeRoute()
 
     override fun createRoute(
@@ -126,7 +134,6 @@ class ReadOnlyRouteRepository(
         start: RouteEndpoint?,
         end: RouteEndpoint?,
     ): Route {
-        // Keep returning the existing demo route so callers do not NPE.
         return inner.activeRoute()
             ?: error("Demo route repository has no active route")
     }
@@ -146,12 +153,7 @@ class ReadOnlyRouteRepository(
     override fun replaceActive(route: Route?) {
         // Demo mode is read-only.
     }
-}
 
-/** No-op write wrapper for [TripRepository]. */
-class ReadOnlyTripRepository(
-    private val inner: TripRepository,
-) : TripRepository {
     override var lastOptimizeMode: OptimizeMode?
         get() = inner.lastOptimizeMode
         set(@Suppress("UNUSED_PARAMETER") value) {
@@ -161,10 +163,6 @@ class ReadOnlyTripRepository(
     override fun stops(): List<TripStop> = inner.stops()
 
     override fun addStop(stop: TripStop) {
-        // Demo mode is read-only.
-    }
-
-    override fun removeStop(id: String) {
         // Demo mode is read-only.
     }
 

@@ -7,7 +7,7 @@ import org.junit.Test
 import java.time.LocalDate
 
 /**
- * Gherkin: create_route_start_end.feature — RouteSession start/end create.
+ * Gherkin: create_route_start_end.feature — ActiveTourSession start/end create.
  */
 class RouteStartEndSessionTest {
 
@@ -24,7 +24,7 @@ class RouteStartEndSessionTest {
 
     @Test
     fun createRoutePersistsVerifiedStartAndEnd() {
-        val session = RouteSession()
+        val session = ActiveTourSession()
         val today = LocalDate.of(2026, 11, 22)
 
         val route = session.createRoute(
@@ -43,7 +43,7 @@ class RouteStartEndSessionTest {
 
     @Test
     fun createRouteAllowsRoundTripSameStartAndEnd() {
-        val session = RouteSession()
+        val session = ActiveTourSession()
         val route = session.createRoute(
             name = "Round trip",
             dateChoice = RouteDateChoice.TOMORROW,
@@ -60,7 +60,7 @@ class RouteStartEndSessionTest {
 
     @Test
     fun summaryMentionsStartAndEndWhenPresent() {
-        val session = RouteSession()
+        val session = ActiveTourSession()
         session.createRoute(
             name = "Run",
             dateChoice = RouteDateChoice.TODAY,

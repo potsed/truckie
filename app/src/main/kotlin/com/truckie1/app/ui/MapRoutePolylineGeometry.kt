@@ -60,6 +60,7 @@ object MapRoutePolylineGeometry {
                 addressLabel = stop.addressLabel,
                 latitude = lat,
                 longitude = lng,
+                cargo = stop.cargo,
             )
         }
         route.end?.let { end ->

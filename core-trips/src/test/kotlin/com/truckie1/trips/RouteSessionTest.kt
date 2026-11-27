@@ -7,13 +7,14 @@ import org.junit.Test
 import java.time.LocalDate
 
 /**
- * Gherkin: map_first_home.feature — Route → Stops domain for the map drag sheet.
+ * Gherkin: map_first_home.feature + active_tour.feature —
+ * Route → Stops domain via [ActiveTourSession] (legacy RouteSession deleted).
  */
 class RouteSessionTest {
 
     @Test
     fun createRouteStoresOptionalNameAndDateChoice() {
-        val session = RouteSession()
+        val session = ActiveTourSession()
         assertNull(session.activeRoute())
 
         val today = LocalDate.of(2026, 11, 22)
@@ -31,7 +32,7 @@ class RouteSessionTest {
 
     @Test
     fun tomorrowAndCustomDateResolveCorrectly() {
-        val session = RouteSession()
+        val session = ActiveTourSession()
         val today = LocalDate.of(2026, 11, 22)
 
         val tomorrow = session.createRoute(
@@ -53,7 +54,7 @@ class RouteSessionTest {
 
     @Test
     fun addStopsWithPickupLoadAndDropOffUnloadKinds() {
-        val session = RouteSession()
+        val session = ActiveTourSession()
         session.createRoute(name = "Run", dateChoice = RouteDateChoice.TODAY, today = LocalDate.of(2026, 11, 22))
 
         session.addStop(
@@ -83,7 +84,7 @@ class RouteSessionTest {
 
     @Test
     fun replaceActiveSwapsOrClearsActiveRoute() {
-        val session = RouteSession()
+        val session = ActiveTourSession()
         val created = session.createRoute(
             name = "Real",
             dateChoice = RouteDateChoice.TODAY,
@@ -102,7 +103,7 @@ class RouteSessionTest {
 
     @Test
     fun summaryCountsStopsByKind() {
-        val session = RouteSession()
+        val session = ActiveTourSession()
         session.createRoute(name = null, dateChoice = RouteDateChoice.TODAY, today = LocalDate.of(2026, 11, 22))
         session.addStop(
             RouteStop(id = "a", addressLabel = "A", kind = StopKind.PICKUP_LOAD),

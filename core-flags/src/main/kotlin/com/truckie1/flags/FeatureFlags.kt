@@ -122,6 +122,12 @@ object FlagKeys {
      * Does not touch LineManager / MapRoutePathAnnotations.
      */
     const val NEXT_DESTINATION_DISPLAY = "ff_next_destination_display"
+    /**
+     * Single active-tour facade (ATNA-86 / P1-1): map-home Route + Plan Trip /
+     * Optimise + demo share one [com.truckie1.trips.ActiveTourSession].
+     * TripStop is a projection; Route remains the editable SoT.
+     */
+    const val ACTIVE_TOUR = "ff_active_tour"
 }
 
 /**
