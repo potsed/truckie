@@ -89,8 +89,10 @@ class BridgePackRepositoryTest {
             ]
         """.trimIndent().toByteArray()
         val repo = freshRepo(FixedPayloadBridgePackDownloader(payload))
-        repo.loadActive()
+        val seeded = repo.loadActive()
         assertEquals(CachedBridgePackRepository.BOOTSTRAP_VERSION, repo.cachedVersion())
+        val curatedIds = seeded.bridges.map { it.id }.toSet()
+        assertTrue(curatedIds.isNotEmpty())
 
         val result = repo.refresh(
             BridgePackManifest(
@@ -103,26 +105,75 @@ class BridgePackRepositoryTest {
         val updated = (result as BridgePackRefreshResult.Updated).pack
         assertEquals("1.1.0", updated.manifest.version)
         assertEquals(BridgePackSource.CACHE, updated.source)
-        assertEquals(2, updated.bridges.size)
-        assertEquals("au-remote-1", updated.bridges[0].id)
-        assertEquals("3.5 m", BridgeMarkersCatalog.clearanceLabel(updated.bridges[0]))
+        // Cross-channel into CURATED_SAMPLE merges — remote rows + curated keepers.
+        assertTrue(updated.bridges.size >= curatedIds.size + 2)
+        assertTrue(updated.bridges.any { it.id == "au-remote-1" })
+        assertTrue(updated.bridges.any { it.id == "au-remote-2" })
+        assertTrue(curatedIds.all { id -> updated.bridges.any { it.id == id } })
+        val remoteOne = updated.bridges.first { it.id == "au-remote-1" }
+        assertEquals("3.5 m", BridgeMarkersCatalog.clearanceLabel(remoteOne))
         assertEquals("1.1.0", repo.cachedVersion())
 
         val reloaded = repo.loadActive()
         assertEquals("1.1.0", reloaded.manifest.version)
-        assertEquals(2, reloaded.bridges.size)
+        assertTrue(reloaded.bridges.size >= curatedIds.size + 2)
+    }
+
+    @Test
+    fun refreshMergesThinnerOssIntoCuratedBootstrapInsteadOfClobber() {
+        val payload = """
+            [
+              {
+                "id":"qld-oss-thin-1",
+                "name":"Thin OSS Bridge",
+                "lat":-27.5,
+                "lng":153.0,
+                "clearanceHeightM":3.9,
+                "source":{
+                  "name":"Test Source",
+                  "url":"https://example.invalid/source",
+                  "retrievedAt":"2026-11-23"
+                }
+              }
+            ]
+        """.trimIndent().toByteArray()
+        val repo = freshRepo(FixedPayloadBridgePackDownloader(payload))
+        val seeded = repo.loadActive()
+        val curatedCount = seeded.bridges.size
+        assertTrue(curatedCount >= 3)
+        val storyId = "qld-story-bridge-sample"
+        assertTrue(seeded.bridges.any { it.id == storyId })
+
+        val result = repo.refresh(AuLowBridgesPack.remoteManifest())
+        assertTrue(result is BridgePackRefreshResult.Updated)
+        val updated = (result as BridgePackRefreshResult.Updated).pack
+        assertEquals(AuLowBridgesPack.REMOTE_VERSION, updated.manifest.version)
+        assertTrue(
+            "Curated rows must survive thinner OSS refresh",
+            updated.bridges.size >= curatedCount,
+        )
+        assertTrue(updated.bridges.any { it.id == storyId })
+        assertTrue(updated.bridges.any { it.id == "qld-oss-thin-1" })
+        assertEquals(AuLowBridgesPack.REMOTE_VERSION, repo.cachedVersion())
     }
 
     @Test
     fun refreshKeepsCacheWhenRemoteIsNotNewer() {
         val payload = """[{"id":"x","name":"X","lat":-27.0,"lng":153.0}]""".toByteArray()
         val repo = freshRepo(FixedPayloadBridgePackDownloader(payload))
-        repo.loadActive()
-        repo.refresh(BridgePackManifest(region = "AU", version = "1.1.0"))
+        val seeded = repo.loadActive()
+        val first = repo.refresh(BridgePackManifest(region = "AU", version = "1.1.0"))
+        assertTrue(first is BridgePackRefreshResult.Updated)
+        // Merged curated + remote id — not a 1-row clobber.
+        assertTrue((first as BridgePackRefreshResult.Updated).pack.bridges.size >= seeded.bridges.size)
+        assertTrue(first.pack.bridges.any { it.id == "x" })
         val result = repo.refresh(BridgePackManifest(region = "AU", version = "1.0.0"))
         assertTrue(result is BridgePackRefreshResult.Unchanged)
         assertEquals("1.1.0", repo.cachedVersion())
-        assertEquals(1, (result as BridgePackRefreshResult.Unchanged).pack.bridges.size)
+        assertEquals(
+            first.pack.bridges.size,
+            (result as BridgePackRefreshResult.Unchanged).pack.bridges.size,
+        )
     }
 
     @Test
@@ -131,7 +182,7 @@ class BridgePackRepositoryTest {
         assertTrue(BridgePackVersions.isNewer("2.0.0", "1.9.9"))
         assertFalse(BridgePackVersions.isNewer("1.0.0", "1.1.0"))
         assertFalse(BridgePackVersions.isNewer("1.1.0", "1.1.0"))
-        // Public OSS pack replaces bootstrap -sample regardless of numeric order.
+        // Public OSS is newer for fetch/merge gating — apply path merges, not clobber.
         assertTrue(BridgePackVersions.isNewer("0.1.0", "0.7.0-sample"))
         assertFalse(BridgePackVersions.isNewer("0.7.0-sample", "0.1.0"))
     }

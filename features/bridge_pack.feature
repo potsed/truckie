@@ -44,3 +44,15 @@ Feature: Downloadable Australia bridge pack
     When the pack repository refreshes
     Then the cache remains at version "1.1.0"
     And the pack downloader is not invoked again
+
+  # ATNA-72 — PackChannel + BridgePackMerge: never full-replace curated
+  # bootstrap with a thinner cross-channel OSS/published body.
+  Scenario: OSS refresh merges into curated bootstrap instead of clobbering
+    Given ff_bridge_markers is enabled
+    And the local pack cache is seeded at version "0.7.0-sample" with curated CBD QR TMR BCC rows
+    And a remote PUBLIC_OSS manifest advertises version "0.1.0" with a thinner bridges JSON
+    When the pack repository refreshes
+    Then BridgePackMerge applies a merge-by-id overlay
+    And curated bootstrap bridge ids remain in the on-device cache
+    And remote OSS rows are present by id
+    And the cache stamp advances to the remote version

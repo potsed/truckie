@@ -11,7 +11,8 @@ import com.truckie1.flags.FlagKeys
  * Canonical repo: https://github.com/potsed/au-low-bridges-dataset (JSON only).
  * Shared full schema with the OSS pack — no thinner parallel model.
  * Local-first: [CachedBridgePackRepository.loadActive] never networks;
- * [CachedBridgePackRepository.refresh] downloads only when remote is newer.
+ * [CachedBridgePackRepository.refresh] downloads only when remote is newer,
+ * then [BridgePackMerge] merges into curated bootstrap (ATNA-72 — no clobber).
  *
  * Required row fields: id, lat, lng, clearanceHeightM, source{name,url,retrievedAt}.
  * Prefer null/unknown over inventing. Roadside signs override digital packs.
