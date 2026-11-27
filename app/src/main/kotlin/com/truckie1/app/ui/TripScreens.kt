@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.selection.selectable
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
@@ -23,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import com.truckie1.app.R
 import com.truckie1.trips.CargoAction
 import com.truckie1.trips.OptimizeMode
+import com.truckie1.trips.TourOptimizeGoals
 import com.truckie1.trips.TripStop
 import com.truckie1.trips.TripStopSummary
 
@@ -31,14 +34,21 @@ fun ColumnScope.TripStopsScreen(
     stops: List<TripStop>,
     clearanceSummary: String,
     showOptimize: Boolean,
-    optimizeMode: OptimizeMode,
     optimizeStatus: String?,
     onAddStop: () -> Unit,
     onMoveUp: (Int) -> Unit,
     onMoveDown: (Int) -> Unit,
     onDelete: (TripStop) -> Unit,
-    onModeChange: (OptimizeMode) -> Unit,
     onOptimize: () -> Unit,
+    /** Fastest + Cost Effective checkboxes (both on by default = AND). */
+    optimizeGoals: TourOptimizeGoals = TourOptimizeGoals.DEFAULT,
+    onGoalsChange: (TourOptimizeGoals) -> Unit = {},
+    /**
+     * Legacy single-axis radio shim — prefer [optimizeGoals] / [onGoalsChange].
+     * When provided without goals callbacks, maps to checkbox goals.
+     */
+    optimizeMode: OptimizeMode = optimizeGoals.asLegacyMode() ?: OptimizeMode.FASTEST,
+    onModeChange: (OptimizeMode) -> Unit = {},
     /** Optional GraphHopper-optimised order / source line (ATNA-68). Default null keeps RootNav call sites unchanged. */
     optimizeOrderSummary: String? = null,
 ) {
@@ -68,15 +78,23 @@ fun ColumnScope.TripStopsScreen(
         Spacer(modifier = Modifier.height(12.dp))
         TruckieBody(text = stringResource(R.string.optimize_for_vehicle))
         Row(verticalAlignment = Alignment.CenterVertically) {
-            OptimizeModeRadio(
+            OptimizeGoalCheckbox(
                 label = stringResource(R.string.optimize_fastest),
-                selected = optimizeMode == OptimizeMode.FASTEST,
-                onClick = { onModeChange(OptimizeMode.FASTEST) },
+                checked = optimizeGoals.preferFastest,
+                onCheckedChange = { checked ->
+                    val next = optimizeGoals.copy(preferFastest = checked)
+                    onGoalsChange(next)
+                    next.asLegacyMode()?.let(onModeChange)
+                },
             )
-            OptimizeModeRadio(
-                label = stringResource(R.string.optimize_cheapest),
-                selected = optimizeMode == OptimizeMode.CHEAPEST,
-                onClick = { onModeChange(OptimizeMode.CHEAPEST) },
+            OptimizeGoalCheckbox(
+                label = stringResource(R.string.optimize_cost_effective),
+                checked = optimizeGoals.preferCostEffective,
+                onCheckedChange = { checked ->
+                    val next = optimizeGoals.copy(preferCostEffective = checked)
+                    onGoalsChange(next)
+                    next.asLegacyMode()?.let(onModeChange)
+                },
             )
         }
         TruckiePrimaryButton(
@@ -96,7 +114,37 @@ fun ColumnScope.TripStopsScreen(
 }
 
 @Composable
-private fun OptimizeModeRadio(
+private fun OptimizeGoalCheckbox(
+    label: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .selectable(
+                selected = checked,
+                onClick = { onCheckedChange(!checked) },
+                role = Role.Checkbox,
+            )
+            .padding(end = 16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Checkbox(
+            checked = checked,
+            onCheckedChange = onCheckedChange,
+            colors = CheckboxDefaults.colors(
+                checkedColor = TruckiePalette.Navy,
+                uncheckedColor = TruckiePalette.Navy,
+                checkmarkColor = TruckiePalette.OnPrimary,
+            ),
+        )
+        Text(text = label, color = TruckiePalette.Navy)
+    }
+}
+
+/** Mutually exclusive pick-up / drop-off on the add-stop cargo form. */
+@Composable
+private fun CargoActionRadio(
     label: String,
     selected: Boolean,
     onClick: () -> Unit,
@@ -176,12 +224,12 @@ fun AddStopScreen(
         Spacer(modifier = Modifier.height(16.dp))
         TruckieBody(text = stringResource(R.string.cargo_at_stop))
         Row(verticalAlignment = Alignment.CenterVertically) {
-            OptimizeModeRadio(
+            CargoActionRadio(
                 label = stringResource(R.string.pick_up),
                 selected = state.cargoAction == CargoAction.PICK_UP,
                 onClick = { onChange(state.copy(cargoAction = CargoAction.PICK_UP)) },
             )
-            OptimizeModeRadio(
+            CargoActionRadio(
                 label = stringResource(R.string.drop_off),
                 selected = state.cargoAction == CargoAction.DROP_OFF,
                 onClick = { onChange(state.copy(cargoAction = CargoAction.DROP_OFF)) },

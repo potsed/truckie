@@ -103,6 +103,15 @@ class LocalFeatureFlagsTest {
     }
 
     @Test
+    fun mapRoutePolylineFlagKey() {
+        assertTrue(FlagKeys.MAP_ROUTE_POLYLINE == "ff_map_route_polyline")
+        val flags = LocalFeatureFlags()
+        assertFalse(flags.isEnabled(FlagKeys.MAP_ROUTE_POLYLINE))
+        flags.setEnabled(FlagKeys.MAP_ROUTE_POLYLINE, true)
+        assertTrue(flags.isEnabled(FlagKeys.MAP_ROUTE_POLYLINE))
+    }
+
+    @Test
     fun demoModeFlagKey() {
         assertTrue(FlagKeys.DEMO_MODE == "ff_demo_mode")
         val flags = LocalFeatureFlags()

@@ -45,6 +45,12 @@ object FlagKeys {
      */
     const val STOP_MARKERS = "ff_stop_markers"
     /**
+     * Active route polyline on MapLibre home (ATNA-82): PathRouter /
+     * MultiStopTourComposer constrained geometry via shared LineManager
+     * with Navigate. Stub geometry only when stub PathRouter is active.
+     */
+    const val MAP_ROUTE_POLYLINE = "ff_map_route_polyline"
+    /**
      * Verified CBD sample clearances (ATNA-42): labels only for published road
      * heights; unknown / not_applicable omit invented mocks.
      */

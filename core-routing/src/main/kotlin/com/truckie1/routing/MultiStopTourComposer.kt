@@ -5,14 +5,18 @@ import com.truckie1.trips.ClearanceCalculator
 import com.truckie1.trips.OnBoardMass
 import com.truckie1.trips.OptimizeMode
 import com.truckie1.trips.RouteEndpoint
+import com.truckie1.trips.TourOptimizeGoals
 import com.truckie1.trips.TripStop
 
 /**
- * Multi-stop GraphHopper tour optimiser (ATNA-68).
+ * Multi-stop GraphHopper tour optimiser (ATNA-68 / ATNA-82).
  *
  * Origin (first stop) stays fixed; remaining stops are permuted. Each order is
  * scored by composing [PathRouter] legs with a truck Custom Model. Under-passage
  * low bridges hard-block when [bridgePassageEnabled]; over-deck remains OK.
+ *
+ * Selection uses [TourOptimizeGoals] checkboxes (Fastest + Cost Effective, both
+ * on by default = AND) — not single-axis radio.
  */
 class MultiStopTourComposer(
     private val pathRouter: PathRouter,
@@ -26,6 +30,20 @@ class MultiStopTourComposer(
         vehicle: Vehicle,
         bufferM: Double,
         mode: OptimizeMode,
+    ): OptimizeResult = optimize(
+        stops = stops,
+        vehicle = vehicle,
+        bufferM = bufferM,
+        goals = TourOptimizeGoals.fromLegacyMode(mode),
+        legacyMode = mode,
+    )
+
+    fun optimize(
+        stops: List<TripStop>,
+        vehicle: Vehicle,
+        bufferM: Double,
+        goals: TourOptimizeGoals = TourOptimizeGoals.DEFAULT,
+        legacyMode: OptimizeMode = goals.asLegacyMode() ?: OptimizeMode.FASTEST,
     ): OptimizeResult {
         if (stops.isEmpty()) {
             return OptimizeResult.Blocked(reason = "Add at least one stop before optimizing")
@@ -54,7 +72,7 @@ class MultiStopTourComposer(
             val requiredMass = OnBoardMass.peakOperatingMassT(vehicle.tareT, ordered)
             val modelPrefs = preferences.copy(
                 tollPreference = tollPreference,
-                optimizeMode = mode,
+                optimizeMode = legacyMode,
             )
             val model = GraphHopperCustomModelStub.from(
                 vehicle = vehicle,
@@ -70,11 +88,16 @@ class MultiStopTourComposer(
                     val candidate = OptimizeResult.Ok(
                         orderedStops = ordered,
                         route = composed.route,
-                        mode = mode,
+                        mode = legacyMode,
                         customModel = model,
                         path = composed.path,
                     )
-                    best = pickBetter(best, candidate, mode)
+                    best = TourPathSelector.pickBetter(
+                        current = best,
+                        next = candidate,
+                        candidateOf = { it.route },
+                        goals = goals,
+                    )
                 }
             }
         }
@@ -83,6 +106,61 @@ class MultiStopTourComposer(
             reason = blockers.firstOrNull()
                 ?: "No safe GraphHopper tour for the active vehicle",
         )
+    }
+
+    /**
+     * Compose PathRouter legs in the **given** stop order (no permutation).
+     * Same Custom Model + under-passage hard-block as [optimize].
+     */
+    fun composeOrdered(
+        stops: List<TripStop>,
+        vehicle: Vehicle,
+        bufferM: Double,
+        mode: OptimizeMode = OptimizeMode.FASTEST,
+        goals: TourOptimizeGoals = TourOptimizeGoals.DEFAULT,
+    ): OptimizeResult {
+        if (stops.isEmpty()) {
+            return OptimizeResult.Blocked(reason = "Add at least one stop before composing")
+        }
+        if (stops.any { it.latitude == null || it.longitude == null }) {
+            return OptimizeResult.Blocked(
+                reason = "All stops need verified coordinates before GraphHopper composition",
+            )
+        }
+        if (OnBoardMass.exceedsGvm(tareT = vehicle.tareT, gvmT = vehicle.gvmT, stops = stops)) {
+            val peak = OnBoardMass.peakOperatingMassT(vehicle.tareT, stops)
+            return OptimizeResult.Blocked(
+                reason = "On-board mass ${"%.2f".format(peak)} t exceeds GVM ${vehicle.gvmT} t",
+            )
+        }
+        val requiredClearance = ClearanceCalculator.maxEffectiveHeightAlongTripM(
+            vehicleHeightM = vehicle.heightM,
+            stops = stops,
+            bufferM = bufferM,
+        )
+        val requiredMass = OnBoardMass.peakOperatingMassT(vehicle.tareT, stops)
+        val legacyMode = goals.asLegacyMode() ?: mode
+        val modelPrefs = preferences.copy(
+            tollPreference = tollPreference,
+            optimizeMode = legacyMode,
+        )
+        val model = GraphHopperCustomModelStub.from(
+            vehicle = vehicle,
+            requiredClearanceHeightM = requiredClearance,
+            requiredMassT = requiredMass,
+            tollPreference = tollPreference,
+            preferences = modelPrefs,
+        )
+        return when (val composed = composeTour(stops, model, vehicle.heightM, bufferM)) {
+            is TourCompose.Blocked -> OptimizeResult.Blocked(composed.reason)
+            is TourCompose.Ok -> OptimizeResult.Ok(
+                orderedStops = stops,
+                route = composed.route,
+                mode = legacyMode,
+                customModel = model,
+                path = composed.path,
+            )
+        }
     }
 
     private fun composeTour(
@@ -198,20 +276,6 @@ class MultiStopTourComposer(
 
     private fun estimateCostCents(durationSeconds: Long): Long =
         (durationSeconds / 10L).coerceAtLeast(1L)
-
-    private fun pickBetter(
-        current: OptimizeResult.Ok?,
-        next: OptimizeResult.Ok,
-        mode: OptimizeMode,
-    ): OptimizeResult.Ok {
-        if (current == null) return next
-        return when (mode) {
-            OptimizeMode.FASTEST ->
-                if (next.route.durationSeconds < current.route.durationSeconds) next else current
-            OptimizeMode.CHEAPEST ->
-                if (next.route.costCents < current.route.costCents) next else current
-        }
-    }
 
     private fun candidateOrders(stops: List<TripStop>): List<List<TripStop>> {
         if (stops.size <= 1) return listOf(stops)

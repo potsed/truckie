@@ -63,7 +63,8 @@
     <string name="trip_eff_clearance">Eff. clearance: %1$s m</string>
     <string name="optimize_for_vehicle">Optimize for this vehicle</string>
     <string name="optimize_fastest">Fastest</string>
-    <string name="optimize_cheapest">Cheapest</string>
+    <string name="optimize_cheapest">Cost Effective</string>
+    <string name="optimize_cost_effective">Cost Effective</string>
     <string name="run_optimize">Optimize</string>
     <string name="optimize_need_vehicle">Set an active vehicle before optimizing</string>
     <string name="optimize_need_stops">Add stops before optimizing</string>
