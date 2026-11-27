@@ -11,8 +11,6 @@ import com.truckie1.flags.FlagKeys
 import com.truckie1.flags.LocalFeatureFlags
 import com.truckie1.profiles.InMemoryVehicleProfileRepository
 import com.truckie1.profiles.Vehicle
-import com.truckie1.trips.RouteSession
-import com.truckie1.trips.TripSession
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -21,9 +19,10 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import java.time.LocalDate
 
 /**
- * Gherkin: features/demo_mode.feature — Settings Demo mode switch (ATNA-58).
+ * Gherkin: features/demo_mode.feature — Settings Demo mode switch (ATNA-75).
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28])
@@ -33,7 +32,7 @@ class DemoModeComposeTest {
     val composeRule = createComposeRule()
 
     @Test
-    fun settingsDemoModeSwitchTogglesFlagAndSeedsIsolation() {
+    fun settingsDemoModeSwitchTogglesFlagAndSwapsDataSource() {
         val flags = LocalFeatureFlags()
         val realRepo = InMemoryVehicleProfileRepository()
         realRepo.save(
@@ -53,15 +52,12 @@ class DemoModeComposeTest {
                 gcmT = 15.0,
             ),
         )
-        val dual = DualModeVehicleProfileRepository(real = realRepo, flags = flags)
-        val routes = RouteSession()
-        val trips = TripSession()
-        val controller = DemoModeController(
+        val data = DualModeAppDataSource(
+            real = RealAppDataSource(vehicles = realRepo),
+            demo = DemoAppDataSource.create(today = LocalDate.of(2026, 11, 27)),
             flags = flags,
-            vehicles = dual,
-            routeSession = routes,
-            tripSession = trips,
         )
+        val controller = DemoModeController(flags = flags)
 
         composeRule.setContent {
             TruckieTheme {
@@ -80,19 +76,22 @@ class DemoModeComposeTest {
         composeRule.onNodeWithTag(DemoModeCatalog.SETTINGS_TEST_TAG).performClick()
         composeRule.onNodeWithTag(DemoModeCatalog.SETTINGS_TEST_TAG).assertIsOn()
         assertTrue(flags.isEnabled(FlagKeys.DEMO_MODE))
-        assertEquals(listOf(DemoDataset.VEHICLE_REGO), dual.all().map { it.rego })
-        assertTrue(DemoDataset.isDemoRouteId(routes.activeRoute()!!.id))
-        assertEquals(6, routes.activeRoute()!!.stops.size)
+        assertEquals(listOf(DemoDataset.VEHICLE_REGO), data.vehicles.all().map { it.rego })
+        assertTrue(DemoDataset.isDemoRouteId(data.routes.activeRoute()!!.id))
+        assertEquals(6, data.routes.activeRoute()!!.stops.size)
+        assertFalse(
+            DemoDataset.hasDemoRevealingProductCopy(
+                routeName = data.routes.activeRoute()?.name,
+                vehicleNickname = data.vehicles.all().first().nickname,
+                vehicleNotes = data.vehicles.all().first().notes,
+            ),
+        )
 
         composeRule.onNodeWithTag(DemoModeCatalog.SETTINGS_TEST_TAG).performClick()
         composeRule.onNodeWithTag(DemoModeCatalog.SETTINGS_TEST_TAG).assertIsOff()
         assertFalse(flags.isEnabled(FlagKeys.DEMO_MODE))
-        assertEquals(listOf("REAL99"), dual.all().map { it.rego })
-        assertNullRouteOrNotDemo(routes)
-    }
-
-    private fun assertNullRouteOrNotDemo(routes: RouteSession) {
-        val active = routes.activeRoute()
+        assertEquals(listOf("REAL99"), data.vehicles.all().map { it.rego })
+        val active = data.routes.activeRoute()
         assertTrue(active == null || !DemoDataset.isDemoRouteId(active.id))
     }
 }

@@ -1,11 +1,14 @@
 package com.truckie1.app.ui
 
 import com.truckie1.profiles.Vehicle
+import com.truckie1.trips.Cargo
+import com.truckie1.trips.CargoAction
 import com.truckie1.trips.Route
 import com.truckie1.trips.RouteEndpoint
 import com.truckie1.trips.RouteStatus
 import com.truckie1.trips.RouteStop
 import com.truckie1.trips.StopKind
+import com.truckie1.trips.TripStop
 import java.time.LocalDate
 import kotlin.math.atan2
 import kotlin.math.cos
@@ -18,22 +21,29 @@ enum class DemoStopAreaKind {
 }
 
 /**
- * Fixed SEQ demo run for `ff_demo_mode` (ATNA-56): DHL Boronia Rd depot, six stops
- * (2 pickup / 4 delivery; industrial Yatala/Lytton-style + one residential near a
- * verified low bridge), and a 3.5 m demo vehicle. Used for route-optimisation and
- * W5-8 / clearance-filter dogfood.
+ * Fixed SEQ sample run for `ff_demo_mode` (ATNA-56 / ATNA-75): DHL Boronia Rd
+ * depot, six stops (2 pickup / 4 delivery; industrial Yatala/Lytton-style + one
+ * residential near a verified low bridge), cargo on pickups/drops, and a 3.5 m
+ * vehicle — rich enough to dogfood map / markers / height filter / Optimize /
+ * Navigate **without writes** (demo stores are read-only).
+ *
+ * Product surface labels are **neutral** (look like normal driver data). The only
+ * in-app "demo" chrome is the floating DEMO MODE pill — not route/vehicle copy.
  *
  * Gherkin: features/demo_mode.feature
  */
 object DemoDataset {
+    /** Stable internal id — not shown as a "Demo …" label in UI. */
     const val ROUTE_ID: String = "demo-route-seq-dhl"
-    const val ROUTE_NAME: String = "Demo SEQ run"
-    const val VEHICLE_REGO: String = "DEMO350"
+    /** Neutral route name shown in the sheet (no "Demo" wording). */
+    const val ROUTE_NAME: String = "Airport run"
+    /** Neutral rego shown in Vehicles (no DEMO* prefix). */
+    const val VEHICLE_REGO: String = "104YQ3"
 
     /**
-     * QR SEQ underbridge next to the residential demo stop
+     * QR SEQ underbridge next to the residential sample stop
      * (`qld-qr-wynnum-colina-street-berrima-street`, 1.9 m) — conflicts with the
-     * 3.5 m demo vehicle so W5-8 filtering is exercisable on the demo route.
+     * 3.5 m vehicle so W5-8 filtering is exercisable on the sample route.
      */
     const val NEAR_LOW_BRIDGE_ID: String = "qld-qr-wynnum-colina-street-berrima-street"
     const val NEAR_LOW_BRIDGE_NAME: String = "Colina Street / Berrima Street (Wynnum)"
@@ -52,10 +62,10 @@ object DemoDataset {
 
     val vehicle: Vehicle = Vehicle(
         rego = VEHICLE_REGO,
-        nickname = "Demo 3.5 m",
+        nickname = "Rigid 3.5",
         vehicleType = "Rigid",
-        make = "Demo",
-        model = "Sample",
+        make = "Hino",
+        model = "500",
         year = 2024,
         heightM = 3.5,
         widthM = 2.5,
@@ -65,7 +75,7 @@ object DemoDataset {
         gvmT = 12.0,
         gcmT = 12.0,
         axleCount = 2,
-        notes = "Demo mode only — not a real vehicle",
+        notes = null,
     )
 
     data class DemoStop(
@@ -78,6 +88,30 @@ object DemoDataset {
         val areaKind: DemoStopAreaKind,
         /** When true, stop is within [NEAR_LOW_BRIDGE_MAX_M] of [NEAR_LOW_BRIDGE_ID]. */
         val nearLowBridge: Boolean = false,
+        /** Seeded cargo so stop-cargo / clearance-with-load / Optimize mass paths work without writes. */
+        val cargo: List<Cargo> = emptyList(),
+    )
+
+    /**
+     * Cargo taller than the 3.5 m shell so on-board clearance rises after pickups
+     * (exercises `ff_stop_cargo` / ClearanceCalculator without adding stops).
+     * Peak mass stays under GVM (tare 5 + 2.0 + 2.5 = 9.5 t &lt; 12 t).
+     */
+    private val cargoCrates = Cargo(
+        description = "Crates",
+        heightM = 3.8,
+        widthM = 2.2,
+        lengthM = 3.0,
+        massT = 2.0,
+        action = CargoAction.PICK_UP,
+    )
+    private val cargoPallets = Cargo(
+        description = "Pallets",
+        heightM = 3.2,
+        widthM = 2.4,
+        lengthM = 4.0,
+        massT = 2.5,
+        action = CargoAction.PICK_UP,
     )
 
     val stops: List<DemoStop> = listOf(
@@ -89,6 +123,7 @@ object DemoDataset {
             longitude = 153.1542,
             kind = StopKind.PICKUP_LOAD,
             areaKind = DemoStopAreaKind.INDUSTRIAL,
+            cargo = listOf(cargoCrates),
         ),
         DemoStop(
             id = "demo-stop-pickup-yatala",
@@ -98,6 +133,7 @@ object DemoDataset {
             longitude = 153.2368,
             kind = StopKind.PICKUP_LOAD,
             areaKind = DemoStopAreaKind.INDUSTRIAL,
+            cargo = listOf(cargoPallets),
         ),
         DemoStop(
             id = "demo-stop-delivery-eagle-farm",
@@ -116,6 +152,7 @@ object DemoDataset {
             longitude = 153.1295,
             kind = StopKind.DROP_OFF_UNLOAD,
             areaKind = DemoStopAreaKind.INDUSTRIAL,
+            cargo = listOf(cargoCrates.copy(action = CargoAction.DROP_OFF)),
         ),
         DemoStop(
             id = "demo-stop-delivery-acacia-ridge",
@@ -125,6 +162,7 @@ object DemoDataset {
             longitude = 153.0264,
             kind = StopKind.DROP_OFF_UNLOAD,
             areaKind = DemoStopAreaKind.INDUSTRIAL,
+            cargo = listOf(cargoPallets.copy(action = CargoAction.DROP_OFF)),
         ),
         // Residential delivery beside QR Colina St / Berrima St underbridge (1.9 m).
         DemoStop(
@@ -174,6 +212,47 @@ object DemoDataset {
                 )
             },
         )
+
+    /**
+     * Trip-stop projection used by Plan Trip / Optimize — includes cargo and
+     * verified coords so dogfood does not need Add stop writes.
+     */
+    fun buildTripStops(): List<TripStop> =
+        stops.map { stop ->
+            TripStop(
+                id = stop.id,
+                addressLabel = stop.addressLabel,
+                latitude = stop.latitude,
+                longitude = stop.longitude,
+                cargo = stop.cargo,
+            )
+        }
+
+    /** True when visible product copy would reveal demo mode (forbidden except pill). */
+    fun hasDemoRevealingProductCopy(routeName: String?, vehicleNickname: String?, vehicleNotes: String?): Boolean {
+        fun looksDemo(value: String?): Boolean =
+            value?.contains("demo", ignoreCase = true) == true
+        return looksDemo(routeName) || looksDemo(vehicleNickname) || looksDemo(vehicleNotes)
+    }
+
+    /**
+     * Read-only dogfood checklist: seed must already exercise these flows
+     * without mutations (add stop / edit vehicle / reorder).
+     */
+    fun supportsReadOnlyDogfood(): Boolean {
+        val route = buildRoute()
+        val tripStops = buildTripStops()
+        return route.hasEndpoints &&
+            route.isRoundTrip &&
+            route.stops.size == 6 &&
+            tripStops.size == 6 &&
+            tripStops.all { it.latitude != null && it.longitude != null } &&
+            tripStops.count { it.cargo.any { c -> c.action == CargoAction.PICK_UP } } >= 2 &&
+            tripStops.count { it.cargo.any { c -> c.action == CargoAction.DROP_OFF } } >= 2 &&
+            vehicle.heightM == 3.5 &&
+            stopsNearLowBridge().isNotEmpty() &&
+            !hasDemoRevealingProductCopy(route.name, vehicle.nickname, vehicle.notes)
+    }
 
     private fun haversineM(
         lat1: Double,

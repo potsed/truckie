@@ -3,10 +3,12 @@ package com.truckie1.app.ui
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -34,11 +36,13 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -87,8 +91,11 @@ fun TruckieRootApp(
     val title = rootTitle(baseRoute)
     val canNavigateUp = baseRoute !in TruckieRoutes.primaryRoutes
     val graphStart = remember(Unit) { primaryStartDestination(startRoute) }
-    // ATNA-56: bump when Demo mode toggles so map/vehicles/trip rebind isolated data.
+    // ATNA-75: bump when Demo mode toggles so UI rebinds the swapped data source.
     var demoRevision by remember { mutableIntStateOf(0) }
+    var demoEnabled by remember {
+        mutableStateOf(DemoModeCatalog.isEnabled(app.featureFlags))
+    }
 
     LaunchedEffect(startRoute) {
         openStartRoute(navController, startRoute)
@@ -98,6 +105,7 @@ fun TruckieRootApp(
         navController.popBackStack()
     }
 
+    Box(modifier = Modifier.fillMaxSize()) {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         containerColor = MaterialTheme.colorScheme.background,
@@ -233,6 +241,7 @@ fun TruckieRootApp(
                         showDemoModeSwitch = DemoModeCatalog.showsInSettings,
                         onDemoModeChanged = { enabled ->
                             app.demoModeController.setEnabled(enabled)
+                            demoEnabled = DemoModeCatalog.isEnabled(app.featureFlags)
                             demoRevision = app.demoModeController.revision()
                         },
                     )
@@ -297,6 +306,16 @@ fun TruckieRootApp(
             }
         }
     }
+    if (demoEnabled) {
+        DemoModePill(
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .statusBarsPadding()
+                .padding(top = 8.dp)
+                .zIndex(10f),
+        )
+    }
+    } // Box — DEMO MODE pill floats above chrome
 }
 
 @Composable
@@ -481,10 +500,7 @@ private fun MapHomeRoute(
         mutableStateOf(app.routeNavigateSession.activePath()?.points.orEmpty())
     }
     LaunchedEffect(demoRevision) {
-        // ATNA-58: if flag is on but route was never seeded, repair on Home bind.
-        if (app.demoModeController.ensureSeededIfDemo()) {
-            // Controller bumped revision; parent may not have seen it yet.
-        }
+        // ATNA-75: data source already swapped; just rebind active route.
         route = app.routeSession.activeRoute()
         if (DemoModeCatalog.isEnabled(app.featureFlags)) {
             app.routeNavigateSession.clear()
@@ -693,7 +709,6 @@ private fun ColumnScope.TripStopsRoute(
     var optimizeStatus by remember { mutableStateOf<String?>(null) }
 
     fun bindList() {
-        app.demoModeController.ensureSeededIfDemo()
         val current = app.tripSession.stops()
         stops = current
         clearanceSummary = tripClearanceText(app, current)
@@ -800,7 +815,6 @@ private fun ColumnScope.VehicleListRoute(
     var activeRego by remember { mutableStateOf(app.vehicleProfiles.activeRego) }
 
     fun bindList() {
-        app.demoModeController.ensureSeededIfDemo()
         vehicles = app.vehicleProfiles.all()
         activeRego = app.vehicleProfiles.activeRego
     }

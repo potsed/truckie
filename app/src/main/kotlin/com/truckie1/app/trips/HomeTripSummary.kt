@@ -3,14 +3,14 @@ package com.truckie1.app.trips
 import com.truckie1.flags.FeatureFlags
 import com.truckie1.flags.FlagKeys
 import com.truckie1.trips.ClearanceCalculator
-import com.truckie1.trips.TripSession
+import com.truckie1.trips.TripRepository
 import com.truckie1.trips.TripStopSummary
 
 /**
  * Home trip overview and clearance lines, gated by multi-stop / cargo flags.
  */
 object HomeTripSummary {
-    fun text(flags: FeatureFlags, session: TripSession): String? {
+    fun text(flags: FeatureFlags, session: TripRepository): String? {
         if (!flags.isEnabled(FlagKeys.MULTI_STOP)) return null
         return TripStopSummary.tripOverview(
             stops = session.stops(),
@@ -20,7 +20,7 @@ object HomeTripSummary {
 
     fun clearanceLine(
         flags: FeatureFlags,
-        session: TripSession,
+        session: TripRepository,
         vehicleHeightM: Double?,
         bufferM: Double,
     ): String? {
