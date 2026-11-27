@@ -19,6 +19,7 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import kotlinx.coroutines.runBlocking
 
 /**
  * Gherkin: create_route_start_end.feature + navigate_multi_stop_path.feature —
@@ -96,7 +97,7 @@ class RouteNavigateSessionTest {
     }
 
     @Test
-    fun startAlwaysComputesInAppGraphHopperPath() {
+    fun startAlwaysComputesInAppGraphHopperPath() = runBlocking {
         val flags = flagsNavigateOn()
         val navigateSession = session()
         val route = Route(
@@ -125,7 +126,7 @@ class RouteNavigateSessionTest {
     }
 
     @Test
-    fun startRoundTripStillYieldsInAppPath() {
+    fun startRoundTripStillYieldsInAppPath() = runBlocking {
         val flags = flagsNavigateOn()
         val navigateSession = session()
         val route = Route(id = "r1", dateEpochDay = 20_000, start = start, end = start)
@@ -142,7 +143,7 @@ class RouteNavigateSessionTest {
     }
 
     @Test
-    fun externalSelectionStillComputesPathThenOffersHandoff() {
+    fun externalSelectionStillComputesPathThenOffersHandoff() = runBlocking {
         val flags = flagsNavigateOn()
         val navigateSession = session()
         val route = Route(id = "r1", dateEpochDay = 20_000, start = start, end = end)
@@ -174,7 +175,7 @@ class RouteNavigateSessionTest {
     }
 
     @Test
-    fun startGatesFlagAndMissingEndpoints() {
+    fun startGatesFlagAndMissingEndpoints() = runBlocking {
         val flagsOff = LocalFeatureFlags()
         val flagsOn = flagsNavigateOn()
         val navigateSession = session()
@@ -202,7 +203,7 @@ class RouteNavigateSessionTest {
     }
 
     @Test
-    fun multiStopFlagOffBlocksNavigate() {
+    fun multiStopFlagOffBlocksNavigate() = runBlocking {
         val flags = LocalFeatureFlags(mapOf(FlagKeys.NAVIGATE to true))
         assertFalse(NavigateMultiStopCatalog.isEnabled(flags))
         val navigateSession = session()
@@ -219,7 +220,7 @@ class RouteNavigateSessionTest {
     }
 
     @Test
-    fun missingVehicleBlocksNavigate() {
+    fun missingVehicleBlocksNavigate() = runBlocking {
         val flags = flagsNavigateOn()
         val navigateSession = session()
         val route = Route(id = "r1", dateEpochDay = 20_000, start = start, end = end)
@@ -236,10 +237,10 @@ class RouteNavigateSessionTest {
     }
 
     @Test
-    fun blockedPathPropagatesWithoutHandoff() {
+    fun blockedPathPropagatesWithoutHandoff() = runBlocking {
         val flags = flagsNavigateOn()
         val blocked = object : PathRouter {
-            override fun path(
+            override suspend fun path(
                 start: RouteEndpoint,
                 end: RouteEndpoint,
                 preferences: com.truckie1.routing.TruckRoutingPreferences,

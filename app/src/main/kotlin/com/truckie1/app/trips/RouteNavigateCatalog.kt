@@ -88,7 +88,7 @@ class RouteNavigateSession(
         val waypoints: List<RouteEndpoint>,
     )
 
-    fun start(
+    suspend fun start(
         flags: FeatureFlags,
         route: Route?,
         vehicle: Vehicle?,

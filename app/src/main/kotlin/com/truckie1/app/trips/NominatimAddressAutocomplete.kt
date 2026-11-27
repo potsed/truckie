@@ -4,10 +4,16 @@ import java.net.HttpURLConnection
 import java.net.URI
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /**
  * Default [AddressAutocomplete] using OpenStreetMap Nominatim search.
  * Biased to Australia via `countrycodes` (Nominatim usage policy: identify User-Agent).
+ *
+ * [suggest] is **suspend** and hops to [ioDispatcher] before blocking HTTP
+ * (ATNA-88) so Compose never owns the network call from `remember`.
  */
 class NominatimAddressAutocomplete(
     private val client: AddressHttpClient = DefaultAddressHttpClient,
@@ -15,17 +21,20 @@ class NominatimAddressAutocomplete(
     private val countryCodes: String = DEFAULT_COUNTRY_CODES,
     private val userAgent: String = DEFAULT_USER_AGENT,
     private val limit: Int = DEFAULT_LIMIT,
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) : AddressAutocomplete {
 
-    override fun suggest(query: String): List<AddressSuggestion> {
+    override suspend fun suggest(query: String): List<AddressSuggestion> {
         val trimmed = query.trim()
         if (trimmed.isEmpty()) return emptyList()
-        return try {
-            val url = buildSearchUrl(trimmed)
-            val body = client.get(url, userAgent)
-            NominatimSearchParser.parse(body)
-        } catch (_: Exception) {
-            emptyList()
+        return withContext(ioDispatcher) {
+            try {
+                val url = buildSearchUrl(trimmed)
+                val body = client.get(url, userAgent)
+                NominatimSearchParser.parse(body)
+            } catch (_: Exception) {
+                emptyList()
+            }
         }
     }
 

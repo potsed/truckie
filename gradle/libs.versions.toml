@@ -21,6 +21,8 @@ maplibre = "13.7.1"
 maplibreAnnotation = "4.0.0"
 lifecycleRuntimeCompose = "2.9.4"
 playServicesLocation = "21.3.0"
+# Matches Compose BOM / Kotlin 2.4 transitive pin already on classpath.
+coroutines = "1.9.0"
 
 [libraries]
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }
@@ -51,6 +53,8 @@ maplibre-android = { module = "org.maplibre.gl:android-sdk", version.ref = "mapl
 maplibre-annotation = { module = "org.maplibre.gl:android-plugin-annotation", version.ref = "maplibreAnnotation" }
 play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "playServicesLocation" }
 androidx-lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "lifecycleRuntimeCompose" }
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
 androidx-compose-ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4" }
 androidx-compose-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest" }
 

@@ -1,10 +1,14 @@
 package com.truckie1.app.trips
 
+import com.truckie1.app.routing.AsyncRoutingIoCatalog
 import com.truckie1.flags.FeatureFlags
 import com.truckie1.flags.FlagKeys
 
 /**
  * Catalog for verified address autocomplete (`ff_address_autocomplete`).
+ *
+ * Live Nominatim is only wired when [AsyncRoutingIoCatalog.allowsLiveNominatim]
+ * (ATNA-88) — never sync-on-main HTTP when async I/O is off.
  */
 object VerifiedAddressCatalog {
     const val FLAG: String = FlagKeys.ADDRESS_AUTOCOMPLETE
@@ -27,8 +31,13 @@ object VerifiedAddressCatalog {
     )
 
     /**
-     * Provider for the map-home sheet: Nominatim when the flag is on, otherwise NoOp.
+     * Provider for the map-home sheet: Nominatim when autocomplete **and** async
+     * routing I/O are on; otherwise NoOp (never sync live HTTP).
      */
     fun autocompleteFor(flags: FeatureFlags): AddressAutocomplete =
-        if (isEnabled(flags)) defaultAutocomplete() else NoOpAddressAutocomplete
+        if (AsyncRoutingIoCatalog.allowsLiveNominatim(flags)) {
+            defaultAutocomplete()
+        } else {
+            NoOpAddressAutocomplete
+        }
 }

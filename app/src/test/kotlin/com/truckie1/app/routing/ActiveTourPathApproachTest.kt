@@ -20,6 +20,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import kotlinx.coroutines.runBlocking
 
 /**
  * Gherkin: features/route_path_from_location.feature — current → start →
@@ -105,7 +106,7 @@ class ActiveTourPathApproachTest {
     }
 
     @Test
-    fun composePathStartsAtCurrentThenVisitsStartStopsEnd() {
+    fun composePathStartsAtCurrentThenVisitsStartStopsEnd() = runBlocking {
         val router = StubGraphHopperPathRouter()
         val composer = MultiStopTourComposer(pathRouter = router)
         val result = ActiveTourPath.compose(
@@ -125,7 +126,7 @@ class ActiveTourPathApproachTest {
     }
 
     @Test
-    fun composeWithoutCurrentDoesNotMatchPathThatIncludesApproach() {
+    fun composeWithoutCurrentDoesNotMatchPathThatIncludesApproach() = runBlocking {
         val router = StubGraphHopperPathRouter()
         val composer = MultiStopTourComposer(pathRouter = router)
         val withApproach = ActiveTourPath.compose(
@@ -150,7 +151,7 @@ class ActiveTourPathApproachTest {
     }
 
     @Test
-    fun navigateAndPolylineShareApproachGeometry() {
+    fun navigateAndPolylineShareApproachGeometry() = runBlocking {
         val router = StubGraphHopperPathRouter()
         val composer = MultiStopTourComposer(pathRouter = router)
         val flags = flagsOn()
@@ -185,7 +186,7 @@ class ActiveTourPathApproachTest {
     }
 
     @Test
-    fun cachedOptimisedTourStillGetsApproachLegPrepended() {
+    fun cachedOptimisedTourStillGetsApproachLegPrepended() = runBlocking {
         val router = StubGraphHopperPathRouter()
         val composer = MultiStopTourComposer(pathRouter = router)
         val tourOnly = when (

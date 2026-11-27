@@ -40,4 +40,18 @@ class VerifiedAddressCatalogTest {
         assertEquals("au", VerifiedAddressCatalog.DEFAULT_COUNTRY_CODES)
         assertTrue(VerifiedAddressCatalog.defaultAutocomplete() is NominatimAddressAutocomplete)
     }
+
+    @Test
+    fun autocompleteForRequiresAsyncRoutingIo() {
+        val flags = LocalFeatureFlags(
+            mapOf(
+                FlagKeys.ADDRESS_AUTOCOMPLETE to true,
+                FlagKeys.ASYNC_ROUTING_IO to false,
+            ),
+        )
+        assertTrue(VerifiedAddressCatalog.autocompleteFor(flags) is NoOpAddressAutocomplete)
+
+        flags.setEnabled(FlagKeys.ASYNC_ROUTING_IO, true)
+        assertTrue(VerifiedAddressCatalog.autocompleteFor(flags) is NominatimAddressAutocomplete)
+    }
 }

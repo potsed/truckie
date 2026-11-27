@@ -7,6 +7,7 @@ import androidx.activity.ComponentActivity
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.lifecycleScope
 import com.truckie1.app.R
 import com.truckie1.app.TruckieApp
 import com.truckie1.app.ui.TripStopsScreen
@@ -21,6 +22,7 @@ import com.truckie1.trips.ClearanceCalculator
 import com.truckie1.trips.OptimizeMode
 import com.truckie1.trips.TourOptimizeGoals
 import com.truckie1.trips.TripStop
+import kotlinx.coroutines.launch
 
 /** Legacy multi-activity host when `ff_nav_chrome` is off. */
 class TripStopsActivity : ComponentActivity() {
@@ -105,33 +107,35 @@ class TripStopsActivity : ComponentActivity() {
             return
         }
 
-        when (
-            val result = app.routeOptimizer.optimize(
-                stops = currentStops,
-                vehicle = vehicle,
-                bufferM = app.clearanceBufferM,
-                goals = optimizeGoals,
-            )
-        ) {
-            is OptimizeResult.Ok -> {
-                app.tripSession.replaceStops(result.orderedStops)
-                app.tripSession.lastOptimizeMode =
-                    optimizeGoals.asLegacyMode() ?: OptimizeMode.FASTEST
-                app.mapRoutePolylineSession.rememberOptimised(result.path)
-                optimizeStatus = getString(
-                    R.string.optimize_success,
-                    result.mode.name.lowercase().replaceFirstChar { it.titlecase() },
-                    result.route.durationSeconds,
+        lifecycleScope.launch {
+            when (
+                val result = app.routeOptimizer.optimize(
+                    stops = currentStops,
+                    vehicle = vehicle,
+                    bufferM = app.clearanceBufferM,
+                    goals = optimizeGoals,
                 )
-                optimizeOrderSummary = OptimizeResultSummary.combined(result)
-                bindList()
-            }
-            is OptimizeResult.Blocked -> {
-                optimizeOrderSummary = null
-                startActivity(
-                    Intent(this, BlockedRouteActivity::class.java)
-                        .putExtra(BlockedRouteActivity.EXTRA_REASON, result.reason),
-                )
+            ) {
+                is OptimizeResult.Ok -> {
+                    app.tripSession.replaceStops(result.orderedStops)
+                    app.tripSession.lastOptimizeMode =
+                        optimizeGoals.asLegacyMode() ?: OptimizeMode.FASTEST
+                    app.mapRoutePolylineSession.rememberOptimised(result.path)
+                    optimizeStatus = getString(
+                        R.string.optimize_success,
+                        result.mode.name.lowercase().replaceFirstChar { it.titlecase() },
+                        result.route.durationSeconds,
+                    )
+                    optimizeOrderSummary = OptimizeResultSummary.combined(result)
+                    bindList()
+                }
+                is OptimizeResult.Blocked -> {
+                    optimizeOrderSummary = null
+                    startActivity(
+                        Intent(this@TripStopsActivity, BlockedRouteActivity::class.java)
+                            .putExtra(BlockedRouteActivity.EXTRA_REASON, result.reason),
+                    )
+                }
             }
         }
     }

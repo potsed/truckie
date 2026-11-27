@@ -45,7 +45,7 @@ object MapRoutePolylineGeometry {
      */
     fun tourStopsFrom(route: Route): List<TripStop> = ActiveTourPath.tourStopsFrom(route)
 
-    fun resolve(
+    suspend fun resolve(
         flags: FeatureFlags,
         mapHomeEnabled: Boolean,
         route: Route?,

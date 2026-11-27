@@ -17,6 +17,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import kotlinx.coroutines.runBlocking
 
 /**
  * Gherkin: features/route_optimisation_graphhopper.feature —
@@ -43,7 +44,7 @@ class SharedPathRouterInjectionTest {
     )
 
     @Test
-    fun navigateSessionUsesInjectedFactoryRouterNotHardWiredStub() {
+    fun navigateSessionUsesInjectedFactoryRouterNotHardWiredStub() = runBlocking {
         val shared = RecordingPathRouter(sourceTag = "shared-factory")
         val composer = MultiStopTourComposer(pathRouter = shared)
         val session = RouteNavigateSession(composerProvider = { composer })
@@ -89,7 +90,7 @@ class SharedPathRouterInjectionTest {
         var calls: Int = 0
             private set
 
-        override fun path(
+        override suspend fun path(
             start: RouteEndpoint,
             end: RouteEndpoint,
             preferences: TruckRoutingPreferences,

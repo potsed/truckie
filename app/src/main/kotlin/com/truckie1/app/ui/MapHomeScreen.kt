@@ -654,8 +654,14 @@ private fun CreateRouteForm(
         DateTimeFormatter.ofPattern("EEE d MMM", Locale.ENGLISH)
     }
     val sectionGap = RouteSheetPolishCatalog.sectionSpacingDp.dp
-    val startSuggestions = remember(startQuery) { autocomplete.suggest(startQuery) }
-    val endSuggestions = remember(endQuery) { autocomplete.suggest(endQuery) }
+    val startSuggestions = AddressSuggestState.rememberSuggestions(
+        query = startQuery,
+        autocomplete = autocomplete,
+    )
+    val endSuggestions = AddressSuggestState.rememberSuggestions(
+        query = endQuery,
+        autocomplete = autocomplete,
+    )
     val endpointsReady = !requireStartEnd || (
         startSuggestion?.isVerified == true &&
             (roundTrip || endSuggestion?.isVerified == true)
@@ -963,7 +969,10 @@ private fun AddFindStopsSection(
     var query by remember { mutableStateOf("") }
     var kind by remember { mutableStateOf(StopKind.PICKUP_LOAD) }
     var selectedSuggestion by remember { mutableStateOf<AddressSuggestion?>(null) }
-    val suggestions = remember(query) { autocomplete.suggest(query) }
+    val suggestions = AddressSuggestState.rememberSuggestions(
+        query = query,
+        autocomplete = autocomplete,
+    )
     val sectionGap = RouteSheetPolishCatalog.sectionSpacingDp.dp
 
     Text(

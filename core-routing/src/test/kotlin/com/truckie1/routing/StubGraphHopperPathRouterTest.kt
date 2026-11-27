@@ -1,6 +1,7 @@
 package com.truckie1.routing
 
 import com.truckie1.trips.RouteEndpoint
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -13,7 +14,7 @@ class StubGraphHopperPathRouterTest {
     private val router = StubGraphHopperPathRouter()
 
     @Test
-    fun oneWayPathIncludesStartAndEnd() {
+    fun oneWayPathIncludesStartAndEnd() = runBlocking {
         val start = RouteEndpoint("Depot", -27.45, 153.01)
         val end = RouteEndpoint("Customer", -27.47, 153.03)
         when (val result = router.path(start, end)) {
@@ -27,14 +28,13 @@ class StubGraphHopperPathRouterTest {
                 assertTrue(result.path.preferences.preferNonResidentialThroughRoutes)
                 assertTrue(result.path.customModelSnippet!!.contains("residential_soft_preference_only"))
                 assertTrue(result.path.customModelSnippet!!.contains("RESIDENTIAL"))
-
             }
             is PathResult.Blocked -> error(result.reason)
         }
     }
 
     @Test
-    fun roundTripReturnsClosedLoopGeometry() {
+    fun roundTripReturnsClosedLoopGeometry() = runBlocking {
         val place = RouteEndpoint("Home", -27.5, 153.0)
         when (val result = router.path(place, place)) {
             is PathResult.Ok -> {
