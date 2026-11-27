@@ -27,17 +27,21 @@ object RouteNavigateCatalog {
         isEnabled(flags) && route != null && route.hasEndpoints
 
     fun showsNavigateAction(flags: FeatureFlags): Boolean = isEnabled(flags)
-
-    fun defaultPathRouter(): PathRouter = StubGraphHopperPathRouter()
 }
 
 /**
  * Starts Navigate: always computes a GraphHopper path in-app, draws it on MapLibre,
  * then optionally offers external handoff when Settings selects an installed app.
+ *
+ * [pathRouterProvider] must be the app-owned factory result (same as Optimise).
+ * Production wiring: `TruckieApp.pathRouter()` — do not hard-wire Stub at the app.
  */
 class RouteNavigateSession(
-    private val pathRouter: PathRouter = RouteNavigateCatalog.defaultPathRouter(),
+    private val pathRouterProvider: () -> PathRouter = { StubGraphHopperPathRouter() },
 ) {
+    /** Test / DI convenience — wraps a fixed [PathRouter] instance. */
+    constructor(pathRouter: PathRouter) : this({ pathRouter })
+
     private var activePath: RoutePath? = null
 
     fun activePath(): RoutePath? = activePath
@@ -82,7 +86,7 @@ class RouteNavigateSession(
         if (start == null || end == null) return Result.MissingEndpoints
 
         // Always calculate in-app first — external apps never replace GraphHopper.
-        val path = when (val pathResult = pathRouter.path(start, end)) {
+        val path = when (val pathResult = pathRouterProvider().path(start, end)) {
             is PathResult.Ok -> pathResult.path
             is PathResult.Blocked -> return Result.Blocked(pathResult.reason)
         }

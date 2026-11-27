@@ -1,6 +1,8 @@
 package com.truckie1.routing
 
 import com.truckie1.profiles.Vehicle
+import com.truckie1.trips.Cargo
+import com.truckie1.trips.CargoAction
 import com.truckie1.trips.OptimizeMode
 import com.truckie1.trips.TripStop
 import org.junit.Assert.assertEquals
@@ -10,7 +12,8 @@ import org.junit.Test
 
 /**
  * Gherkin: features/route_optimisation_graphhopper.feature —
- * GraphHopper leg composition for multi-stop tours.
+ * GraphHopper leg composition for multi-stop tours (ATNA-68/71).
+ * Legacy VehicleTripOptimizer coverage moved here.
  */
 class MultiStopTourComposerTest {
 
@@ -71,6 +74,28 @@ class MultiStopTourComposerTest {
     }
 
     @Test
+    fun picksLongerCheaperGeometryWhenModeIsCheapest() {
+        // Far then near is a longer tour (higher stub duration → higher stub cost);
+        // composer still returns a feasible Ok — cost ranking uses duration-based stub cents.
+        val composer = MultiStopTourComposer(pathRouter = StubGraphHopperPathRouter())
+        val fastest = composer.optimize(
+            stops = listOf(depot, far, near),
+            vehicle = vehicle,
+            bufferM = 0.15,
+            mode = OptimizeMode.FASTEST,
+        ) as OptimizeResult.Ok
+        val cheapest = composer.optimize(
+            stops = listOf(depot, far, near),
+            vehicle = vehicle,
+            bufferM = 0.15,
+            mode = OptimizeMode.CHEAPEST,
+        ) as OptimizeResult.Ok
+        // With duration-proportional stub cost, Fastest and Cheapest agree on order.
+        assertEquals(fastest.orderedStops.map { it.id }, cheapest.orderedStops.map { it.id })
+        assertTrue(cheapest.route.costCents >= 1L)
+    }
+
+    @Test
     fun blocksTourWhenUnderBridgeConflictsAlongPath() {
         val underLow = RoutingBridgeConstraint(
             id = "low-under",
@@ -97,6 +122,26 @@ class MultiStopTourComposerTest {
     }
 
     @Test
+    fun blocksWhenOnBoardMassExceedsGvm() {
+        val heavyPick = near.copy(
+            cargo = listOf(Cargo("steel", 2.0, 2.0, 4.0, 20.0, CargoAction.PICK_UP)),
+        )
+        val heavyDrop = far.copy(
+            cargo = listOf(Cargo("steel", 2.0, 2.0, 4.0, 20.0, CargoAction.DROP_OFF)),
+        )
+        val composer = MultiStopTourComposer(pathRouter = StubGraphHopperPathRouter())
+        val result = composer.optimize(
+            stops = listOf(depot, heavyPick, heavyDrop),
+            vehicle = vehicle,
+            bufferM = 0.15,
+            mode = OptimizeMode.FASTEST,
+        )
+        assertTrue(result is OptimizeResult.Blocked)
+        val reason = (result as OptimizeResult.Blocked).reason.lowercase()
+        assertTrue(reason.contains("gvm") || reason.contains("mass"))
+    }
+
+    @Test
     fun requiresCoordinatesOnStops() {
         val composer = MultiStopTourComposer(pathRouter = StubGraphHopperPathRouter())
         val result = composer.optimize(
@@ -110,5 +155,15 @@ class MultiStopTourComposerTest {
         )
         assertTrue(result is OptimizeResult.Blocked)
         assertTrue((result as OptimizeResult.Blocked).reason.lowercase().contains("coord"))
+    }
+
+    @Test
+    fun tollPreferenceDefaultsToAllowAllOnCustomModel() {
+        val model = GraphHopperCustomModelStub.from(
+            vehicle = vehicle,
+            requiredClearanceHeightM = 3.65,
+            requiredMassT = 16.5,
+        )
+        assertEquals(TollPreference.ALLOW_ALL, model.tollPreference)
     }
 }

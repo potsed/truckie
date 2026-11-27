@@ -28,13 +28,7 @@ class LiveGraphHopperPathRouter(
         preferences: TruckRoutingPreferences,
         customModel: GraphHopperCustomModelStub?,
     ): PathResult {
-        val model = customModel ?: GraphHopperCustomModelStub(
-            requiredClearanceHeightM = 4.0,
-            requiredMassT = 12.0,
-            vehicleWidthM = 2.5,
-            vehicleLengthM = 12.0,
-            preferences = preferences,
-        )
+        val model = customModel ?: GraphHopperCustomModelStub.default(preferences = preferences)
         val body = buildRequestBody(start, end, model)
         val url = baseUrl.trimEnd('/') + "/route"
         val raw = try {

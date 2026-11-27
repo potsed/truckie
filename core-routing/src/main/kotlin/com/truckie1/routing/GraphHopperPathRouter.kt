@@ -69,13 +69,7 @@ class StubGraphHopperPathRouter(
             interpolate(start, end, intermediatePoints)
         }
         val modelSnippet = customModel?.toRequestSnippet()
-            ?: GraphHopperCustomModelStub(
-                requiredClearanceHeightM = 4.0,
-                requiredMassT = 12.0,
-                vehicleWidthM = 2.5,
-                vehicleLengthM = 12.0,
-                preferences = preferences,
-            ).toRequestSnippet()
+            ?: GraphHopperCustomModelStub.default(preferences = preferences).toRequestSnippet()
         return PathResult.Ok(
             RoutePath(
                 id = "stub-${start.latitude},${start.longitude}->${end.latitude},${end.longitude}",
