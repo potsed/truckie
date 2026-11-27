@@ -71,9 +71,10 @@ import org.maplibre.android.plugins.annotation.SymbolOptions
  * When [headingUpEnabled] is true (`ff_map_heading_up`), follow uses
  * [CameraMode.TRACKING_GPS] so the map orients to the direction of travel.
  *
- * Stop markers use the Annotation plugin [SymbolManager] (not deprecated MarkerOptions).
- * When [showBridgeMarkers] is true (`ff_bridge_markers`), a separate SymbolManager
- * draws Australia-first bridge fixtures with optional clearance labels.
+ * Stop markers (`ff_stop_markers`) and bridge markers (`ff_bridge_markers`) both
+ * use the Annotation plugin [SymbolManager] via the shared [MapSymbolBind] /
+ * [MapLibreStyleLifecycle] path (not deprecated MarkerOptions, not a parallel
+ * marker stack). Pickup vs drop-off use distinct icons; bridges use W5-8.
  *
  * When [prioritiseStreetLabels] is true (`ff_map_street_labels`), runtime
  * OpenFreeMap Liberty layer tweaks prefer highway names over bus-stop / POI clutter.
@@ -98,6 +99,8 @@ fun MapLibreMap(
     routePathPoints: List<LatLngPoint> = emptyList(),
     bridges: List<BridgePoint> = emptyList(),
     showBridgeMarkers: Boolean = false,
+    /** Route stop markers (`ff_stop_markers`) — pickup vs drop-off icons. */
+    showStopMarkers: Boolean = false,
     /** Prefer street names over POI clutter (`ff_map_street_labels`). */
     prioritiseStreetLabels: Boolean = false,
 ) {
@@ -367,7 +370,12 @@ fun MapLibreMap(
                             .build()
                         mapHost.hasAppliedInitialCamera = true
                     }
-                    mapHost.bindStops(mapView = view, map = map, style = style, stops = stops)
+                    mapHost.bindStops(
+                        mapView = view,
+                        map = map,
+                        style = style,
+                        stops = if (showStopMarkers) stops else emptyList(),
+                    )
                     mapHost.bindRoutePath(mapView = view, map = map, style = style, points = routePathPoints)
                     if (showLocationPuck) {
                         mapHost.headingUpEnabled = headingUpEnabled
@@ -442,14 +450,15 @@ fun MapLibreMap(
 }
 
 /**
- * Holds stop + bridge [SymbolManager]s, Navigate [LineManager], and MapLibre
- * [org.maplibre.android.location.LocationComponent] across Compose recompositions.
+ * Holds stop + bridge [SymbolManager]s (via shared [MapSymbolBind]), Navigate
+ * [LineManager], and MapLibre [org.maplibre.android.location.LocationComponent]
+ * across Compose recompositions.
  */
 private class MapLibreHost(
     val mapView: MapView,
     private val context: android.content.Context,
 ) {
-    private var symbolManager: SymbolManager? = null
+    private var stopSymbolManager: SymbolManager? = null
     private var lineManager: LineManager? = null
     private var bridgeSymbolManager: SymbolManager? = null
     private var mapRef: MapLibreMap? = null
@@ -526,8 +535,8 @@ private class MapLibreHost(
     }
 
     private fun resetAnnotationManagers() {
-        runCatching { symbolManager?.onDestroy() }
-        symbolManager = null
+        runCatching { stopSymbolManager?.onDestroy() }
+        stopSymbolManager = null
         runCatching { lineManager?.onDestroy() }
         lineManager = null
         runCatching { bridgeSymbolManager?.onDestroy() }
@@ -540,22 +549,6 @@ private class MapLibreHost(
             locationActivated = false
         }
         followGesturesBound = false
-    }
-
-    private fun dropManagerIfOrphaned(
-        manager: SymbolManager?,
-        style: Style,
-        clear: () -> Unit,
-    ): SymbolManager? {
-        val current = manager ?: return null
-        val recreate = MapLibreStyleLifecycle.mustRecreateAnnotationManager(
-            hasManager = true,
-            styleContainsManagerLayer = style.getLayer(current.layerId) != null,
-        )
-        if (!recreate) return current
-        runCatching { current.onDestroy() }
-        clear()
-        return null
     }
 
     private fun dropLineManagerIfOrphaned(style: Style): LineManager? {
@@ -577,28 +570,28 @@ private class MapLibreHost(
         stops: List<RouteStop>,
     ) {
         mapRef = map
-        MapStopAnnotations.ensureStopMarkerImage(style)
-        dropManagerIfOrphaned(symbolManager, style) { symbolManager = null }
-        val manager = symbolManager ?: SymbolManager(mapView, map, style).also { created ->
-            created.iconAllowOverlap = true
-            created.iconIgnorePlacement = true
-            created.textAllowOverlap = true
-            // OpenFreeMap glyph 404s must not suppress stop icons.
-            created.textOptional = MapLibreSymbolText.textOptional
-            symbolManager = created
-        }
+        MapStopMarkersCatalog.ensureStopMarkerImages(style)
+        val manager = MapSymbolBind.obtain(
+            current = stopSymbolManager,
+            mapView = mapView,
+            map = map,
+            style = style,
+            clear = { stopSymbolManager = null },
+            assign = { stopSymbolManager = it },
+        )
         manager.deleteAll()
-        val options = stops.mapIndexedNotNull { index, stop ->
-            val lat = stop.latitude ?: return@mapIndexedNotNull null
-            val lng = stop.longitude ?: return@mapIndexedNotNull null
+        val mappable = MapStopMarkersCatalog.mappableStops(stops)
+        val options = mappable.mapIndexed { index, stop ->
+            val lat = stop.latitude!!
+            val lng = stop.longitude!!
             SymbolOptions()
                 .withLatLng(LatLng(lat, lng))
-                .withIconImage(MapStopAnnotations.ICON_ID)
-                .withIconSize(1.1f)
+                .withIconImage(MapStopMarkersCatalog.iconIdFor(stop.kind))
+                .withIconSize(MapStopMarkersCatalog.ICON_SIZE)
                 .withIconAnchor("center")
                 .withTextField("${index + 1}")
                 // OpenFreeMap hosts Noto Sans only — default Open Sans stack 404s.
-                .withTextFont(MapStopAnnotations.symbolTextFont)
+                .withTextFont(MapStopMarkersCatalog.symbolTextFont)
                 .withTextSize(12f)
                 .withTextColor("#FFFFFF")
                 .withTextHaloColor("#0B1F33")
@@ -638,17 +631,18 @@ private class MapLibreHost(
     ) {
         mapRef = map
         BridgeMarkersCatalog.ensureBridgeMarkerImage(style, context)
-        dropManagerIfOrphaned(bridgeSymbolManager, style) { bridgeSymbolManager = null }
-        val manager = bridgeSymbolManager ?: SymbolManager(mapView, map, style).also { created ->
-            created.iconAllowOverlap = true
-            created.iconIgnorePlacement = true
-            created.textAllowOverlap = true
-            // Keep icons visible even if the basemap has dense symbol collision.
-            created.iconOptional = false
-            // Clearance textField + missing Open Sans glyphs used to hide the whole symbol.
-            created.textOptional = MapLibreSymbolText.textOptional
-            bridgeSymbolManager = created
-        }
+        val manager = MapSymbolBind.obtain(
+            current = bridgeSymbolManager,
+            mapView = mapView,
+            map = map,
+            style = style,
+            clear = { bridgeSymbolManager = null },
+            assign = { bridgeSymbolManager = it },
+            configure = { created ->
+                // Keep icons visible even if the basemap has dense symbol collision.
+                created.iconOptional = false
+            },
+        )
         manager.deleteAll()
         if (bridges.isEmpty()) return
         val app = context.applicationContext as? TruckieApp

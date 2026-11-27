@@ -94,6 +94,15 @@ class LocalFeatureFlagsTest {
     }
 
     @Test
+    fun stopMarkersFlagKey() {
+        assertTrue(FlagKeys.STOP_MARKERS == "ff_stop_markers")
+        val flags = LocalFeatureFlags()
+        assertFalse(flags.isEnabled(FlagKeys.STOP_MARKERS))
+        flags.setEnabled(FlagKeys.STOP_MARKERS, true)
+        assertTrue(flags.isEnabled(FlagKeys.STOP_MARKERS))
+    }
+
+    @Test
     fun demoModeFlagKey() {
         assertTrue(FlagKeys.DEMO_MODE == "ff_demo_mode")
         val flags = LocalFeatureFlags()

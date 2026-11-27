@@ -39,6 +39,12 @@ object FlagKeys {
     /** Low-bridge markers on MapLibre home (Australia-first sample/fixture asset). */
     const val BRIDGE_MARKERS = "ff_bridge_markers"
     /**
+     * Route stop markers on MapLibre home (ATNA-81): pickup vs drop-off
+     * SymbolManager icons from the active AppDataSource route. Shares the
+     * bridge SymbolManager / style lifecycle bind path.
+     */
+    const val STOP_MARKERS = "ff_stop_markers"
+    /**
      * Verified CBD sample clearances (ATNA-42): labels only for published road
      * heights; unknown / not_applicable omit invented mocks.
      */

@@ -32,9 +32,9 @@ object BridgeMarkersVisibility {
 
     /**
      * Relative SymbolManager scale for the W5-8 PNG (~96px intrinsic).
-     * ~1.15 reads as a sensible road-sign size at street-neighbourhood zoom.
+     * Shared with stop markers via [MapSymbolBind.IconSize.BRIDGE_W58].
      */
-    const val iconSize: Float = 1.15f
+    val iconSize: Float = MapSymbolBind.IconSize.BRIDGE_W58
 
     const val usesAuRoadSignW58: Boolean = true
 
