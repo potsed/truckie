@@ -199,6 +199,8 @@ class ActiveTourPathApproachTest {
             is OptimizeResult.Ok -> requireNotNull(composed.path)
             is OptimizeResult.Blocked -> error(composed.reason)
         }
+        // Exercises suspend withApproach → composeOrdered (cached Optimise + approach).
+        // Would fail to compile if withApproach were still a sync caller of suspend composeOrdered.
         val result = ActiveTourPath.compose(
             route = route(),
             vehicle = vehicle,
@@ -207,10 +209,34 @@ class ActiveTourPathApproachTest {
             optimisedPath = tourOnly,
             currentLocation = current,
         )
+        assertTrue(result is ActiveTourPath.Result.Ready)
         val path = (result as ActiveTourPath.Result.Ready).path
+        assertTrue(path.id.startsWith("approach+"))
         assertTrue(near(path.points.first(), current.latitude, current.longitude))
         assertTrue(path.points.any { near(it, start.latitude, start.longitude) })
+        assertTrue(path.points.any { near(it, stopNear.latitude!!, stopNear.longitude!!) })
         assertTrue(near(path.points.last(), end.latitude, end.longitude))
+        assertTrue(path.points.size > tourOnly.points.size)
+    }
+
+    @Test
+    fun composeAndWithApproachAreSuspendOnlyNoSyncResolvePath() {
+        // One resolve path: suspend compose (+ private suspend withApproach).
+        // Guards against leftover sync overloads / dual sync+async debt.
+        fun isContinuation(type: Class<*>): Boolean =
+            type.name == "kotlin.coroutines.Continuation"
+
+        val composeMethods = ActiveTourPath::class.java.declaredMethods.filter {
+            it.name == "compose" && !it.isSynthetic && !it.name.contains('$')
+        }
+        assertTrue(composeMethods.isNotEmpty())
+        assertTrue(composeMethods.all { m -> m.parameterTypes.any(::isContinuation) })
+
+        val withApproachMethods = ActiveTourPath::class.java.declaredMethods.filter {
+            it.name == "withApproach" && !it.isSynthetic
+        }
+        assertEquals(1, withApproachMethods.size)
+        assertTrue(withApproachMethods.single().parameterTypes.any(::isContinuation))
     }
 
     private fun near(point: LatLngPoint, lat: Double, lng: Double, eps: Double = 1e-6): Boolean =
