@@ -11,6 +11,7 @@ import com.truckie1.app.profiles.HomeVehicleSummary
 import com.truckie1.app.trips.HomeTripSummary
 import com.truckie1.app.ui.HomeScreen
 import com.truckie1.app.ui.HomeUiState
+import com.truckie1.app.ui.PrimaryNavigation
 import com.truckie1.app.ui.TruckieHostedScreen
 import com.truckie1.app.ui.TruckiePrimaryDestination
 import com.truckie1.app.ui.TruckieRootApp
@@ -20,8 +21,9 @@ import com.truckie1.app.ui.setTruckieContent
 import com.truckie1.flags.FlagKeys
 
 /**
- * Launcher Activity. With [FlagKeys.NAV_CHROME] on, this is the **single** host for
- * global fixed TopAppBar + bottom NavigationBar around a Compose NavHost.
+ * Launcher Activity. When [PrimaryNavigation.shouldUseChromeHost] is true, this is
+ * the **single** host for global fixed TopAppBar + bottom NavigationBar around a
+ * Compose NavHost (also required for map-first home).
  */
 class MainActivity : ComponentActivity() {
     private var uiState by mutableStateOf(
@@ -40,10 +42,8 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val app = application as TruckieApp
-        // Map-first home requires the single-activity NavHost; treat as chrome-on.
-        navChromeEnabled = app.featureFlags.isEnabled(FlagKeys.NAV_CHROME) ||
-            app.featureFlags.isEnabled(FlagKeys.MAP_HOME)
-        pendingRoute = resolveStartRoute(intent)
+        navChromeEnabled = PrimaryNavigation.shouldUseChromeHost(app.featureFlags)
+        pendingRoute = PrimaryNavigation.resolveStartRoute(intent?.getStringExtra(EXTRA_ROUTE))
         setTruckieContent {
             if (navChromeEnabled) {
                 TruckieRootApp(
@@ -82,21 +82,17 @@ class MainActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        pendingRoute = resolveStartRoute(intent)
+        pendingRoute = PrimaryNavigation.resolveStartRoute(intent.getStringExtra(EXTRA_ROUTE))
     }
 
     override fun onResume() {
         super.onResume()
         val app = application as TruckieApp
-        navChromeEnabled = app.featureFlags.isEnabled(FlagKeys.NAV_CHROME)
+        // Same gate as onCreate / ChromeHostRedirect — do not drop MAP_HOME.
+        navChromeEnabled = PrimaryNavigation.shouldUseChromeHost(app.featureFlags)
         if (!navChromeEnabled) {
             bindHomeLegacy()
         }
-    }
-
-    private fun resolveStartRoute(intent: Intent?): String {
-        val extra = intent?.getStringExtra(EXTRA_ROUTE)?.takeIf { it.isNotBlank() }
-        return extra ?: TruckieRoutes.HOME
     }
 
     private fun bindHomeLegacy() {

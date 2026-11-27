@@ -14,18 +14,23 @@ Bottom nav is **trip-first**: Trip sits right after Home; Settings stays last (s
 **Compose only** — Material3 `Scaffold` / `CenterAlignedTopAppBar` / `NavigationBar` +
 Compose `NavHost`. No XML layouts, AppCompat ActionBar, or view-based chrome.
 
-With `ff_nav_chrome` enabled, header + footer are a **global fixed** shell on
-**`MainActivity`**:
+With `ff_nav_chrome` **or** `ff_map_home` enabled, header + footer are a **global
+fixed** shell on **`MainActivity`** (map home forces the same single-activity host):
 
 - One Material3 `Scaffold` at the root
 - Compose **NavHost** in the content slot (Home / Trip / Vehicles / Settings + secondary routes)
 - Bars **never remount** when switching primary tabs
 - Only destination content scrolls in the middle
 - WindowInsets: `TopAppBarDefaults.windowInsets` + `NavigationBarDefaults.windowInsets`
+- **One path:** `PrimaryNavigation` owns primary-tab NavOptions (Settings → Home
+  remounts map home fresh — no `restoreState` — so MapLibre is not left dead under
+  hidden chrome)
 
 Legacy Activities (`TripStopsActivity`, `VehicleListActivity`, …) redirect into
-`MainActivity` with `EXTRA_ROUTE` when the flag is on. When the flag is off, those
-Activities remain the multi-Activity path without chrome.
+`MainActivity` with `EXTRA_ROUTE` when the chrome host gate is on. When both flags
+are off, those Activities remain the multi-Activity path without chrome.
+
+See also: `features/settings_home_nav.feature`.
 
 ## Destinations
 

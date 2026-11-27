@@ -20,7 +20,7 @@ android {
         minSdk = 24
         targetSdk = 35
         versionCode = 1
-        versionName = "0.8.32-map-route-polyline"
+        versionName = "0.8.33-settings-home-nav"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 

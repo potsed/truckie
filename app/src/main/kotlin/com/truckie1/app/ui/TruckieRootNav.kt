@@ -43,7 +43,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -91,7 +90,7 @@ fun TruckieRootApp(
     val showTopBar = NavChromeCatalog.showTopBarForRoute(baseRoute, mapHomeEnabled)
     val title = rootTitle(baseRoute)
     val canNavigateUp = baseRoute !in TruckieRoutes.primaryRoutes
-    val graphStart = remember(Unit) { primaryStartDestination(startRoute) }
+    val graphStart = remember(Unit) { PrimaryNavigation.graphStartDestination(startRoute) }
     // ATNA-75: bump when Demo mode toggles so UI rebinds the swapped data source.
     var demoRevision by remember { mutableIntStateOf(0) }
     var demoEnabled by remember {
@@ -99,7 +98,23 @@ fun TruckieRootApp(
     }
 
     LaunchedEffect(startRoute) {
-        openStartRoute(navController, startRoute)
+        openStartRoute(navController, startRoute, mapHomeEnabled)
+    }
+
+    fun goPrimary(destination: TruckiePrimaryDestination) {
+        if (!NavChromeCatalog.canNavigate(destination, app.featureFlags)) {
+            val flag = NavChromeCatalog.requiredFlag(destination) ?: return
+            Toast.makeText(activity, activity.getString(R.string.flag_off, flag), Toast.LENGTH_SHORT)
+                .show()
+            return
+        }
+        PrimaryNavigation.navigatePrimary(
+            navController = navController,
+            destination = destination,
+            mapHomeEnabled = mapHomeEnabled,
+            currentRoute = baseRoute,
+            startRoute = graphStart,
+        )
     }
 
     BackHandler(enabled = canNavigateUp) {
@@ -145,9 +160,7 @@ fun TruckieRootApp(
             if (showBottomBar && selected != null) {
                 TruckieRootBottomBar(
                     selected = selected,
-                    onNavigate = { destination ->
-                        navigatePrimary(navController, app, activity, destination)
-                    },
+                    onNavigate = { destination -> goPrimary(destination) },
                 )
             }
         },
@@ -170,38 +183,15 @@ fun TruckieRootApp(
                     MapHomeRoute(
                         app = app,
                         demoRevision = demoRevision,
-                        onNavigatePrimary = { destination ->
-                            navigatePrimary(navController, app, activity, destination)
-                        },
+                        onNavigatePrimary = { destination -> goPrimary(destination) },
                     )
                 } else {
                     RootScrollBody {
                         HomeRoute(
                             app = app,
-                            onPlanTrip = {
-                                navigatePrimary(
-                                    navController,
-                                    app,
-                                    activity,
-                                    TruckiePrimaryDestination.PLAN_TRIP,
-                                )
-                            },
-                            onVehicleProfiles = {
-                                navigatePrimary(
-                                    navController,
-                                    app,
-                                    activity,
-                                    TruckiePrimaryDestination.VEHICLES,
-                                )
-                            },
-                            onSettings = {
-                                navigatePrimary(
-                                    navController,
-                                    app,
-                                    activity,
-                                    TruckiePrimaryDestination.SETTINGS,
-                                )
-                            },
+                            onPlanTrip = { goPrimary(TruckiePrimaryDestination.PLAN_TRIP) },
+                            onVehicleProfiles = { goPrimary(TruckiePrimaryDestination.VEHICLES) },
+                            onSettings = { goPrimary(TruckiePrimaryDestination.SETTINGS) },
                         )
                     }
                 }
@@ -376,27 +366,23 @@ private fun TruckiePrimaryDestination.rootIcon(): ImageVector = when (this) {
     TruckiePrimaryDestination.SETTINGS -> Icons.Filled.Settings
 }
 
-private fun primaryStartDestination(startRoute: String): String {
-    return when (TruckieRoutes.baseRoute(startRoute)) {
-        TruckieRoutes.PLAN_TRIP,
-        TruckieRoutes.ADD_STOP,
-        TruckieRoutes.BLOCKED_ROUTE,
-        -> TruckieRoutes.PLAN_TRIP
-        TruckieRoutes.VEHICLES,
-        TruckieRoutes.VEHICLE_EDIT,
-        -> TruckieRoutes.VEHICLES
-        TruckieRoutes.SETTINGS -> TruckieRoutes.SETTINGS
-        else -> TruckieRoutes.HOME
-    }
-}
-
-private fun openStartRoute(navController: NavHostController, startRoute: String) {
+private fun openStartRoute(
+    navController: NavHostController,
+    startRoute: String,
+    mapHomeEnabled: Boolean,
+) {
     val base = TruckieRoutes.baseRoute(startRoute) ?: return
     if (base in TruckieRoutes.primaryRoutes) {
         if (TruckieRoutes.baseRoute(navController.currentDestination?.route) == base) return
-        navController.navigate(base) {
-            launchSingleTop = true
-        }
+        // Deep-link / EXTRA_ROUTE into a primary tab — still one policy object.
+        PrimaryNavigation.navigatePrimary(
+            navController = navController,
+            destination = NavChromeCatalog.destinationForRoute(base)
+                ?: TruckiePrimaryDestination.HOME,
+            mapHomeEnabled = mapHomeEnabled,
+            currentRoute = navController.currentDestination?.route,
+            startRoute = PrimaryNavigation.graphStartDestination(startRoute),
+        )
         return
     }
     val parent = when (base) {
@@ -410,27 +396,6 @@ private fun openStartRoute(navController: NavHostController, startRoute: String)
         navController.navigate(parent) { launchSingleTop = true }
     }
     navController.navigate(startRoute) { launchSingleTop = true }
-}
-
-private fun navigatePrimary(
-    navController: NavHostController,
-    app: TruckieApp,
-    activity: ComponentActivity,
-    destination: TruckiePrimaryDestination,
-) {
-    if (!NavChromeCatalog.canNavigate(destination, app.featureFlags)) {
-        val flag = NavChromeCatalog.requiredFlag(destination) ?: return
-        Toast.makeText(activity, activity.getString(R.string.flag_off, flag), Toast.LENGTH_SHORT).show()
-        return
-    }
-    val route = NavChromeCatalog.routeFor(destination)
-    navController.navigate(route) {
-        popUpTo(navController.graph.findStartDestination().id) {
-            saveState = true
-        }
-        launchSingleTop = true
-        restoreState = true
-    }
 }
 
 @Composable
