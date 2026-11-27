@@ -218,4 +218,13 @@ class LocalFeatureFlagsTest {
         flags.setEnabled(FlagKeys.GRAPHHOPPER_LIVE, true)
         assertTrue(flags.isEnabled(FlagKeys.GRAPHHOPPER_LIVE))
     }
+
+    @Test
+    fun activeTourFlagKey() {
+        assertTrue(FlagKeys.ACTIVE_TOUR == "ff_active_tour")
+        val flags = LocalFeatureFlags()
+        assertFalse(flags.isEnabled(FlagKeys.ACTIVE_TOUR))
+        flags.setEnabled(FlagKeys.ACTIVE_TOUR, true)
+        assertTrue(flags.isEnabled(FlagKeys.ACTIVE_TOUR))
+    }
 }

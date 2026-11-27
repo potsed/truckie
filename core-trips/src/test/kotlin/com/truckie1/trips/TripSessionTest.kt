@@ -4,10 +4,14 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
+/**
+ * Gherkin: multi_stop_cargo.feature + active_tour.feature —
+ * Trip stop list behaviour via [ActiveTourSession] (legacy TripSession deleted).
+ */
 class TripSessionTest {
     @Test
     fun addReorderAndDeleteStops() {
-        val session = TripSession()
+        val session = ActiveTourSession()
         session.addStop(TripStop(id = "1", addressLabel = "Depot"))
         session.addStop(TripStop(id = "2", addressLabel = "Site A"))
         session.addStop(TripStop(id = "3", addressLabel = "Yard"))
@@ -21,7 +25,7 @@ class TripSessionTest {
 
     @Test
     fun replaceStopsPreservesOrder() {
-        val session = TripSession()
+        val session = ActiveTourSession()
         session.replaceStops(
             listOf(
                 TripStop(id = "a", addressLabel = "A"),

@@ -209,24 +209,18 @@ object DemoDataset {
                     longitude = stop.longitude,
                     kind = stop.kind,
                     order = index,
+                    cargo = stop.cargo,
                 )
             },
         )
 
     /**
-     * Trip-stop projection used by Plan Trip / Optimize — includes cargo and
-     * verified coords so dogfood does not need Add stop writes.
+     * Trip-stop projection of [buildRoute] stops (cargo + coords) for Optimise /
+     * clearance helpers. Production reads trip stops from [ActiveTourSession]
+     * via [com.truckie1.trips.TripStopProjection]; this helper keeps tests DRY.
      */
     fun buildTripStops(): List<TripStop> =
-        stops.map { stop ->
-            TripStop(
-                id = stop.id,
-                addressLabel = stop.addressLabel,
-                latitude = stop.latitude,
-                longitude = stop.longitude,
-                cargo = stop.cargo,
-            )
-        }
+        com.truckie1.trips.TripStopProjection.toTripStops(buildRoute().stops)
 
     /** True when visible product copy would reveal demo mode (forbidden except pill). */
     fun hasDemoRevealingProductCopy(routeName: String?, vehicleNickname: String?, vehicleNotes: String?): Boolean {

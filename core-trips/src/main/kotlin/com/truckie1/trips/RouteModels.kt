@@ -1,10 +1,12 @@
 package com.truckie1.trips
 
 /**
- * Domain for map-first home (Phase A): a [Route] has ordered [RouteStop]s.
- * Stop kind is pickup/load or drop-off/unload (not legacy “trip” wording in new UI).
+ * Domain for map-first home (Phase A / ATNA-86): a [Route] has ordered [RouteStop]s.
+ * Stop kind is pickup/load or drop-off/unload. Cargo lives on [RouteStop];
+ * [TripStop] is a projection for Optimise / clearance / mass.
  *
  * A route also has verified [start] and [end] endpoints (same place = round trip).
+ * Single SoT: [ActiveTourSession] — no parallel TripSession list.
  */
 enum class StopKind {
     PICKUP_LOAD,
@@ -47,6 +49,8 @@ data class RouteStop(
     val longitude: Double? = null,
     val kind: StopKind,
     val order: Int = 0,
+    /** On-stop cargo for clearance / mass / Optimise (projected to [TripStop]). */
+    val cargo: List<Cargo> = emptyList(),
 )
 
 data class Route(

@@ -4,10 +4,9 @@ import android.graphics.Color
 import com.truckie1.flags.FlagKeys
 import com.truckie1.flags.LocalFeatureFlags
 import com.truckie1.profiles.InMemoryVehicleProfileRepository
-import com.truckie1.trips.RouteSession
+import com.truckie1.trips.ActiveTourSession
 import com.truckie1.trips.RouteStop
 import com.truckie1.trips.StopKind
-import com.truckie1.trips.TripSession
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
@@ -136,17 +135,18 @@ class MapStopMarkersCatalogTest {
     @Test
     fun demoAndRealStopsComeFromAppDataSource() {
         val today = LocalDate.of(2026, 11, 27)
-        val realRoutes = RouteSession()
+        val realTour = ActiveTourSession()
         val real = RealAppDataSource(
             vehicles = InMemoryVehicleProfileRepository(),
-            routes = realRoutes,
-            trips = TripSession(),
+            tour = realTour,
         )
         val demo = DemoAppDataSource.create(today = today)
         val flags = LocalFeatureFlags(mapOf(FlagKeys.STOP_MARKERS to true))
         val dual = DualModeAppDataSource(real = real, demo = demo, flags = flags)
 
         assertTrue(MapStopMarkersCatalog.stopsFrom(dual).isEmpty())
+        assertTrue(ActiveTourCatalog.sharesSingleTour(real))
+        assertTrue(ActiveTourCatalog.sharesSingleTour(demo))
 
         flags.setEnabled(FlagKeys.DEMO_MODE, true)
         val demoStops = MapStopMarkersCatalog.stopsFrom(dual)
@@ -159,7 +159,7 @@ class MapStopMarkersCatalogTest {
         assertTrue(MapStopMarkersCatalog.stopsFrom(dual).isEmpty())
 
         val seeded = DemoDataset.buildRoute(today = today)
-        realRoutes.replaceActive(seeded)
+        realTour.replaceActive(seeded)
         val realStops = MapStopMarkersCatalog.stopsFrom(dual)
         assertEquals(6, realStops.size)
         assertEquals(seeded.stops.map { it.id }, realStops.map { it.id })

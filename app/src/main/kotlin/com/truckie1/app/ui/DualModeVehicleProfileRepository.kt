@@ -1,6 +1,5 @@
 package com.truckie1.app.ui
 
-import com.truckie1.flags.FeatureFlags
 import com.truckie1.profiles.Vehicle
 import com.truckie1.profiles.VehicleProfileRepository
 
@@ -16,35 +15,6 @@ import com.truckie1.profiles.VehicleProfileRepository
 class DualModeVehicleProfileRepository(
     private val dataSource: DualModeAppDataSource,
 ) : VehicleProfileRepository {
-    /** @deprecated Prefer constructing via [DualModeAppDataSource]. */
-    constructor(
-        real: VehicleProfileRepository,
-        flags: FeatureFlags,
-        demo: VehicleProfileRepository? = null,
-    ) : this(
-        DualModeAppDataSource(
-            real = RealAppDataSource(vehicles = real),
-            demo = if (demo != null) {
-                object : AppDataSource {
-                    override val vehicles = ReadOnlyVehicleProfileRepository(demo)
-                    override val routes = ReadOnlyRouteRepository(
-                        com.truckie1.trips.RouteSession().also {
-                            it.replaceActive(DemoDataset.buildRoute())
-                        },
-                    )
-                    override val trips = ReadOnlyTripRepository(
-                        com.truckie1.trips.TripSession().also { session ->
-                            session.replaceStops(DemoDataset.buildTripStops())
-                        },
-                    )
-                }
-            } else {
-                DemoAppDataSource.create()
-            },
-            flags = flags,
-        ),
-    )
-
     private fun active(): VehicleProfileRepository = dataSource.vehicles
 
     override fun save(vehicle: Vehicle) {
