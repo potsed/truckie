@@ -128,7 +128,7 @@ object BridgeMarkersCatalog {
                     val explicitPassage = obj.optString("passage").trim()
                         .takeIf { it.isNotEmpty() }
                         ?.let { BridgePassage.fromWire(it) }
-                    val passage = BridgePassage.resolve(
+                    val passage = BridgePassageInference.resolve(
                         id = id,
                         clearanceProvider = provider,
                         clearanceHeightM = clearance,
