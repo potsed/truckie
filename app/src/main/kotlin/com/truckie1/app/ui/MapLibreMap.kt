@@ -64,6 +64,10 @@ import org.maplibre.android.plugins.annotation.SymbolOptions
  * closer zoom, then enters follow via a bare camera-mode set after syncing last
  * location (ATNA-61 / ATNA-66 — not the 0ms timed setCameraMode overload).
  *
+ * ATNA-69: every puck / follow / Recenter / heading-up change goes through
+ * [MapFollowReconcile] → [MapLibreHost.executeFollowCommands] — one path
+ * (no competing SideEffect + GPS + AndroidView TRACKING enter paths).
+ *
  * When [headingUpEnabled] is true (`ff_map_heading_up`), follow uses
  * [CameraMode.TRACKING_GPS] so the map orients to the direction of travel.
  *
@@ -98,25 +102,8 @@ fun MapLibreMap(
     val ensurer = settingsEnsurer ?: remember { PlayServicesLocationSettingsEnsurer(context) }
     val hostHolder = remember { mutableStateOf<MapLibreHost?>(null) }
     val followStateRef = remember { mutableStateOf(followState) }
+    var lastHeadingUp by remember { mutableStateOf(headingUpEnabled) }
     SideEffect { followStateRef.value = followState }
-    SideEffect {
-        val host = hostHolder.value ?: return@SideEffect
-        host.headingUpEnabled = headingUpEnabled
-        if (recenterToken > 0) {
-            host.armRecenterIfNeeded(recenterToken)
-        }
-        // Only enable when LocationComponent is not already tracking — avoid re-calling
-        // setCameraMode every recomposition (was a second camera path).
-        if (locationFollowEnabled &&
-            MapLocationFollow.shouldEnableFollowMode(
-                isFollowing = followState.isFollowing,
-                recenterInFlight = host.isRecenterInFlight,
-                locationComponentAlreadyTracking = host.isLocationTracking,
-            )
-        ) {
-            host.setCameraFollowing(true)
-        }
-    }
 
     var cameraTarget by remember { mutableStateOf(MapCameraTarget.fallback()) }
     var locationFix by remember { mutableStateOf<LocationFix?>(null) }
@@ -131,47 +118,67 @@ fun MapLibreMap(
         }
     }
 
+    fun runtimeFor(host: MapLibreHost, following: Boolean = followStateRef.value.isFollowing) =
+        host.followRuntime(
+            isFollowing = following,
+            hasPuckFix = locationFix != null,
+            showLocationPuck = showLocationPuck,
+            locationFollowEnabled = locationFollowEnabled,
+            headingUp = headingUpEnabled,
+        )
+
+    fun executeReconcile(host: MapLibreHost, event: MapFollowEvent, following: Boolean = followStateRef.value.isFollowing) {
+        host.headingUpEnabled = headingUpEnabled
+        host.executeFollowCommands(
+            MapFollowReconcile.reconcile(event, runtimeFor(host, following)),
+        )
+    }
+
+    // One SideEffect path: heading sync + compose bootstrap (never arms Recenter).
+    SideEffect {
+        val host = hostHolder.value ?: return@SideEffect
+        if (lastHeadingUp != headingUpEnabled) {
+            lastHeadingUp = headingUpEnabled
+            executeReconcile(host, MapFollowEvent.HeadingChanged(headingUpEnabled))
+        } else {
+            executeReconcile(host, MapFollowEvent.ComposeSync)
+        }
+    }
+
     fun onLocationReady(fix: LocationFix?) {
         val permitted = FusedCurrentLocationProvider.hasLocationPermission(context)
         hasPermission = permitted
-        val followActive = locationFollowEnabled && showLocationPuck
         if (showLocationPuck) {
             val resolved = MapLocationPuck.resolve(fix = fix, hasLocationPermission = permitted)
             cameraTarget = resolved.camera
             locationFix = resolved.puck
-            hostHolder.value?.updatePuck(resolved.puck, enabled = resolved.puck != null)
-            if (followActive) {
-                val host = hostHolder.value
+            if (locationFollowEnabled) {
                 val withFix = MapLocationFollow.onLocationFixChanged(
                     followStateRef.value,
                     hasLocationFix = resolved.puck != null,
                 )
                 publishFollow(withFix)
-                // Steady follow (ATNA-66): LocationComponent TRACKING owns the camera
-                // via forceLocationUpdate — no GPS moveCamera (keeps Recenter single-path).
-                when (
-                    MapLocationFollow.steadyFollowCameraAction(
-                        isFollowing = withFix.isFollowing,
-                        hasLocationFix = resolved.puck != null,
-                        recenterInFlight = host?.isRecenterInFlight == true,
-                        locationComponentAlreadyTracking = host?.isLocationTracking == true,
-                    )
-                ) {
-                    SteadyFollowCameraAction.EnableTracking -> host?.setCameraFollowing(true)
-                    SteadyFollowCameraAction.RelyOnTracking -> Unit
-                    SteadyFollowCameraAction.None ->
-                        if (withFix.isFollowing && resolved.puck == null) {
-                            host?.applyCamera(resolved.camera)
-                        }
-                }
-            } else {
-                hostHolder.value?.applyCamera(cameraTarget)
+            }
+            hostHolder.value?.let { host ->
+                executeReconcile(
+                    host,
+                    MapFollowEvent.LocationUpdated(
+                        fix = resolved.puck,
+                        camera = resolved.camera,
+                    ),
+                    following = followStateRef.value.isFollowing,
+                )
             }
         } else {
             cameraTarget = MapCameraTarget.resolve(fix?.latitude, fix?.longitude)
             locationFix = null
-            hostHolder.value?.updatePuck(null, enabled = false)
-            hostHolder.value?.applyCamera(cameraTarget)
+            hostHolder.value?.let { host ->
+                executeReconcile(
+                    host,
+                    MapFollowEvent.LocationUpdated(fix = null, camera = cameraTarget),
+                    following = false,
+                )
+            }
         }
     }
 
@@ -222,20 +229,34 @@ fun MapLibreMap(
         }
     }
 
-    // One-shot Recenter: single animateCamera to lat/lng+zoom, then enter follow (ATNA-61).
+    // One-shot Recenter via reconcile (ATNA-61/69). Unavailable → clear stuck arm.
     LaunchedEffect(recenterToken) {
         if (recenterToken <= 0) return@LaunchedEffect
-        if (!locationFollowEnabled || !showLocationPuck) return@LaunchedEffect
-        val fix = locationFix ?: return@LaunchedEffect
+        val host = hostHolder.value
+        if (host == null || !locationFollowEnabled || !showLocationPuck) {
+            host?.let { executeReconcile(it, MapFollowEvent.RecenterUnavailable) }
+            return@LaunchedEffect
+        }
+        val fix = locationFix
+        if (fix == null) {
+            executeReconcile(host, MapFollowEvent.RecenterUnavailable)
+            return@LaunchedEffect
+        }
         val target = MapLocationFollow.cameraTargetForRecenter(fix.latitude, fix.longitude)
         cameraTarget = target
-        hostHolder.value?.applyRecenter(target)
+        executeReconcile(
+            host,
+            MapFollowEvent.RecenterRequested(
+                latitude = fix.latitude,
+                longitude = fix.longitude,
+            ),
+        )
     }
 
     LaunchedEffect(followState.isFollowing, locationFollowEnabled) {
         if (!locationFollowEnabled || !showLocationPuck) return@LaunchedEffect
         if (!followState.isFollowing) {
-            hostHolder.value?.setCameraFollowing(false)
+            hostHolder.value?.let { executeReconcile(it, MapFollowEvent.FollowBecameFree) }
         }
     }
 
@@ -341,31 +362,60 @@ fun MapLibreMap(
                     if (showLocationPuck) {
                         mapHost.headingUpEnabled = headingUpEnabled
                         mapHost.ensureLocationComponent(map = map, style = style)
-                        mapHost.updatePuck(locationFix, enabled = locationFix != null)
                         if (locationFollowEnabled) {
                             mapHost.bindFollowGestures(
                                 map = map,
                                 onUserPanAway = {
+                                    mapHost.executeFollowCommands(
+                                        MapFollowReconcile.reconcile(
+                                            MapFollowEvent.UserPan,
+                                            mapHost.followRuntime(
+                                                isFollowing = followStateRef.value.isFollowing,
+                                                hasPuckFix = locationFix != null,
+                                                showLocationPuck = true,
+                                                locationFollowEnabled = true,
+                                                headingUp = headingUpEnabled,
+                                            ),
+                                        ),
+                                    )
                                     publishFollow(
                                         MapLocationFollow.onUserPan(followStateRef.value),
                                     )
                                 },
                             )
-                            if (MapLocationFollow.shouldEnableFollowMode(
-                                    isFollowing = followStateRef.value.isFollowing,
-                                    recenterInFlight = mapHost.isRecenterInFlight,
-                                    locationComponentAlreadyTracking = mapHost.isLocationTracking,
-                                )
-                            ) {
-                                mapHost.setCameraFollowing(true)
-                            } else if (!followStateRef.value.isFollowing &&
-                                mapHost.isLocationTracking
-                            ) {
-                                mapHost.setCameraFollowing(false)
-                            }
                         }
+                        // Single path: puck push + follow bootstrap (no parallel enable).
+                        mapHost.executeFollowCommands(
+                            MapFollowReconcile.reconcile(
+                                MapFollowEvent.LocationUpdated(
+                                    fix = locationFix,
+                                    camera = cameraTarget,
+                                ),
+                                mapHost.followRuntime(
+                                    isFollowing = followStateRef.value.isFollowing,
+                                    hasPuckFix = locationFix != null,
+                                    showLocationPuck = true,
+                                    locationFollowEnabled = locationFollowEnabled,
+                                    headingUp = headingUpEnabled,
+                                ),
+                            ),
+                        )
+                        mapHost.executeFollowCommands(
+                            MapFollowReconcile.reconcile(
+                                MapFollowEvent.ComposeSync,
+                                mapHost.followRuntime(
+                                    isFollowing = followStateRef.value.isFollowing,
+                                    hasPuckFix = locationFix != null,
+                                    showLocationPuck = true,
+                                    locationFollowEnabled = locationFollowEnabled,
+                                    headingUp = headingUpEnabled,
+                                ),
+                            ),
+                        )
                     } else {
-                        mapHost.updatePuck(null, enabled = false)
+                        mapHost.executeFollowCommands(
+                            listOf(MapFollowCommand.PushPuck(null)),
+                        )
                     }
                     // Bridges after LocationComponent so the W5-8 SymbolLayer sits above
                     // puck/accuracy layers and is never buried under the basemap stack.
@@ -398,7 +448,6 @@ private class MapLibreHost(
     private var locationActivated: Boolean = false
     private var followGesturesBound: Boolean = false
     private var ignoreTrackingDismiss: Boolean = false
-    private var lastArmedRecenterToken: Int = 0
     private var styleReady: Boolean = false
     private var styleLoading: Boolean = false
     private val pendingStyleReady = mutableListOf<(Style) -> Unit>()
@@ -678,7 +727,49 @@ private class MapLibreHost(
         followGesturesBound = true
     }
 
-    fun updatePuck(fix: LocationFix?, enabled: Boolean) {
+    /** Snapshot for [MapFollowReconcile] (ATNA-69 single path). */
+    fun followRuntime(
+        isFollowing: Boolean,
+        hasPuckFix: Boolean,
+        showLocationPuck: Boolean,
+        locationFollowEnabled: Boolean,
+        headingUp: Boolean,
+    ): MapFollowRuntime =
+        MapFollowRuntime(
+            isFollowing = isFollowing,
+            hasPuckFix = hasPuckFix,
+            showLocationPuck = showLocationPuck,
+            locationFollowEnabled = locationFollowEnabled,
+            headingUp = headingUp,
+            recenterInFlight = isRecenterInFlight,
+            tracking = isLocationTracking,
+            trackingIsHeadingUp = isTrackingHeadingUp,
+        )
+
+    /** Sole executor for follow / puck / Recenter / heading commands (ATNA-69). */
+    fun executeFollowCommands(commands: List<MapFollowCommand>) {
+        for (command in commands) {
+            when (command) {
+                is MapFollowCommand.PushPuck ->
+                    updatePuck(command.fix, enabled = command.fix != null)
+                is MapFollowCommand.EnterFollow -> {
+                    headingUpEnabled = command.headingUp
+                    setCameraFollowing(
+                        following = true,
+                        fromRecenterFinish = command.reason == FollowEnterReason.RecenterFinish,
+                    )
+                }
+                MapFollowCommand.ExitFollow -> setCameraFollowing(false)
+                is MapFollowCommand.SyncFollowModes -> syncFollowModes(command.headingUp)
+                is MapFollowCommand.HardCamera -> applyCamera(command.target)
+                is MapFollowCommand.RecenterAnimate -> applyRecenter(command.target)
+                MapFollowCommand.ClearRecenterArm -> clearRecenterArm()
+                MapFollowCommand.ArmRecenter -> Unit // forbidden — never emit from reconcile
+            }
+        }
+    }
+
+    private fun updatePuck(fix: LocationFix?, enabled: Boolean) {
         val map = mapRef ?: return
         if (!locationActivated) return
         val component = map.locationComponent
@@ -694,7 +785,7 @@ private class MapLibreHost(
         }
     }
 
-    fun applyCamera(target: MapCameraTarget) {
+    private fun applyCamera(target: MapCameraTarget) {
         val map = mapRef ?: return
         runCatching {
             map.cameraPosition = CameraPosition.Builder()
@@ -715,18 +806,39 @@ private class MapLibreHost(
             return mode == CameraMode.TRACKING || mode == CameraMode.TRACKING_GPS
         }
 
-    fun armRecenterIfNeeded(recenterToken: Int) {
-        if (recenterToken <= lastArmedRecenterToken) return
-        lastArmedRecenterToken = recenterToken
-        ignoreTrackingDismiss = true
+    val isTrackingHeadingUp: Boolean
+        get() {
+            if (!locationActivated) return false
+            return mapRef?.locationComponent?.cameraMode == CameraMode.TRACKING_GPS
+        }
+
+    fun clearRecenterArm() {
+        ignoreTrackingDismiss = false
+    }
+
+    /**
+     * Apply TRACKING↔TRACKING_GPS + render mode while already following (ATNA-69).
+     * Does not exit follow or touch zoom — orientation lock stays isolated from Recenter.
+     */
+    private fun syncFollowModes(headingUp: Boolean) {
+        if (!locationActivated) return
+        if (ignoreTrackingDismiss) return
+        headingUpEnabled = headingUp
+        val map = mapRef ?: return
+        runCatching {
+            val component = map.locationComponent
+            component.renderMode = MapLocationFollow.followingRenderModeInt(headingUp)
+            component.cameraMode = MapLocationFollow.followingCameraModeInt(headingUp)
+        }
     }
 
     /**
      * Single Recenter path (ATNA-61 / ATNA-66): exit TRACKING → one
      * animateCamera(latLng+zoom) → sync last location → bare cameraMode follow enter
-     * (no second zoom, no 0ms timed overload stick risk).
+     * (no second zoom, no 0ms timed overload stick risk). Arms dismiss-ignore only here
+     * (not via Compose SideEffect — that left the arm stuck when Recenter could not run).
      */
-    fun applyRecenter(target: MapCameraTarget) {
+    private fun applyRecenter(target: MapCameraTarget) {
         val map = mapRef ?: return
         val plan = MapLocationFollow.cameraPlanForRecenter(target.latitude, target.longitude)
         val latLng = LatLng(plan.target.latitude, plan.target.longitude)
@@ -754,6 +866,8 @@ private class MapLibreHost(
                     }
                 },
             )
+        }.onFailure {
+            ignoreTrackingDismiss = false
         }
     }
 
@@ -789,41 +903,31 @@ private class MapLibreHost(
     /**
      * Enable/disable LocationComponent follow.
      *
-     * Uses a **bare** `cameraMode = TRACKING|TRACKING_GPS` set (ATNA-66). After Recenter
-     * animate + lastLocation sync, MapLibre takes the immediateAnimation path — no second
-     * zoom. Avoids `setCameraMode(mode, 0, null…)` which can leave isTransitioning stuck
-     * so later forceLocationUpdate moves the puck but not the camera.
+     * Uses a **bare** `cameraMode = TRACKING|TRACKING_GPS` set only (ATNA-66 / ATNA-69).
+     * After Recenter animate + lastLocation sync, MapLibre takes the immediateAnimation
+     * path — no second zoom. Timed `setCameraMode` overload removed (stick risk).
      */
-    fun setCameraFollowing(
+    private fun setCameraFollowing(
         following: Boolean,
         fromRecenterFinish: Boolean = false,
     ) {
         if (!locationActivated) return
-        // SideEffect / AndroidView must not steal the camera mid-Recenter animate.
-        if (following && ignoreTrackingDismiss && !fromRecenterFinish) return
+        if (!MapFollowReconcile.mayEnterFollow(
+                recenterInFlight = ignoreTrackingDismiss,
+                fromRecenterFinish = fromRecenterFinish,
+            ) && following
+        ) {
+            return
+        }
         val map = mapRef ?: return
         runCatching {
             val component = map.locationComponent
             if (following) {
                 component.renderMode =
                     MapLocationFollow.followingRenderModeInt(headingUpEnabled)
-                val enter = MapLocationFollow.followEnterAfterFramedRecenter()
-                if (enter.usesBareCameraModeSetter) {
-                    // Bare setter — no timed overload, no zoom arg (animateCamera owns zoom).
-                    component.cameraMode =
-                        MapLocationFollow.followingCameraModeInt(headingUpEnabled)
-                } else {
-                    // Defensive: never use 0ms timed overload (stick risk).
-                    val ms = enter.timedTransitionMs?.takeIf { it > 0L } ?: return@runCatching
-                    component.setCameraMode(
-                        MapLocationFollow.followingCameraModeInt(headingUpEnabled),
-                        ms,
-                        /* zoom */ null,
-                        /* bearing */ null,
-                        /* tilt */ null,
-                        /* listener */ null,
-                    )
-                }
+                // Bare setter only — no timed overload, no zoom arg.
+                component.cameraMode =
+                    MapLocationFollow.followingCameraModeInt(headingUpEnabled)
             } else {
                 component.cameraMode = CameraMode.NONE
             }

@@ -26,8 +26,11 @@ import com.truckie1.maps.MapCameraTarget
  * With [ff_map_heading_up][FlagKeys.MAP_HEADING_UP], follow uses course-up
  * (MapLibre `TRACKING_GPS`) so the map orients to the direction of travel.
  *
+ * Host wiring goes through [MapFollowReconcile] only (ATNA-69) — one command path
+ * for puck push, follow enter/exit, heading sync, and Recenter.
+ *
  * Gherkin: features/map_first_home.feature, features/map_heading_up.feature,
- * features/map_center_lock_follow.feature
+ * features/map_center_lock_follow.feature, features/map_blue_dot_single_path.feature
  */
 object MapLocationFollow {
     const val defaultsToFollowingWhenCentered: Boolean = true
@@ -237,7 +240,8 @@ object MapLocationFollow {
         ) == SteadyFollowCameraAction.EnableTracking
 
     /**
-     * Heading-up SideEffect must not re-enter TRACKING mid-Recenter animation.
+     * Heading-up may sync TRACKING↔TRACKING_GPS while following, but never mid-Recenter.
+     * Prefer [MapFollowReconcile.needsModeSync] which also checks mode mismatch.
      */
     fun shouldSyncFollowingModeWithoutZoom(
         isFollowing: Boolean,

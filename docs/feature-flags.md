@@ -68,7 +68,9 @@ XML screen layouts were removed; do not add new AppCompat/XML screens.
    enters follow via a **bare** LocationComponent camera-mode set after syncing last
    location (no second zoom; avoids the 0ms timed `setCameraMode` overload that stuck
    tracking — ATNA-61 / ATNA-66). Steady follow leaves the camera to LocationComponent —
-   no GPS `moveCamera`.
+   no GPS `moveCamera`. ATNA-69: one [MapFollowReconcile] path owns puck push, follow
+   enter/exit, heading sync, and Recenter (no competing SideEffect/GPS/AndroidView
+   TRACKING enter paths).
 10. Route start/end (`ff_route_start_end`) requires verified autocomplete suggestions for
     Create route start and end. Same place (or round-trip checkbox) is a valid round trip.
 11. Navigate (`ff_navigate`) always calculates a GraphHopper path in-app (stub until live)
@@ -131,4 +133,5 @@ XML screen layouts were removed; do not add new AppCompat/XML screens.
     pattern as Recenter — not a Settings switch). Requires `ff_map_home` +
     `ff_map_location_puck` follow. Locked → course-up (`TRACKING_GPS` + GPS puck);
     unlocked → north-up `TRACKING`. Free pan exits rotation; Recenter restores follow
-    (and course-up when lock is on).
+    (and course-up when lock is on). While already following, orientation lock syncs
+    modes via the same [MapFollowReconcile] path (does not exit follow or touch zoom).

@@ -20,7 +20,7 @@ android {
         minSdk = 24
         targetSdk = 35
         versionCode = 1
-        versionName = "0.8.25-route-optimisation-gh"
+        versionName = "0.8.26-blue-dot-single-path"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
