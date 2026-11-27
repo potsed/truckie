@@ -12,7 +12,7 @@ Feature flags:
 | `ff_navigate` | Navigate: in-app GraphHopper path on MapLibre; optional post-route external handoff | off (on in debug) |
 | `ff_bridge_markers` | AU bridge markers on MapLibre home (downloadable pack + sample bootstrap) | off (on in debug) |
 
-Gherkin: [`features/map_first_home.feature`](../features/map_first_home.feature), [`features/map_center_lock_follow.feature`](../features/map_center_lock_follow.feature), [`features/map_heading_up.feature`](../features/map_heading_up.feature), [`features/create_route_start_end.feature`](../features/create_route_start_end.feature), [`features/bridge_markers.feature`](../features/bridge_markers.feature).
+Gherkin: [`features/map_first_home.feature`](../features/map_first_home.feature), [`features/map_center_lock_follow.feature`](../features/map_center_lock_follow.feature), [`features/map_blue_dot_single_path.feature`](../features/map_blue_dot_single_path.feature), [`features/map_heading_up.feature`](../features/map_heading_up.feature), [`features/create_route_start_end.feature`](../features/create_route_start_end.feature), [`features/bridge_markers.feature`](../features/bridge_markers.feature).
 
 ## Screens
 
