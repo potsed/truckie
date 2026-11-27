@@ -136,6 +136,8 @@ class TruckieApp : Application() {
             featureFlags.setEnabled(FlagKeys.MAP_LOCATION_PUCK, true)
             // Course-up while following — map orients to driving direction.
             featureFlags.setEnabled(FlagKeys.MAP_HEADING_UP, true)
+            // Prefer street names over bus-stop / POI clutter (ATNA-78).
+            featureFlags.setEnabled(FlagKeys.MAP_STREET_LABELS, true)
             featureFlags.setEnabled(FlagKeys.ROUTE_START_END, true)
             featureFlags.setEnabled(FlagKeys.NAVIGATE, true)
             featureFlags.setEnabled(FlagKeys.BRIDGE_MARKERS, true)

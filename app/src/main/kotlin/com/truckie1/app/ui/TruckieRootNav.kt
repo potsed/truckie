@@ -522,6 +522,10 @@ private fun MapHomeRoute(
         flags = app.featureFlags,
         mapHomeEnabled = true,
     )
+    val prioritiseStreetLabels = MapStreetLabelPolicy.shouldApply(
+        flags = app.featureFlags,
+        mapHomeEnabled = true,
+    )
     var headingUpEnabled by remember {
         mutableStateOf(MapHeadingUpCatalog.isEnabled(app.featureFlags))
     }
@@ -660,6 +664,7 @@ private fun MapHomeRoute(
         },
         bridges = bridges,
         showBridgeMarkers = showBridgeMarkers,
+        prioritiseStreetLabels = prioritiseStreetLabels,
         modifier = Modifier.fillMaxSize(),
     )
 }
