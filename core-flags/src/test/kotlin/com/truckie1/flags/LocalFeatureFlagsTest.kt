@@ -112,6 +112,15 @@ class LocalFeatureFlagsTest {
     }
 
     @Test
+    fun nextDestinationDisplayFlagKey() {
+        assertTrue(FlagKeys.NEXT_DESTINATION_DISPLAY == "ff_next_destination_display")
+        val flags = LocalFeatureFlags()
+        assertFalse(flags.isEnabled(FlagKeys.NEXT_DESTINATION_DISPLAY))
+        flags.setEnabled(FlagKeys.NEXT_DESTINATION_DISPLAY, true)
+        assertTrue(flags.isEnabled(FlagKeys.NEXT_DESTINATION_DISPLAY))
+    }
+
+    @Test
     fun demoModeFlagKey() {
         assertTrue(FlagKeys.DEMO_MODE == "ff_demo_mode")
         val flags = LocalFeatureFlags()

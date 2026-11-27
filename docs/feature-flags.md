@@ -28,6 +28,7 @@ XML screen layouts were removed; do not add new AppCompat/XML screens.
 | `ff_bridge_markers` | Low-bridge markers on MapLibre home (Australia-first sample JSON asset; SymbolManager + optional clearance label) | off (on in debug) |
 | `ff_stop_markers` | Route stop markers on MapLibre home (ATNA-81): pickup vs drop-off SymbolManager icons from active AppDataSource route; shares bridge SymbolManager / style lifecycle bind path | off (on in debug) |
 | `ff_map_route_polyline` | Active route polyline on MapLibre home (ATNA-82): PathRouter / MultiStopTourComposer constrained geometry via shared LineManager with Navigate; Fastest + Cost Effective checkboxes both on by default (AND); stub geometry only when stub PathRouter is active | off (on in debug) |
+| `ff_next_destination_display` | While navigating, show upcoming stop / end address (ATNA-83): compact optional phone chip; **must** show clearly on Android Auto when ATNA-10 lands. Human-driver first-class destination (not turn-only). No LineManager changes | off (on in debug) |
 | `ff_verified_cbd_clearances` | Verified CBD sample clearances (ATNA-42): labels only for published road heights; unknown / not_applicable omit invented mocks | off (on in debug) |
 | `ff_queensland_rail_clearances` | Queensland Rail SEQ road-under-rail clearances (ATNA-44): show published QR railbridges pack entries; off keeps BCC CBD samples only | off (on in debug) |
 | `ff_w5_8_low_only` | W5-8 only for low / restricted clearances (ATNA-45): AU W5-8 diamond only when verified ≤ 4.6 m or QR published underbridge | off (on in debug) |
@@ -160,3 +161,11 @@ XML screen layouts were removed; do not add new AppCompat/XML screens.
     Fastest + Cost Effective checkboxes both on). Same under-passage / weight / soft
     residential / over-deck OK / toll-when-flagged constraints as Optimize/Navigate.
     Stub geometry only when stub PathRouter is the active factory. No satellite peek.
+24. Next destination display (`ff_next_destination_display`, ATNA-83) shows the upcoming
+    stop address (or route end when no intermediate stops) while an in-app Navigate
+    path is active. Truckie is for human drivers (not self-driving): destination is
+    first-class alongside turn-by-turn. **Phone:** compact single-line optional chip
+    (avoid clutter). **Android Auto (ATNA-10):** when Auto navigation lands, the next
+    destination **must** show clearly on the car UI — document/contract in
+    `NextDestinationDisplayCatalog` + `docs/play-console.md`. Does not touch
+    LineManager / MapRoutePathAnnotations.

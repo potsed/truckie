@@ -602,6 +602,19 @@ private fun MapHomeRoute(
             emptyList()
         }
     }
+    // Navigate session path only — not the ATNA-82 preview polyline.
+    val navigating = navigatePathPoints.size >= 2
+    val nextDestinationAddress = remember(
+        route,
+        navigating,
+        app.featureFlags.isEnabled(FlagKeys.NEXT_DESTINATION_DISPLAY),
+    ) {
+        NextDestinationDisplayCatalog.displayAddress(
+            flags = app.featureFlags,
+            route = route,
+            navigating = navigating,
+        )
+    }
 
     MapHomeScreen(
         state = MapHomeUiState(
@@ -717,6 +730,7 @@ private fun MapHomeRoute(
         showBridgeMarkers = showBridgeMarkers,
         showStopMarkers = showStopMarkers,
         prioritiseStreetLabels = prioritiseStreetLabels,
+        nextDestinationAddress = nextDestinationAddress,
         modifier = Modifier.fillMaxSize(),
     )
 }

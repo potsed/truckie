@@ -137,6 +137,11 @@ fun MapHomeScreen(
     showStopMarkers: Boolean = false,
     /** Prefer street names over POI clutter (`ff_map_street_labels`). */
     prioritiseStreetLabels: Boolean = false,
+    /**
+     * Upcoming stop / end address while Navigate is active
+     * (`ff_next_destination_display`). Null hides the banner.
+     */
+    nextDestinationAddress: String? = null,
     modifier: Modifier = Modifier,
 ) {
     var followState by remember { mutableStateOf(MapLocationFollow.initial()) }
@@ -226,6 +231,18 @@ fun MapHomeScreen(
                 .statusBarsPadding()
                 .padding(12.dp),
         )
+
+        val nextAddress = nextDestinationAddress
+        if (!nextAddress.isNullOrBlank()) {
+            // Compact phone chip — Auto gets a clearer surface at ATNA-10.
+            NextDestinationBanner(
+                address = nextAddress,
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .statusBarsPadding()
+                    .padding(horizontal = 64.dp, vertical = 8.dp),
+            )
+        }
 
         val sheetShape = RoundedCornerShape(
             topStart = RouteSheetPolishCatalog.topCornerRadiusDp.dp,

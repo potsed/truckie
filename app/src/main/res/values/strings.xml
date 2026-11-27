@@ -108,6 +108,9 @@
     <string name="navigate_route">Navigate</string>
     <string name="navigate_handoff">Open in %1$s</string>
     <string name="navigate_need_endpoints">Set start and end before navigating</string>
+    <!-- Next destination while navigating (ff_next_destination_display) -->
+    <string name="next_destination_label">Next</string>
+    <string name="next_destination_cd">Next destination: %1$s</string>
     <string name="settings_nav_app_label">Navigation handoff app</string>
     <string name="settings_nav_app_note">GraphHopper always calculates the route in Truckie. An external app is optional handoff after the constrained path is ready.</string>
     <string name="settings_nav_app_in_app">Truckie (in-app map)</string>
