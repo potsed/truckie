@@ -34,7 +34,7 @@ class AuLowBridgesPackTest {
         assertEquals("0.1.0", manifest.version)
         assertEquals(AuLowBridgesPack.DOWNLOAD_URL, manifest.downloadUrl)
         assertTrue(
-            "Public 0.1.0 must replace bootstrap 0.7.0-sample",
+            "Public 0.1.0 must fetch/merge over bootstrap 0.7.0-sample",
             BridgePackVersions.isNewer(
                 AuLowBridgesPack.REMOTE_VERSION,
                 CachedBridgePackRepository.BOOTSTRAP_VERSION,
@@ -45,6 +45,14 @@ class AuLowBridgesPackTest {
                 CachedBridgePackRepository.BOOTSTRAP_VERSION,
                 AuLowBridgesPack.REMOTE_VERSION,
             ),
+        )
+        assertEquals(
+            PackChannel.CURATED_SAMPLE,
+            PackChannel.of(CachedBridgePackRepository.BOOTSTRAP_VERSION),
+        )
+        assertEquals(
+            PackChannel.PUBLIC_OSS,
+            PackChannel.of(AuLowBridgesPack.REMOTE_VERSION, AuLowBridgesPack.DOWNLOAD_URL),
         )
     }
 
@@ -151,7 +159,8 @@ class AuLowBridgesPackTest {
             downloader = counting,
             cacheDir = dir,
         )
-        repo.loadActive()
+        val seeded = repo.loadActive()
+        val curatedCount = seeded.bridges.size
         assertEquals(CachedBridgePackRepository.BOOTSTRAP_VERSION, repo.cachedVersion())
         assertEquals(0, counting.downloadCount)
 
@@ -161,9 +170,12 @@ class AuLowBridgesPackTest {
         assertEquals("0.1.0", repo.cachedVersion())
         val active = repo.loadActive()
         assertEquals("0.1.0", active.manifest.version)
-        assertEquals(1, active.bridges.size)
-        assertEquals("Example Road", active.bridges[0].roadUnder)
-        assertEquals("Test Source", active.bridges[0].source!!.name)
+        // Merge preserves curated bootstrap; OSS row overlays by id.
+        assertTrue(active.bridges.size >= curatedCount)
+        val oss = active.bridges.first { it.id == "qld-oss-1" }
+        assertEquals("Example Road", oss.roadUnder)
+        assertEquals("Test Source", oss.source!!.name)
+        assertTrue(active.bridges.any { it.id == "qld-story-bridge-sample" })
         // loadActive stays local-first
         assertEquals(1, counting.downloadCount)
     }

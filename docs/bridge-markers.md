@@ -98,12 +98,13 @@ Merge keeps existing QR + CBD verified rows; de-dupes by id, `clearanceSourceId`
 1. **Cold start / empty cache** — seed from bundled `au_sample_bridges.json`, stamp bootstrap version (`0.7.0-sample`), write `filesDir/bridge_packs/{manifest,bridges}.json`.
 2. **Later loads** — read the on-device cache only (`BridgePackSource.CACHE`). Never re-fetch just because the map recomposed.
 3. **App update with newer sample** — if cache version ends with `-sample` and bundled `BOOTSTRAP_VERSION` is newer, re-seed from assets (still no network). Devices on `0.6.0-sample` (or older) re-seed to include passage over/under.
-4. **Remote refresh** — with **`ff_au_low_bridges_pack`**, Truckie refreshes from the public [au-low-bridges-dataset](https://github.com/potsed/au-low-bridges-dataset) GitHub Release JSON (`AuLowBridgesPack.REMOTE_VERSION` = `0.1.0` / `DOWNLOAD_URL`). Download runs **iff** `BridgePackVersions.isNewer(remote, cached)` (a public non-`-sample` pack always replaces a bootstrap `-sample` cache). Failures keep the disk fallback. **JSON only** — shared full schema (required `clearanceHeightM` + `source{name,url,retrievedAt}`; `roadUnder`/`roadOver`/`passage`/`state`/`lga`/weight/signage when known).
+4. **Remote refresh** — with **`ff_au_low_bridges_pack`**, Truckie refreshes from the public [au-low-bridges-dataset](https://github.com/potsed/au-low-bridges-dataset) GitHub Release JSON (`AuLowBridgesPack.REMOTE_VERSION` = `0.1.0` / `DOWNLOAD_URL`). Download runs **iff** `BridgePackMerge.shouldFetch` / `BridgePackVersions.isNewer(remote, cached)` (a public non-`-sample` pack is newer than bootstrap `-sample` for **fetch**). **Apply** is [BridgePackMerge](../app/src/main/kotlin/com/truckie1/app/ui/BridgePackMerge.kt) + [PackChannel](../app/src/main/kotlin/com/truckie1/app/ui/BridgePackMerge.kt) (ATNA-72): cross-channel into curated sample **merges by id** (OSS overlays; curated-only CBD/QR/TMR/BCC rows kept) — never full-replaces a thinner OSS body over `0.7.0-sample`. Same published-family channel may full-replace on newer semver. Failures keep the disk fallback. **JSON only** — shared full schema (required `clearanceHeightM` + `source{name,url,retrievedAt}`; `roadUnder`/`roadOver`/`passage`/`state`/`lga`/weight/signage when known).
 
 ## Pack API
 
 - `AuLowBridgesPack` — OSS source-pack constants + flag gate + `UrlBridgePackDownloader` when enabled
 - `BridgeSource` — required citation object on OSS rows (`name`, `url`, `retrievedAt`)
+- `PackChannel` / `BridgePackMerge` — refresh compose policy (CURATED_SAMPLE vs PUBLIC_OSS vs PUBLISHED; merge-by-id; ATNA-72)
 - `BridgePackRepository` / `CachedBridgePackRepository` — `loadActive()`, `cachedVersion()`, `refresh(manifest)`
 - `BridgePackLifecycle` — local-first contracts (`isLocalFirst`, `loadActiveUsesNetwork = false`, …)
 - `VerifiedCbdClearances` — flag gate, provenance loader, label policy

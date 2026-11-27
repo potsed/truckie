@@ -9,8 +9,11 @@ import java.io.File
  *
  * - [loadActive] never hits the network: reads versioned on-device cache, or seeds
  *   from the bundled AU sample asset onto disk when empty / when bootstrap advances.
- * - [refresh] downloads **only** when [BridgePackVersions.isNewer] says the remote
- *   manifest is newer than the cached stamp. Same/older versions stay on disk.
+ * - [refresh] downloads **only** when [BridgePackMerge.shouldFetch] /
+ *   [BridgePackVersions.isNewer] says the remote manifest is newer than the
+ *   cached stamp. Same/older versions stay on disk. Downloaded bodies are
+ *   composed via [BridgePackMerge] (merge-by-id into curated sample; never
+ *   full-replace thinner OSS over bootstrap — ATNA-72).
  *
  * Live OSM/NHVR pack ingest remains ATNA-11. Gherkin: features/bridge_pack.feature
  */
@@ -76,7 +79,7 @@ class CachedBridgePackRepository(
             )
         }
         val currentVersion = cachedVersion() ?: current.manifest.version
-        if (!BridgePackVersions.isNewer(remote.version, currentVersion)) {
+        if (!BridgePackMerge.shouldFetch(remote.version, currentVersion)) {
             val fromCache = readCache() ?: current.copy(source = BridgePackSource.CACHE)
             return BridgePackRefreshResult.Unchanged(fromCache)
         }
@@ -86,20 +89,35 @@ class CachedBridgePackRepository(
                 fallback = current,
             )
         }
-        val bridges = BridgeMarkersCatalog.parseJson(bytes.toString(Charsets.UTF_8))
-        if (bridges.isEmpty()) {
-            return BridgePackRefreshResult.Failed(
-                reason = "Remote pack JSON produced no bridges",
-                fallback = current,
-            )
+        val remoteBridges = BridgeMarkersCatalog.parseJson(bytes.toString(Charsets.UTF_8))
+        when (val action = BridgePackMerge.apply(current, remote, remoteBridges)) {
+            is BridgePackApplyAction.Refuse -> {
+                return BridgePackRefreshResult.Failed(
+                    reason = action.reason,
+                    fallback = current,
+                )
+            }
+            is BridgePackApplyAction.Replace -> {
+                writeCache(remote, action.bridges)
+                return BridgePackRefreshResult.Updated(
+                    BridgePack(
+                        manifest = remote,
+                        bridges = action.bridges,
+                        source = BridgePackSource.CACHE,
+                    ),
+                )
+            }
+            is BridgePackApplyAction.Merge -> {
+                writeCache(remote, action.bridges)
+                return BridgePackRefreshResult.Updated(
+                    BridgePack(
+                        manifest = remote,
+                        bridges = action.bridges,
+                        source = BridgePackSource.CACHE,
+                    ),
+                )
+            }
         }
-        writeCache(remote, bridges)
-        val updated = BridgePack(
-            manifest = remote,
-            bridges = bridges,
-            source = BridgePackSource.CACHE,
-        )
-        return BridgePackRefreshResult.Updated(updated)
     }
 
     private fun readCache(): BridgePack? {

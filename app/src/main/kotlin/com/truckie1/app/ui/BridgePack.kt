@@ -109,8 +109,10 @@ object BridgePackLifecycle {
 object BridgePackVersions {
     /**
      * Semver-ish compare: major.minor.patch numeric tuples; non-numeric → string.
-     * A published (non-`-sample`) remote always replaces an on-device bootstrap
-     * `-sample` stamp — e.g. OSS `0.1.0` supersedes `0.7.0-sample`.
+     * A published (non-`-sample`) remote is treated as newer than an on-device
+     * bootstrap `-sample` stamp for **fetch** gating (e.g. OSS `0.1.0` vs
+     * `0.7.0-sample`). Apply/compose is owned by [BridgePackMerge] — cross-channel
+     * refresh merges by id and must not clobber curated rows (ATNA-72).
      */
     fun isNewer(candidate: String, current: String): Boolean {
         val candidateSample = candidate.trim().endsWith("-sample")

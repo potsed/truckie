@@ -29,3 +29,13 @@ Feature: Australia low-bridges open source pack (Truckie source pack)
     When the pack repository refreshes from the OSS pack URL
     Then the on-device cache stores version "1.0.0"
     And subsequent loadActive reads local cache without networking
+
+  # ATNA-72 — cross-channel refresh must not wipe curated dogfood rows.
+  Scenario: Thinner OSS 0.1.0 does not clobber curated 0.7.0-sample
+    Given ff_au_low_bridges_pack is enabled
+    And the local cache holds curated bootstrap "0.7.0-sample"
+    And the remote OSS pack is version "0.1.0" with fewer bridges than bootstrap
+    When the pack repository refreshes from AuLowBridgesPack.remoteManifest
+    Then PackChannel treats bootstrap as CURATED_SAMPLE and remote as PUBLIC_OSS
+    And BridgePackMerge merges by id instead of full replace
+    And verified curated rows that are absent from OSS remain cached
