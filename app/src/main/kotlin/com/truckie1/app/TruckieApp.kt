@@ -148,6 +148,8 @@ class TruckieApp : Application() {
             featureFlags.setEnabled(FlagKeys.STOP_MARKERS, true)
             // Constrained PathRouter route line on MapLibre home (ATNA-82).
             featureFlags.setEnabled(FlagKeys.MAP_ROUTE_POLYLINE, true)
+            // Next destination address while navigating (ATNA-83).
+            featureFlags.setEnabled(FlagKeys.NEXT_DESTINATION_DISPLAY, true)
             // Verified CBD clearances: no mock heights (ATNA-42).
             featureFlags.setEnabled(FlagKeys.VERIFIED_CBD_CLEARANCES, true)
             // Queensland Rail SEQ road-under-rail clearances (ATNA-44).

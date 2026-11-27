@@ -116,6 +116,12 @@ object FlagKeys {
      * otherwise stub (`graphhopper-stub`).
      */
     const val GRAPHHOPPER_LIVE = "ff_graphhopper_live"
+    /**
+     * While navigating, always show the next destination address (upcoming stop)
+     * on map-home (ATNA-83) — not turn-only chrome. Drivers may know a better way.
+     * Does not touch LineManager / MapRoutePathAnnotations.
+     */
+    const val NEXT_DESTINATION_DISPLAY = "ff_next_destination_display"
 }
 
 /**

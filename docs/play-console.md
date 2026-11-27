@@ -33,9 +33,15 @@ Local dogfood can still use a debug APK (`./scripts/build-apk.sh`). Play accepts
 
 ## Android Auto (later)
 
-- Auto shipping is **Phase 2+**, gated by `ff_android_auto` and API 23+.
+- Auto shipping is **Phase 2+** / **ATNA-10**, gated by `ff_android_auto` and API 23+.
 - Navigation category apps need Cars app quality review (NF-* checks, `NavigationTemplate`, intent handling).
 - Budget a dedicated Auto compliance milestone before requesting Auto listing.
+- **Next destination (ATNA-83 → Auto):** Truckie is for human drivers. When Auto
+  navigation lands, the **upcoming stop / destination address must show clearly**
+  on the car screen alongside turn-by-turn (first-class — drivers may know a better
+  route). Phone map-home keeps a **compact** optional chip (`ff_next_destination_display`);
+  do not treat Auto as optional chrome. See `features/next_destination_display.feature`
+  and `NextDestinationDisplayCatalog.androidAutoMustShowClearly`.
 
 ## Source-only repo
 
