@@ -227,4 +227,13 @@ class LocalFeatureFlagsTest {
         flags.setEnabled(FlagKeys.ACTIVE_TOUR, true)
         assertTrue(flags.isEnabled(FlagKeys.ACTIVE_TOUR))
     }
+
+    @Test
+    fun navigateMultiStopFlagKey() {
+        assertTrue(FlagKeys.NAVIGATE_MULTI_STOP == "ff_navigate_multi_stop")
+        val flags = LocalFeatureFlags()
+        assertFalse(flags.isEnabled(FlagKeys.NAVIGATE_MULTI_STOP))
+        flags.setEnabled(FlagKeys.NAVIGATE_MULTI_STOP, true)
+        assertTrue(flags.isEnabled(FlagKeys.NAVIGATE_MULTI_STOP))
+    }
 }

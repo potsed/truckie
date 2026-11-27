@@ -27,8 +27,9 @@ Feature: Active route polyline on home map
     And an optimised MultiStopTourComposer path is available
     Then the home map uses that optimised tour geometry
     When no optimised path is cached
-    Then the home map composes PathRouter legs in current stop order
+    Then the home map composes PathRouter legs in current stop order via ActiveTourPath
     And geometry is never a DIY straight-line between stop markers
+    And Navigate uses that same ActiveTourPath geometry (see navigate_multi_stop_path.feature)
 
   Scenario: Constraints match Optimize and Navigate
     Given ff_map_route_polyline is enabled

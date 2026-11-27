@@ -128,6 +128,13 @@ object FlagKeys {
      * TripStop is a projection; Route remains the editable SoT.
      */
     const val ACTIVE_TOUR = "ff_active_tour"
+    /**
+     * Navigate multi-stop tour path (ATNA-87 / P1-2): Navigate consumes the same
+     * ordered MultiStopTourComposer / PathRouter geometry as Optimise + map
+     * polyline via ActiveTourPath. Start→end-only Navigate path is deleted.
+     * Defaults on.
+     */
+    const val NAVIGATE_MULTI_STOP = "ff_navigate_multi_stop"
 }
 
 /**

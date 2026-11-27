@@ -48,11 +48,12 @@ Feature: Create route with start and end
     And an active route with verified start and end
     Then the map-home sheet shows a Navigate action
     When the driver taps Navigate
-    Then Truckie always requests a GraphHopper path from start to end in-app
+    Then Truckie always requests a GraphHopper multi-stop tour path in-app
     And the path is drawn on the current MapLibre map by default
     And the same map chrome and drag sheet remain
     And round-trip routes with the same start and end remain valid
     And external navigation apps never replace GraphHopper for path finding
+    # See navigate_multi_stop_path.feature (ATNA-87) — not start→end-only.
 
   Scenario: Settings nav app is optional post-route handoff only
     Given ff_navigate is enabled

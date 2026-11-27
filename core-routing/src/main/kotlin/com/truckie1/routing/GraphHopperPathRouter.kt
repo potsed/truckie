@@ -3,7 +3,8 @@ package com.truckie1.routing
 import com.truckie1.trips.RouteEndpoint
 
 /**
- * GraphHopper path for Navigate (start → end) on the MapLibre map.
+ * GraphHopper path leg used by [MultiStopTourComposer] / ActiveTourPath
+ * (Navigate + map polyline) and Optimise.
  *
  * Always runs in-app with [TruckRoutingPreferences] (bridges, weight, tolls,
  * residential avoidance). Live HTTP GraphHopper is not wired yet —
