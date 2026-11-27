@@ -52,7 +52,7 @@ object DemoAppDataSource {
         routes.replaceActive(demoRoute)
 
         val trips = TripSession()
-        trips.replaceStops(demoRoute.stops.toTripStops())
+        trips.replaceStops(DemoDataset.buildTripStops())
 
         return object : AppDataSource {
             override val vehicles: VehicleProfileRepository =
@@ -180,13 +180,3 @@ class ReadOnlyTripRepository(
         // Demo mode is read-only.
     }
 }
-
-internal fun List<RouteStop>.toTripStops(): List<TripStop> =
-    map { stop ->
-        TripStop(
-            id = stop.id,
-            addressLabel = stop.addressLabel,
-            latitude = stop.latitude,
-            longitude = stop.longitude,
-        )
-    }

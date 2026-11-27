@@ -77,3 +77,13 @@ Feature: Demo mode
     And sheet content does not show Demo SEQ run or demo vehicle copy
     When Demo mode is turned off
     Then the DEMO MODE pill is hidden
+
+  # Read-only demo must still dogfood product flows without Add stop / edit writes.
+  Scenario: Seeded demo dataset is rich enough for read-only dogfood
+    Given Demo mode is enabled
+    Then the active route has verified start and end endpoints
+    And trip stops all have verified coordinates
+    And at least two stops carry pick-up cargo and two carry drop-off cargo
+    And the active vehicle is 3.5 m high
+    And at least one stop is near a verified low bridge
+    And map markers height filter Optimize and Navigate can run without writes

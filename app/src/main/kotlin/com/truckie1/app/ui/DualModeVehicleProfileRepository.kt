@@ -34,8 +34,7 @@ class DualModeVehicleProfileRepository(
                     )
                     override val trips = ReadOnlyTripRepository(
                         com.truckie1.trips.TripSession().also { session ->
-                            val route = DemoDataset.buildRoute()
-                            session.replaceStops(route.stops.toTripStops())
+                            session.replaceStops(DemoDataset.buildTripStops())
                         },
                     )
                 }

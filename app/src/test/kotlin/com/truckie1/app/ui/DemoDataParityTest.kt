@@ -174,5 +174,23 @@ class DemoDataParityTest {
         assertEquals(DemoDataset.depot, demo.routes.activeRoute()!!.start)
         assertEquals(listOf(DemoDataset.VEHICLE_REGO), demo.vehicles.all().map { it.rego })
         assertEquals(6, demo.trips.stops().size)
+        assertTrue(demo.trips.stops().any { it.cargo.isNotEmpty() })
+        assertTrue(DemoDataset.supportsReadOnlyDogfood())
+    }
+
+    @Test
+    fun seededDemoCoversReadOnlyFeatureWalkthrough() {
+        // Daniel: mutations need not work; seed must exercise features without writes.
+        assertTrue(DemoDataset.supportsReadOnlyDogfood())
+        val flags = LocalFeatureFlags(mapOf(FlagKeys.DEMO_MODE to true))
+        val data = dual(flags)
+        val route = data.routes.activeRoute()!!
+        assertTrue(route.hasEndpoints)
+        assertEquals(6, data.trips.stops().size)
+        assertTrue(data.trips.stops().all { it.latitude != null && it.longitude != null })
+        assertEquals(3.5, data.vehicles.all().single().heightM, 0.001)
+        // Optimize / Navigate / clearance can read this seed; writes remain no-ops.
+        data.trips.replaceStops(emptyList())
+        assertEquals(6, data.trips.stops().size)
     }
 }

@@ -80,4 +80,14 @@ class DemoDatasetTest {
         assertEquals(2, route.stops.count { it.kind == StopKind.PICKUP_LOAD })
         assertEquals(4, route.stops.count { it.kind == StopKind.DROP_OFF_UNLOAD })
     }
+
+    @Test
+    fun tripStopsIncludeCargoAndCoordsForReadOnlyDogfood() {
+        val trips = DemoDataset.buildTripStops()
+        assertEquals(6, trips.size)
+        assertTrue(trips.all { it.latitude != null && it.longitude != null })
+        assertTrue(trips.count { it.cargo.any { c -> c.action.name == "PICK_UP" } } >= 2)
+        assertTrue(trips.count { it.cargo.any { c -> c.action.name == "DROP_OFF" } } >= 2)
+        assertTrue(DemoDataset.supportsReadOnlyDogfood())
+    }
 }
