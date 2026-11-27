@@ -132,6 +132,8 @@ fun MapHomeScreen(
     /** Map-chrome orientation lock (Recenter-style), gated by follow flags. */
     showOrientationLock: Boolean = false,
     onOrientationLockChange: (Boolean) -> Unit = {},
+    /** Fused fix for ActiveTourPath approach (ATNA-99). */
+    onLocationFixChange: (LocationFix?) -> Unit = {},
     bridges: List<BridgePoint> = emptyList(),
     showBridgeMarkers: Boolean = false,
     showStopMarkers: Boolean = false,
@@ -212,6 +214,7 @@ fun MapHomeScreen(
             headingUpEnabled = headingUpEnabled && locationFollowEnabled && showLocationPuck,
             followState = followState,
             onFollowStateChange = { followState = it },
+            onLocationFixChange = onLocationFixChange,
             recenterToken = recenterToken,
             routePathPoints = state.navigatePathPoints,
             bridges = bridges,

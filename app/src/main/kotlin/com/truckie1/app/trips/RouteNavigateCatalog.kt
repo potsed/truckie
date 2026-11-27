@@ -3,9 +3,11 @@ package com.truckie1.app.trips
 import com.truckie1.app.routing.ActiveTourPath
 import com.truckie1.app.settings.NavigationAppSelection
 import com.truckie1.app.ui.NavigateMultiStopCatalog
+import com.truckie1.app.ui.RoutePathFromLocationCatalog
 import com.truckie1.flags.FeatureFlags
 import com.truckie1.flags.FlagKeys
 import com.truckie1.profiles.Vehicle
+import com.truckie1.routing.LatLngPoint
 import com.truckie1.routing.MultiStopTourComposer
 import com.truckie1.routing.RoutePath
 import com.truckie1.trips.Route
@@ -21,6 +23,7 @@ import com.truckie1.trips.RouteEndpoint
  * With `ff_navigate_multi_stop` (defaults on), geometry comes from
  * [ActiveTourPath] / [MultiStopTourComposer] — same ordered PathRouter legs as
  * Optimise + map polyline (ATNA-87). Start→end-only Navigate is deleted.
+ * With `ff_route_path_from_location` (ATNA-99), path starts at current location.
  */
 object RouteNavigateCatalog {
     const val FLAG: String = FlagKeys.NAVIGATE
@@ -92,6 +95,7 @@ class RouteNavigateSession(
         bufferM: Double,
         selection: NavigationAppSelection = NavigationAppSelection.InAppTruckie,
         optimisedPath: RoutePath? = null,
+        currentLocation: LatLngPoint? = null,
     ): Result {
         if (!RouteNavigateCatalog.isEnabled(flags)) return Result.FlagOff
         if (!NavigateMultiStopCatalog.isEnabled(flags)) return Result.FlagOff
@@ -103,6 +107,10 @@ class RouteNavigateSession(
             bufferM = bufferM,
             composer = composerProvider(),
             optimisedPath = optimisedPath,
+            currentLocation = RoutePathFromLocationCatalog.approachFix(
+                flags = flags,
+                currentLocation = currentLocation,
+            ),
         )
         val path = when (composed) {
             is ActiveTourPath.Result.Ready -> composed.path

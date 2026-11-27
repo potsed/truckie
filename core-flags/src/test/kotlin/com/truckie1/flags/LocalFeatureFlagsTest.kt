@@ -236,4 +236,13 @@ class LocalFeatureFlagsTest {
         flags.setEnabled(FlagKeys.NAVIGATE_MULTI_STOP, true)
         assertTrue(flags.isEnabled(FlagKeys.NAVIGATE_MULTI_STOP))
     }
+
+    @Test
+    fun routePathFromLocationFlagKey() {
+        assertTrue(FlagKeys.ROUTE_PATH_FROM_LOCATION == "ff_route_path_from_location")
+        val flags = LocalFeatureFlags()
+        assertFalse(flags.isEnabled(FlagKeys.ROUTE_PATH_FROM_LOCATION))
+        flags.setEnabled(FlagKeys.ROUTE_PATH_FROM_LOCATION, true)
+        assertTrue(flags.isEnabled(FlagKeys.ROUTE_PATH_FROM_LOCATION))
+    }
 }

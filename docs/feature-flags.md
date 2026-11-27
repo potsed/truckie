@@ -26,6 +26,7 @@ XML screen layouts were removed; do not add new AppCompat/XML screens.
 | `ff_route_start_end` | Create route requires verified start + end (same place = round trip) on the map-home sheet | off (on in debug) |
 | `ff_navigate` | Navigate: GraphHopper path always in-app on MapLibre; Settings may pick installed app for post-route handoff only | off (on in debug) |
 | `ff_navigate_multi_stop` | Navigate multi-stop tour (ATNA-87): same ordered PathRouter / MultiStopTourComposer geometry as Optimise + map polyline via ActiveTourPath; start→end-only Navigate deleted | **on** (defaults on) |
+| `ff_route_path_from_location` | Route path approach (ATNA-99): ActiveTourPath prepends PathRouter leg from fused current location → route start → ordered stops → end; without a fix falls back to start→stops→end | **on** (defaults on) |
 | `ff_active_tour` | Single ActiveTourSession SoT (ATNA-86): map-home Route + Plan Trip / Optimise + demo; TripStop is a projection | **on** (defaults on) |
 | `ff_bridge_markers` | Low-bridge markers on MapLibre home (Australia-first sample JSON asset; SymbolManager + optional clearance label) | off (on in debug) |
 | `ff_stop_markers` | Route stop markers on MapLibre home (ATNA-81): pickup vs drop-off SymbolManager icons from active AppDataSource route; shares bridge SymbolManager / style lifecycle bind path | off (on in debug) |
@@ -55,12 +56,15 @@ XML screen layouts were removed; do not add new AppCompat/XML screens.
    (over deck OK). **Navigate and Optimise share one app-owned `PathRouter`** from
    `GraphHopperPathRouterFactory` (`TruckieApp.pathRouter()`). With `ff_navigate_multi_stop`
    (defaults on, ATNA-87), Navigate uses `ActiveTourPath` + ordered composer legs — the same
-   geometry as Optimise + map polyline; start→end-only Navigate is deleted. Pack bridges map
-   into the composer when `ff_bridge_passage` is on. Live HTTP only when `ff_graphhopper_live`
-   + base URL; otherwise stub. Toll preference stays stubbed as allow-all passthrough until
-   `ff_tolls` is implemented. **Fastest** and **Cost Effective** are checkboxes (not radio),
-   both on by default — AND selection via `TourOptimizeGoals` / `TourPathSelector` (prefer
-   fast and cost-effective together).
+   geometry as Optimise + map polyline; start→end-only Navigate is deleted. With
+   `ff_route_path_from_location` (defaults on, ATNA-99), that geometry prepends a PathRouter
+   approach from the fused current location to route start (then stops → end); without a fix
+   it falls back to start→stops→end. Pack bridges map into the composer when
+   `ff_bridge_passage` is on. Live HTTP only when `ff_graphhopper_live` + base URL; otherwise
+   stub. Toll preference stays stubbed as allow-all passthrough until `ff_tolls` is
+   implemented. **Fastest** and **Cost Effective** are checkboxes (not radio), both on by
+   default — AND selection via `TourOptimizeGoals` / `TourPathSelector` (prefer fast and
+   cost-effective together).
 6. Nav chrome (`ff_nav_chrome`) hosts Material3 `CenterAlignedTopAppBar` + bottom
    `NavigationBar` **once** on `MainActivity` around a Compose NavHost (global fixed
    chrome; content scrolls in between). Plan trip / Vehicles tabs still require

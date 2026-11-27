@@ -7,6 +7,7 @@ Feature: Navigate uses multi-stop tour path
   # Refactor (P1-2 / ATNA-87): one ActiveTourPath geometry for Navigate + map
   # polyline via MultiStopTourComposer ordered PathRouter legs. Start→end-only
   # Navigate path is deleted. Same ActiveTourSession SoT as ATNA-86.
+  # With ff_route_path_from_location (ATNA-99): current → start → stops → end.
   # Out of scope: async GraphHopper (P1-3), Room persist (P1-4), god-file splits (P1-5).
 
   Scenario: Navigate multi-stop path is feature-flagged and defaults on

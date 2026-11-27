@@ -60,6 +60,7 @@ import com.truckie1.app.trips.StopFormParser
 import com.truckie1.app.AndroidAutoGate
 import com.truckie1.flags.FlagKeys
 import com.truckie1.profiles.Vehicle
+import com.truckie1.routing.LatLngPoint
 import com.truckie1.routing.OptimizeResult
 import com.truckie1.trips.CargoAction
 import com.truckie1.trips.ClearanceCalculator
@@ -466,6 +467,8 @@ private fun MapHomeRoute(
         mutableStateOf(app.routeNavigateSession.activePath()?.points.orEmpty())
     }
     var polylineRevision by remember { mutableStateOf(0) }
+    /** Fused fix for ActiveTourPath approach (ATNA-99). */
+    var currentLocation by remember { mutableStateOf<LatLngPoint?>(null) }
     LaunchedEffect(demoRevision) {
         // ATNA-75: data source already swapped; just rebind active route.
         route = app.routeSession.activeRoute()
@@ -514,7 +517,9 @@ private fun MapHomeRoute(
         app.clearanceBufferM,
         polylineRevision,
         demoRevision,
+        currentLocation,
         app.featureFlags.isEnabled(FlagKeys.MAP_ROUTE_POLYLINE),
+        app.featureFlags.isEnabled(FlagKeys.ROUTE_PATH_FROM_LOCATION),
         app.featureFlags.isEnabled(FlagKeys.BRIDGE_PASSAGE),
         app.featureFlags.isEnabled(FlagKeys.TOLLS),
         app.featureFlags.isEnabled(FlagKeys.GRAPHHOPPER_LIVE),
@@ -532,6 +537,7 @@ private fun MapHomeRoute(
                     composer = app.routeOptimizer,
                     optimisedPath = app.mapRoutePolylineSession.lastOptimisedPath(),
                     navigatePath = app.routeNavigateSession.activePath(),
+                    currentLocation = currentLocation,
                 ),
             )
             else -> emptyList()
@@ -658,6 +664,7 @@ private fun MapHomeRoute(
                     bufferM = app.clearanceBufferM,
                     selection = selection,
                     optimisedPath = app.mapRoutePolylineSession.lastOptimisedPath(),
+                    currentLocation = currentLocation,
                 )
             ) {
                 is com.truckie1.app.trips.RouteNavigateSession.Result.Ready -> {
@@ -693,6 +700,9 @@ private fun MapHomeRoute(
         onOrientationLockChange = { locked ->
             headingUpEnabled = locked
             MapHeadingUpCatalog.setEnabled(app.featureFlags, enabled = locked)
+        },
+        onLocationFixChange = { fix ->
+            currentLocation = fix?.let { LatLngPoint(it.latitude, it.longitude) }
         },
         bridges = bridges,
         showBridgeMarkers = showBridgeMarkers,

@@ -94,6 +94,12 @@ fun MapLibreMap(
     headingUpEnabled: Boolean = false,
     followState: MapFollowState = MapLocationFollow.initial(),
     onFollowStateChange: (MapFollowState) -> Unit = {},
+    /**
+     * Fused fix for route-path approach (ATNA-99). Hosts may feed
+     * [ActiveTourPath][com.truckie1.app.routing.ActiveTourPath] without a
+     * second location stack.
+     */
+    onLocationFixChange: (LocationFix?) -> Unit = {},
     recenterToken: Int = 0,
     /** GraphHopper path points drawn on this same map (Navigate). */
     routePathPoints: List<LatLngPoint> = emptyList(),
@@ -156,6 +162,7 @@ fun MapLibreMap(
     fun onLocationReady(fix: LocationFix?) {
         val permitted = FusedCurrentLocationProvider.hasLocationPermission(context)
         hasPermission = permitted
+        onLocationFixChange(if (permitted) fix else null)
         if (showLocationPuck) {
             val resolved = MapLocationPuck.resolve(fix = fix, hasLocationPermission = permitted)
             cameraTarget = resolved.camera

@@ -18,6 +18,7 @@ import com.truckie1.app.ui.DualModeAppDataSource
 import com.truckie1.app.ui.MapRoutePolylineSession
 import com.truckie1.app.ui.NavigateMultiStopCatalog
 import com.truckie1.app.ui.RealAppDataSource
+import com.truckie1.app.ui.RoutePathFromLocationCatalog
 import com.truckie1.flags.FlagKeys
 import com.truckie1.flags.LocalFeatureFlags
 import com.truckie1.maps.MapLibreNativeEngine
@@ -122,6 +123,11 @@ class TruckieApp : Application() {
             FlagKeys.NAVIGATE_MULTI_STOP,
             NavigateMultiStopCatalog.DEFAULT_ENABLED,
         )
+        // ATNA-99: approach from current location → start → stops → end.
+        featureFlags.setEnabled(
+            FlagKeys.ROUTE_PATH_FROM_LOCATION,
+            RoutePathFromLocationCatalog.DEFAULT_ENABLED,
+        )
         // ATNA-75: Real (Room + tour) vs Demo (read-only seed). Demo flag swaps store.
         dataSource = DualModeAppDataSource(
             real = RealAppDataSource(
@@ -174,6 +180,7 @@ class TruckieApp : Application() {
             featureFlags.setEnabled(FlagKeys.AU_LOW_BRIDGES_PACK, true)
             // Active tour SoT (ATNA-86) — already DEFAULT_ENABLED above.
             // Navigate multi-stop (ATNA-87) — already DEFAULT_ENABLED above.
+            // Route path from location (ATNA-99) — already DEFAULT_ENABLED above.
             // Demo mode stays off by default (even in debug) — opt-in via Settings.
             // Do not set FlagKeys.DEMO_MODE here; see DemoModeCatalog.ENABLED_BY_DEFAULT_IN_DEBUG.
         }

@@ -135,6 +135,13 @@ object FlagKeys {
      * Defaults on.
      */
     const val NAVIGATE_MULTI_STOP = "ff_navigate_multi_stop"
+    /**
+     * Route path approach from current location (ATNA-99): ActiveTourPath
+     * prepends a PathRouter leg from the fused fix to route start, then
+     * ordered stops → end. When no fix, falls back to start → stops → end.
+     * Defaults on.
+     */
+    const val ROUTE_PATH_FROM_LOCATION = "ff_route_path_from_location"
 }
 
 /**
