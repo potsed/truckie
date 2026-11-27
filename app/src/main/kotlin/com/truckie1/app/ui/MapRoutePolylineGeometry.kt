@@ -18,7 +18,9 @@ import com.truckie1.trips.TripStop
  * Preference order:
  * 1. Navigate active [RoutePath] (already PathRouter)
  * 2. Cached optimised tour geometry when available
- * 3. [ActiveTourPath.compose] ordered PathRouter legs (same as Navigate, ATNA-87)
+ * 3. [ActiveTourPath.compose] ordered PathRouter legs (same as Navigate)
+ *
+ * With `ff_route_path_from_location` (ATNA-99): current → start → stops → end.
  *
  * Toll preference applied when `ff_tolls`; under-passage / weight via the same
  * composer + BridgePassagePolicy + pack bridges as Optimize/Navigate.
@@ -58,6 +60,7 @@ object MapRoutePolylineGeometry {
         optimisedPath: RoutePath? = null,
         navigatePath: RoutePath? = null,
         goals: TourOptimizeGoals = MapRoutePolylineCatalog.defaultTourGoals,
+        currentLocation: LatLngPoint? = null,
     ): Result {
         if (!MapRoutePolylineCatalog.shouldShow(flags, mapHomeEnabled)) {
             return Result.FlagOff
@@ -79,6 +82,10 @@ object MapRoutePolylineGeometry {
                 composer = composer,
                 optimisedPath = optimisedPath,
                 goals = goals,
+                currentLocation = RoutePathFromLocationCatalog.approachFix(
+                    flags = flags,
+                    currentLocation = currentLocation,
+                ),
             )
         ) {
             is ActiveTourPath.Result.Ready -> Result.Ready(composed.path)
