@@ -1,6 +1,6 @@
 # Bridge markers on home map
 
-Feature flags: **`ff_bridge_markers`** (on in debug), **`ff_verified_cbd_clearances`** (on in debug; ATNA-42), **`ff_queensland_rail_clearances`** (on in debug; ATNA-44), **`ff_w5_8_low_only`** (on in debug; ATNA-45), **`ff_tmr_structure_clearances`** / **`ff_bcc_road_height_restrictions`** (on in debug; ATNA-46), **`ff_vehicle_height_bridge_filter`** (on in debug; ATNA-47), **`ff_bridge_passage`** (on in debug; ATNA-48), **`ff_au_low_bridges_pack`** (on in debug; ATNA-50 — OSS JSON source pack). Gherkin: [`features/bridge_markers.feature`](../features/bridge_markers.feature), [`features/bridge_pack.feature`](../features/bridge_pack.feature), [`features/au_low_bridges_pack.feature`](../features/au_low_bridges_pack.feature), [`features/verified_cbd_clearances.feature`](../features/verified_cbd_clearances.feature), [`features/queensland_rail_clearances.feature`](../features/queensland_rail_clearances.feature), [`features/low_bridge_w5_8.feature`](../features/low_bridge_w5_8.feature), [`features/qld_tmr_bcc_clearances.feature`](../features/qld_tmr_bcc_clearances.feature), [`features/vehicle_height_bridge_filter.feature`](../features/vehicle_height_bridge_filter.feature), [`features/bridge_passage.feature`](../features/bridge_passage.feature).
+Feature flags: **`ff_bridge_markers`** (on in debug), **`ff_verified_cbd_clearances`** (on in debug; ATNA-42), **`ff_queensland_rail_clearances`** (on in debug; ATNA-44), **`ff_w5_8_low_only`** (on in debug; ATNA-45), **`ff_tmr_structure_clearances`** / **`ff_bcc_road_height_restrictions`** (on in debug; ATNA-46), **`ff_vehicle_height_bridge_filter`** (on in debug; ATNA-47), **`ff_bridge_passage`** (on in debug; ATNA-48), **`ff_au_low_bridges_pack`** (on in debug; ATNA-50 — OSS JSON source pack). Gherkin: [`features/bridge_markers.feature`](../features/bridge_markers.feature), [`features/bridge_pack.feature`](../features/bridge_pack.feature), [`features/au_low_bridges_pack.feature`](../features/au_low_bridges_pack.feature), [`features/verified_cbd_clearances.feature`](../features/verified_cbd_clearances.feature), [`features/queensland_rail_clearances.feature`](../features/queensland_rail_clearances.feature), [`features/low_bridge_w5_8.feature`](../features/low_bridge_w5_8.feature), [`features/qld_tmr_bcc_clearances.feature`](../features/qld_tmr_bcc_clearances.feature), [`features/vehicle_height_bridge_filter.feature`](../features/vehicle_height_bridge_filter.feature), [`features/bridge_passage.feature`](../features/bridge_passage.feature), [`features/bridge_passage_pipeline.feature`](../features/bridge_passage_pipeline.feature) (ATNA-73 shared policy + pipeline).
 
 ## Behaviour
 
@@ -69,7 +69,11 @@ Flag **`ff_bridge_passage`**. Pack field `passage`: `under` | `over` | `both` | 
 | **both** | Deck is driveable over **and** a published under-path clearance exists (Story, Victoria) |
 | **unknown** | Not classified without inventing data |
 
-**Routing rule (Daniel):** OK to drive **over** a low bridge deck; **not OK to drive under** when clearance conflicts with vehicle height + buffer. Home-map height conflicts and future GraphHopper constraints use under-paths only (`BridgePassageFilter.heightConflictBlocksPath`). Never invent clearances.
+**Routing rule (Daniel):** OK to drive **over** a low bridge deck; **not OK to drive under** when clearance conflicts with vehicle height + buffer. Home-map and GraphHopper share **`BridgePassagePolicy`** in `:core-routing` (ATNA-73) — map `BridgePassageFilter` and routing `BridgePassageConstraint` are thin facades. Never invent clearances.
+
+## Single visibility pipeline (ATNA-73)
+
+One **`BridgeVisibilityPipeline`** owns home-map marker filtering. Ordered stages: `qld_open` → `w5_8_low` → `passage_under` → `vehicle_height`. Compose (`TruckieRootNav`) runs the pipeline once; `MapLibreHost.bindBridges` receives the pre-filtered list via `forSymbolBind` and does **not** re-apply W5-8 / passage / vehicle-height. Gherkin: [`features/bridge_passage_pipeline.feature`](../features/bridge_passage_pipeline.feature).
 
 ## Queensland Rail SEQ clearances (ATNA-44)
 
@@ -112,7 +116,10 @@ Merge keeps existing QR + CBD verified rows; de-dupes by id, `clearanceSourceId`
 - `TmrStructureClearances` / `BccRoadHeightRestrictions` / `QldOpenClearances` — TMR + BCC GIS flags + combined visibility
 - `LowBridgeW58` — W5-8 eligibility (≤ 4.6 m / QR underbridge), `bridgesForW58` filter
 - `VehicleHeightBridgeFilter` — active-vehicle conflict filter (`clearance < height + buffer`); fallback `show_all_low`
-- `BridgePassage` / `BridgePassageFilter` — under/over/both/unknown; conflicts block under-paths only
+- `BridgePassagePolicy` / `BridgePassageRelation` (`:core-routing`) — shared under/over conflict policy
+- `BridgePassage` (typealias) / `BridgePassageFilter` / `BridgePassageInference` — app flag facade + pack inference
+- `BridgeVisibilityPipeline` — single ordered Compose + SymbolManager visibility path (ATNA-73)
+- `BridgePassageConstraint` — routing facade over `BridgePassagePolicy`
 - `ClearanceBuffer` — Settings buffer; rationale includes pack lag vs roadside signs
 - `BridgePackDownloader` — injectable; `NoOpBridgePackDownloader` when `ff_au_low_bridges_pack` is off; `UrlBridgePackDownloader` when on; tests use `FixedPayloadBridgePackDownloader` / `CountingBridgePackDownloader`
 - Cache files: `filesDir/bridge_packs/manifest.json` + `bridges.json`

@@ -2,6 +2,7 @@ package com.truckie1.app.ui
 
 import com.truckie1.flags.FeatureFlags
 import com.truckie1.flags.FlagKeys
+import com.truckie1.routing.BridgePassagePolicy
 import com.truckie1.trips.ClearanceBuffer
 
 /**
@@ -66,7 +67,7 @@ object VehicleHeightBridgeFilter {
         flags: FeatureFlags? = null,
     ): Boolean {
         if (flags != null && BridgePassageFilter.isEnabled(flags) &&
-            !BridgePassageFilter.restrictsUnderPassage(bridge)
+            !BridgePassagePolicy.restrictsUnder(bridge.passage)
         ) {
             return false
         }

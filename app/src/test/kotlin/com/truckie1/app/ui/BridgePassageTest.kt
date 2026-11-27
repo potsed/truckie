@@ -257,7 +257,7 @@ class BridgePassageTest {
     fun resolveInfersWithoutInventingClearanceHeights() {
         assertEquals(
             BridgePassage.UNDER,
-            BridgePassage.resolve(
+            BridgePassageInference.resolve(
                 id = "qld-qr-x",
                 clearanceProvider = QueenslandRailClearances.PROVIDER_WIRE,
                 clearanceHeightM = 4.0,
@@ -267,7 +267,7 @@ class BridgePassageTest {
         )
         assertEquals(
             BridgePassage.BOTH,
-            BridgePassage.resolve(
+            BridgePassageInference.resolve(
                 id = "qld-story-bridge-sample",
                 clearanceProvider = null,
                 clearanceHeightM = 3.8,
@@ -277,7 +277,7 @@ class BridgePassageTest {
         )
         assertEquals(
             BridgePassage.OVER,
-            BridgePassage.resolve(
+            BridgePassageInference.resolve(
                 id = "qld-captain-cook-bridge-sample",
                 clearanceProvider = null,
                 clearanceHeightM = null,
@@ -288,7 +288,7 @@ class BridgePassageTest {
         // Explicit pack value wins.
         assertEquals(
             BridgePassage.BOTH,
-            BridgePassage.resolve(
+            BridgePassageInference.resolve(
                 id = "qld-qr-x",
                 clearanceProvider = QueenslandRailClearances.PROVIDER_WIRE,
                 clearanceHeightM = 4.0,

@@ -629,23 +629,10 @@ private class MapLibreHost(
         if (bridges.isEmpty()) return
         val app = context.applicationContext as? TruckieApp
         val flags = app?.featureFlags ?: LocalFeatureFlags()
-        // Callers should already filter via LowBridgeW58; re-apply so W5-8 is
-        // never drawn on unknown / high / not_applicable spans (ATNA-45).
-        val forW58 = LowBridgeW58.bridgesForW58(bridges, flags)
-        // Under-restricting structures only when passage flag on (ATNA-48).
-        val forUnder = BridgePassageFilter.bridgesRestrictingUnder(forW58, flags)
-        // Conflicts only for active vehicle height + system buffer (ATNA-47).
-        val vehicleHeightM = app?.vehicleProfiles?.activeRego
-            ?.let { rego -> app.vehicleProfiles.findByRego(rego)?.heightM }
-        val bufferM = app?.clearanceBufferM
-            ?: com.truckie1.trips.ClearanceBuffer.DEFAULT_M
-        val forVehicle = VehicleHeightBridgeFilter.bridgesAffectingVehicle(
-            bridges = forUnder,
-            flags = flags,
-            vehicleHeightM = vehicleHeightM,
-            bufferM = bufferM,
-        )
-        val options = forVehicle.map { bridge ->
+        // ATNA-73: Compose already ran BridgeVisibilityPipeline — bind must not
+        // re-apply W5-8 / passage / vehicle-height (no duplex filter).
+        val forBind = BridgeVisibilityPipeline.forSymbolBind(bridges)
+        val options = forBind.map { bridge ->
             val label = BridgeMarkersCatalog.clearanceLabel(bridge, flags)
             // W5-8 is a diamond road sign — centre on the bridge point (not a pin tip).
             val base = SymbolOptions()
