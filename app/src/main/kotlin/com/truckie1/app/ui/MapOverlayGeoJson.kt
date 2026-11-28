@@ -41,12 +41,13 @@ object MapOverlayGeoJson {
     fun stops(stops: List<RouteStop>): String {
         val mappable = MapStopMarkersCatalog.mappableStops(stops)
         val features = mappable.mapIndexed { index, stop ->
+            val order = index + 1
+            // Numbered sprite id only — no label property. Stop SymbolLayer is
+            // icon-only so textField cannot double/scribble over the pin (ATNA-121).
             val props = buildString {
                 append("\"id\":").append(jsonString(stop.id))
                 append(",\"").append(PROP_ICON).append("\":")
-                    .append(jsonString(MapStopMarkersCatalog.iconIdFor(stop.kind)))
-                append(",\"").append(PROP_LABEL).append("\":")
-                    .append(jsonString("${index + 1}"))
+                    .append(jsonString(MapStopMarkersCatalog.iconIdFor(stop.kind, order)))
             }
             pointFeatureJson(
                 longitude = stop.longitude!!,

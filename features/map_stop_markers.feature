@@ -23,6 +23,15 @@ Feature: Route stop markers on home map
     And drop-off stops use the drop-off style-layer icon
     And stop markers use a GeoJSONSource symbol layer not deprecated MarkerOptions
 
+  Scenario: Numbered stop sprites without overlapping text
+    Given ff_stop_markers is enabled
+    And the active route has pickup/load and drop-off/unload stops with coordinates
+    When MapLibreHost binds stop overlays through the shared style-layer path
+    Then each stop uses a numbered style image sprite (order index baked into the icon)
+    And the stop symbol layer uses iconImage only (no textField over the sprite)
+    And Annotation SymbolManager is not used
+    And there is exactly one stop GeoJSON source and one stop symbol layer
+
   Scenario: Demo and real share AppDataSource stops
     Given ff_stop_markers is enabled
     When demo mode selects the demo AppDataSource

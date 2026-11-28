@@ -28,12 +28,14 @@ Feature: MapLibre style-layer overlays for bridges, stops, and route
     And bind does not re-apply LowBridgeW58 / passage / vehicle-height filters
     And Annotation SymbolManager is not used
 
-  Scenario: Stop marker parity with prior SymbolManager look
+  Scenario: Stop markers use numbered sprites on one symbol layer
     Given ff_stop_markers is enabled
     And the active route has pickup and drop-off stops with coordinates
     When MapLibreHost binds stop overlays
-    Then pickup and drop-off use distinct icon-image property values
-    And stop index labels use the OpenFreeMap Noto Sans Regular stack
+    Then pickup and drop-off use distinct numbered icon-image property values
+    And stop order indices are baked into style image sprites (not a textField overlay)
+    And the stop symbol layer does not set textField (avoids doubled/scribbled icons)
+    And MapLibreHost applies overlays through one applyOverlays path (no duplicate binds)
     And stops share the same style-layer bind path as bridges
 
   Scenario: Route polyline parity with prior LineManager look

@@ -37,6 +37,10 @@ object MapStyleOverlayCatalog {
     const val textAllowOverlap: Boolean = true
     val textOptional: Boolean = MapLibreSymbolText.textOptional
 
+    /** Exactly one stop GeoJSON source + one stop symbol layer (ATNA-121). */
+    const val stopOverlaySourceCount: Int = 1
+    const val stopOverlaySymbolLayerCount: Int = 1
+
     /**
      * Shared style-layer [iconSize] policy for home-map markers.
      * Baseline before ATNA-81 dogfood: stops 1.1, W5-8 1.15.
@@ -70,13 +74,22 @@ object MapStyleOverlayCatalog {
         const val ICON_ANCHOR: String = "center"
     }
 
-    /** Stop index label paint — matches prior SymbolOptions on stop circles. */
+    /**
+     * Stop pin style-image sprites (numbered). Index is baked into the bitmap;
+     * the stop SymbolLayer does not use textField (ATNA-121).
+     */
+    object StopPin {
+        const val ICON_ANCHOR: String = "center"
+    }
+
+    /** @deprecated Stop indices are sprite-baked; prefer [StopPin]. */
+    @Deprecated("Stop indices are sprite-baked; no textField on stop layer")
     object StopLabel {
         const val TEXT_SIZE: Float = 12f
         const val TEXT_COLOR_HEX: String = "#FFFFFF"
         const val TEXT_HALO_COLOR_HEX: String = "#0B1F33"
         const val TEXT_HALO_WIDTH: Float = 1.0f
         val TEXT_OFFSET: FloatArray = floatArrayOf(0f, 0.05f)
-        const val ICON_ANCHOR: String = "center"
+        const val ICON_ANCHOR: String = StopPin.ICON_ANCHOR
     }
 }

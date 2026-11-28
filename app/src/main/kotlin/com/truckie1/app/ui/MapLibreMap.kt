@@ -67,9 +67,9 @@ import org.maplibre.android.maps.Style
  * [CameraMode.TRACKING_GPS] so the map orients to the direction of travel.
  *
  * Stop markers (`ff_stop_markers`) and bridge markers (`ff_bridge_markers`) both
- * use GeoJSONSource + style symbol layers via [MapStyleOverlayBind] /
- * [MapLibreStyleLifecycle] (not Annotation managers, not deprecated MarkerOptions).
- * Pickup vs drop-off use distinct icons; bridges use W5-8.
+ * use GeoJSONSource + style symbol layers via one [MapLibreHost.applyOverlays] /
+ * [MapStyleOverlayBind] path (not Annotation managers, not deprecated MarkerOptions).
+ * Stops: numbered style-image sprites (icon-only layer); bridges use W5-8.
  *
  * When [prioritiseStreetLabels] is true (`ff_map_street_labels`), runtime
  * OpenFreeMap Liberty layer tweaks prefer highway names over bus-stop / POI clutter.
@@ -388,89 +388,72 @@ fun MapLibreMap(
                         cameraTarget = cameraTarget,
                         isFollowing = followStateRef.value.isFollowing,
                     )
-                    // Route line first (under symbols); stops next; bridges after puck
-                    // so W5-8 sits above LocationComponent layers (ATNA-117).
-                    mapHost.applyStreetLabelPriority(
-                        style = style,
-                        enabled = snapshot.prioritiseStreetLabels,
-                    )
-                    mapHost.bindRoutePath(
+                    // One applyOverlays path: route → stops → puck mid → bridges
+                    // (W5-8 above LocationComponent). No parallel inline binds (ATNA-121).
+                    mapHost.applyOverlays(
                         mapView = view,
                         map = map,
                         style = style,
-                        points = snapshot.routePathPoints,
-                    )
-                    mapHost.bindStops(
-                        mapView = view,
-                        map = map,
-                        style = style,
-                        stops = snapshot.stops,
-                    )
-                    if (showLocationPuck) {
-                        mapHost.headingUpEnabled = headingUpEnabled
-                        mapHost.ensureLocationComponent(map = map, style = style)
-                        if (locationFollowEnabled) {
-                            mapHost.bindFollowGestures(
-                                map = map,
-                                onUserPanAway = {
-                                    mapHost.executeFollowCommands(
-                                        MapFollowReconcile.reconcile(
-                                            MapFollowEvent.UserPan,
-                                            mapHost.followRuntime(
-                                                isFollowing = followStateRef.value.isFollowing,
-                                                hasPuckFix = locationFix != null,
-                                                showLocationPuck = true,
-                                                locationFollowEnabled = true,
-                                                headingUp = headingUpEnabled,
-                                            ),
+                        snapshot = snapshot,
+                        betweenStopsAndBridges = {
+                            if (showLocationPuck) {
+                                mapHost.headingUpEnabled = headingUpEnabled
+                                mapHost.ensureLocationComponent(map = map, style = style)
+                                if (locationFollowEnabled) {
+                                    mapHost.bindFollowGestures(
+                                        map = map,
+                                        onUserPanAway = {
+                                            mapHost.executeFollowCommands(
+                                                MapFollowReconcile.reconcile(
+                                                    MapFollowEvent.UserPan,
+                                                    mapHost.followRuntime(
+                                                        isFollowing = followStateRef.value.isFollowing,
+                                                        hasPuckFix = locationFix != null,
+                                                        showLocationPuck = true,
+                                                        locationFollowEnabled = true,
+                                                        headingUp = headingUpEnabled,
+                                                    ),
+                                                ),
+                                            )
+                                            publishFollow(
+                                                MapLocationFollow.onUserPan(followStateRef.value),
+                                            )
+                                        },
+                                    )
+                                }
+                                mapHost.executeFollowCommands(
+                                    MapFollowReconcile.reconcile(
+                                        MapFollowEvent.LocationUpdated(
+                                            fix = locationFix,
+                                            camera = cameraTarget,
                                         ),
-                                    )
-                                    publishFollow(
-                                        MapLocationFollow.onUserPan(followStateRef.value),
-                                    )
-                                },
-                            )
-                        }
-                        // Single path: puck push + follow bootstrap (no parallel enable).
-                        mapHost.executeFollowCommands(
-                            MapFollowReconcile.reconcile(
-                                MapFollowEvent.LocationUpdated(
-                                    fix = locationFix,
-                                    camera = cameraTarget,
-                                ),
-                                mapHost.followRuntime(
-                                    isFollowing = followStateRef.value.isFollowing,
-                                    hasPuckFix = locationFix != null,
-                                    showLocationPuck = true,
-                                    locationFollowEnabled = locationFollowEnabled,
-                                    headingUp = headingUpEnabled,
-                                ),
-                            ),
-                        )
-                        mapHost.executeFollowCommands(
-                            MapFollowReconcile.reconcile(
-                                MapFollowEvent.ComposeSync,
-                                mapHost.followRuntime(
-                                    isFollowing = followStateRef.value.isFollowing,
-                                    hasPuckFix = locationFix != null,
-                                    showLocationPuck = true,
-                                    locationFollowEnabled = locationFollowEnabled,
-                                    headingUp = headingUpEnabled,
-                                ),
-                            ),
-                        )
-                    } else {
-                        mapHost.executeFollowCommands(
-                            listOf(MapFollowCommand.PushPuck(null)),
-                        )
-                    }
-                    // Bridges after LocationComponent so the W5-8 SymbolLayer sits above
-                    // puck/accuracy layers and is never buried under the basemap stack.
-                    mapHost.bindBridges(
-                        mapView = view,
-                        map = map,
-                        style = style,
-                        bridges = snapshot.bridges,
+                                        mapHost.followRuntime(
+                                            isFollowing = followStateRef.value.isFollowing,
+                                            hasPuckFix = locationFix != null,
+                                            showLocationPuck = true,
+                                            locationFollowEnabled = locationFollowEnabled,
+                                            headingUp = headingUpEnabled,
+                                        ),
+                                    ),
+                                )
+                                mapHost.executeFollowCommands(
+                                    MapFollowReconcile.reconcile(
+                                        MapFollowEvent.ComposeSync,
+                                        mapHost.followRuntime(
+                                            isFollowing = followStateRef.value.isFollowing,
+                                            hasPuckFix = locationFix != null,
+                                            showLocationPuck = true,
+                                            locationFollowEnabled = locationFollowEnabled,
+                                            headingUp = headingUpEnabled,
+                                        ),
+                                    ),
+                                )
+                            } else {
+                                mapHost.executeFollowCommands(
+                                    listOf(MapFollowCommand.PushPuck(null)),
+                                )
+                            }
+                        },
                     )
                 }
             }

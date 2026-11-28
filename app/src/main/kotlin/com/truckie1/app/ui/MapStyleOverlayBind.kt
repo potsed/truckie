@@ -19,6 +19,9 @@ import org.maplibre.android.style.sources.GeoJsonSource
 object MapStyleOverlayBind {
     const val sharesPathWithBridgeStopAndRoute: Boolean = true
     const val usesMapLibreStyleLifecycle: Boolean = true
+    /** Stop pins: iconImage only (number baked into style image sprite). */
+    const val stopSymbolLayerUsesIconOnly: Boolean = true
+    const val stopSymbolLayerUsesTextField: Boolean = false
 
     fun setGeoJson(style: Style, sourceId: String, geoJson: String) {
         val existing = style.getSourceAs<GeoJsonSource>(sourceId)
@@ -61,6 +64,10 @@ object MapStyleOverlayBind {
         style.addLayer(layer)
     }
 
+    /**
+     * One stop symbol layer: iconImage from numbered style sprites only.
+     * No textField — avoids doubled/scribbled pins (ATNA-121).
+     */
     fun ensureStopSymbolLayer(style: Style) {
         if (style.getLayer(MapStyleOverlayIds.STOP_LAYER) != null) return
         val layer = SymbolLayer(
@@ -69,25 +76,9 @@ object MapStyleOverlayBind {
         ).withProperties(
             PropertyFactory.iconImage(Expression.get(MapOverlayGeoJson.PROP_ICON)),
             PropertyFactory.iconSize(MapStyleOverlayCatalog.IconSize.STOP),
-            PropertyFactory.iconAnchor(MapStyleOverlayCatalog.StopLabel.ICON_ANCHOR),
+            PropertyFactory.iconAnchor(MapStyleOverlayCatalog.StopPin.ICON_ANCHOR),
             PropertyFactory.iconAllowOverlap(MapStyleOverlayCatalog.iconAllowOverlap),
             PropertyFactory.iconIgnorePlacement(MapStyleOverlayCatalog.iconIgnorePlacement),
-            PropertyFactory.textField(Expression.get(MapOverlayGeoJson.PROP_LABEL)),
-            PropertyFactory.textFont(MapLibreSymbolText.openFreeMapTextFont),
-            PropertyFactory.textSize(MapStyleOverlayCatalog.StopLabel.TEXT_SIZE),
-            PropertyFactory.textColor(
-                Color.parseColor(MapStyleOverlayCatalog.StopLabel.TEXT_COLOR_HEX),
-            ),
-            PropertyFactory.textHaloColor(
-                Color.parseColor(MapStyleOverlayCatalog.StopLabel.TEXT_HALO_COLOR_HEX),
-            ),
-            PropertyFactory.textHaloWidth(MapStyleOverlayCatalog.StopLabel.TEXT_HALO_WIDTH),
-            PropertyFactory.textOffset(
-                MapStyleOverlayCatalog.StopLabel.TEXT_OFFSET
-                    .map { it }.toTypedArray(),
-            ),
-            PropertyFactory.textAllowOverlap(MapStyleOverlayCatalog.textAllowOverlap),
-            PropertyFactory.textOptional(MapStyleOverlayCatalog.textOptional),
         )
         style.addLayer(layer)
     }

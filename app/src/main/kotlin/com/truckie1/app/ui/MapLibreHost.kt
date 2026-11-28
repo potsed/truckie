@@ -50,6 +50,12 @@ internal class MapLibreHost(
     /** Last fused fix pushed to LocationComponent (for follow-enter lastLocation sync). */
     private var lastFollowFix: Location? = null
 
+    companion object {
+        /** MapLibreMap must call [applyOverlays] — not a parallel inline bind sequence. */
+        const val usesSingleApplyOverlaysPath: Boolean = true
+        const val usesDuplicateOverlayBinds: Boolean = false
+    }
+
     /**
      * Loads the basemap style once. Concurrent AndroidView updates coalesce into
      * a single setStyle; recompositions rebind GeoJSON overlays on the live style.
@@ -111,7 +117,7 @@ internal class MapLibreHost(
     /**
      * Style layers die with the Style instance; clear LocationComponent so the
      * next bind reactivates against the live style. Overlay GeoJSON is rewritten
-     * on every [applyAnnotations] / bind call (idempotent ensure + setGeoJson).
+     * on every [applyOverlays] / bind call (idempotent ensure + setGeoJson).
      */
     private fun resetOverlays() {
         if (locationActivated) {
@@ -131,7 +137,8 @@ internal class MapLibreHost(
         stops: List<RouteStop>,
     ) {
         mapRef = map
-        MapStopMarkersCatalog.ensureStopMarkerImages(style)
+        // Numbered style-image sprites for this stop list (MapLibre addImage atlas).
+        MapStopMarkersCatalog.ensureStopMarkerImages(style, stops)
         MapStyleOverlayBind.bindStops(style, stops)
     }
 
@@ -159,15 +166,18 @@ internal class MapLibreHost(
     }
 
     /**
-     * Apply one [MapLibreBindSnapshot]: street labels, route, stops, then bridges
-     * (bridges last so W5-8 sits above puck layers when LocationComponent binds).
-     * Route line is added first so symbol layers paint above the polyline.
+     * **One** overlay bind path for home map (ATNA-117 / ATNA-121).
+     *
+     * Order: street labels → route line → stops → optional mid (LocationComponent
+     * puck) → bridges last so W5-8 sits above puck layers.
+     * Callers must not also invoke bindStops/bindRoute/bindBridges in parallel.
      */
-    fun applyAnnotations(
+    fun applyOverlays(
         mapView: MapView,
         map: MapLibreMap,
         style: Style,
         snapshot: MapLibreBindSnapshot,
+        betweenStopsAndBridges: (() -> Unit)? = null,
     ) {
         applyStreetLabelPriority(style, enabled = snapshot.prioritiseStreetLabels)
         bindRoutePath(
@@ -182,6 +192,7 @@ internal class MapLibreHost(
             style = style,
             stops = snapshot.stops,
         )
+        betweenStopsAndBridges?.invoke()
         bindBridges(
             mapView = mapView,
             map = map,
@@ -189,6 +200,21 @@ internal class MapLibreHost(
             bridges = snapshot.bridges,
         )
     }
+
+    /** @deprecated Use [applyOverlays] — single path, no Annotation dual bind. */
+    @Deprecated(
+        message = "Use applyOverlays",
+        replaceWith = ReplaceWith(
+            "applyOverlays(mapView, map, style, snapshot)",
+            "com.truckie1.app.ui.MapLibreHost",
+        ),
+    )
+    fun applyAnnotations(
+        mapView: MapView,
+        map: MapLibreMap,
+        style: Style,
+        snapshot: MapLibreBindSnapshot,
+    ) = applyOverlays(mapView, map, style, snapshot)
 
     fun ensureLocationComponent(map: MapLibreMap, style: Style) {
         mapRef = map
