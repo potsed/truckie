@@ -92,8 +92,18 @@ object BridgePassagePolicy {
         bridges.filter { restrictsUnder(it.passage) }
 
     /**
+     * Metres — path vertices within this of an intentional stop are treated as
+     * the stop (delivery), not as through under-passage.
+     */
+    const val ALLOWED_STOP_NEAR_M: Double = NEAR_PATH_M
+
+    /**
      * True when any under-restricting low bridge lies near [points] and conflicts
      * with vehicle height + buffer (assumes under path relation along the tour).
+     *
+     * [allowedNearPoints] are intentional tour stops / waypoints: proximity to a
+     * low structure **at a delivery** is OK (demo Wynnum / Colina St). Intermediate
+     * path vertices near a conflicting under-bridge still hard-block.
      */
     fun pathConflictsWithUnderBridges(
         points: List<LatLngPoint>,
@@ -101,6 +111,8 @@ object BridgePassagePolicy {
         vehicleHeightM: Double,
         bufferM: Double,
         nearPathM: Double = NEAR_PATH_M,
+        allowedNearPoints: List<LatLngPoint> = emptyList(),
+        allowedNearM: Double = ALLOWED_STOP_NEAR_M,
     ): Boolean {
         if (points.isEmpty()) return false
         for (bridge in bridgesRestrictingUnder(bridges)) {
@@ -114,12 +126,30 @@ object BridgePassagePolicy {
             ) {
                 continue
             }
-            if (points.any { pointNearBridge(it, bridge, nearPathM) }) {
+            if (points.any { point ->
+                    !isAllowedStopProximity(point, allowedNearPoints, allowedNearM) &&
+                        pointNearBridge(point, bridge, nearPathM)
+                }
+            ) {
                 return true
             }
         }
         return false
     }
+
+    private fun isAllowedStopProximity(
+        point: LatLngPoint,
+        allowedNearPoints: List<LatLngPoint>,
+        allowedNearM: Double,
+    ): Boolean =
+        allowedNearPoints.any { stop ->
+            haversineM(
+                point.latitude,
+                point.longitude,
+                stop.latitude,
+                stop.longitude,
+            ) <= allowedNearM
+        }
 
     private fun pointNearBridge(
         point: LatLngPoint,

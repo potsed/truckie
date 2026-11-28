@@ -229,9 +229,10 @@ class ActiveTourPathParityTest {
             end: RouteEndpoint,
             preferences: TruckRoutingPreferences,
             customModel: com.truckie1.routing.GraphHopperCustomModelStub?,
+            avoidUnderBridges: List<com.truckie1.routing.RoutingBridgeConstraint>,
         ): PathResult {
             calls += 1
-            return delegate.path(start, end, preferences, customModel)
+            return delegate.path(start, end, preferences, customModel, avoidUnderBridges)
         }
     }
 }

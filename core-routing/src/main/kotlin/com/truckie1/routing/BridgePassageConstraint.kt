@@ -55,9 +55,15 @@ object BridgePassageConstraint {
             pathRelation = pathRelation,
         )
 
+    /** See [BridgePassagePolicy.ALLOWED_STOP_NEAR_M]. */
+    const val ALLOWED_STOP_NEAR_M: Double = BridgePassagePolicy.ALLOWED_STOP_NEAR_M
+
     /**
      * True when any under-restricting low bridge lies near [points] and conflicts
      * with vehicle height + buffer (assumes under path relation along the tour).
+     *
+     * [allowedNearPoints] — intentional stops; proximity there is delivery, not
+     * through under-passage (see [BridgePassagePolicy.pathConflictsWithUnderBridges]).
      */
     fun pathConflictsWithUnderBridges(
         points: List<LatLngPoint>,
@@ -65,6 +71,8 @@ object BridgePassageConstraint {
         vehicleHeightM: Double,
         bufferM: Double,
         nearPathM: Double = NEAR_PATH_M,
+        allowedNearPoints: List<LatLngPoint> = emptyList(),
+        allowedNearM: Double = ALLOWED_STOP_NEAR_M,
     ): Boolean =
         BridgePassagePolicy.pathConflictsWithUnderBridges(
             points = points,
@@ -72,5 +80,7 @@ object BridgePassageConstraint {
             vehicleHeightM = vehicleHeightM,
             bufferM = bufferM,
             nearPathM = nearPathM,
+            allowedNearPoints = allowedNearPoints,
+            allowedNearM = allowedNearM,
         )
 }

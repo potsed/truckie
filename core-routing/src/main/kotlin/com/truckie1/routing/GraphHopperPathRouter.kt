@@ -8,7 +8,12 @@ import com.truckie1.trips.RouteEndpoint
  *
  * Always runs in-app with [TruckRoutingPreferences] (bridges, weight, tolls,
  * residential avoidance). [path] is **suspend** (ATNA-88): live HTTP hops off
- * the caller thread; [StubGraphHopperPathRouter] stays instantaneous.
+ * the caller thread; [StubGraphHopperPathRouter] stays instantaneous (tests /
+ * degraded when live URL is unset).
+ *
+ * [avoidUnderBridges]: production live GH encodes under-passage via Custom
+ * Model blocked edges; the stub may simulate avoidance for unit tests only
+ * (ATNA-102 — never a hand-rolled map polyline rule outside PathRouter).
  */
 interface PathRouter {
     suspend fun path(
@@ -16,6 +21,7 @@ interface PathRouter {
         end: RouteEndpoint,
         preferences: TruckRoutingPreferences = TruckRoutingPreferences.DEFAULT,
         customModel: GraphHopperCustomModelStub? = null,
+        avoidUnderBridges: List<RoutingBridgeConstraint> = emptyList(),
     ): PathResult
 }
 
@@ -51,8 +57,12 @@ sealed class PathResult {
 
 /**
  * Offline stub: interpolates a simple path from start to end (and a short loop
- * for round trips) so Navigate can render on MapLibre without a live GH server.
+ * for round trips) so Navigate can render without a live GH server.
  * Records [TruckRoutingPreferences] / Custom Model shape for constrained truck routing.
+ *
+ * When [avoidUnderBridges] is non-empty, skirts those points so unit tests can
+ * exercise ATNA-102 PathRouter detours without a live GH instance. Production
+ * select-user builds use [LiveGraphHopperPathRouter] + Custom Model instead.
  */
 class StubGraphHopperPathRouter(
     private val intermediatePoints: Int = 6,
@@ -62,17 +72,21 @@ class StubGraphHopperPathRouter(
         end: RouteEndpoint,
         preferences: TruckRoutingPreferences,
         customModel: GraphHopperCustomModelStub?,
+        avoidUnderBridges: List<RoutingBridgeConstraint>,
     ): PathResult {
         val points = if (start.samePlaceAs(end)) {
             roundTripLoop(start)
+        } else if (avoidUnderBridges.isNotEmpty()) {
+            interpolateAvoiding(start, end, avoidUnderBridges, intermediatePoints)
         } else {
             interpolate(start, end, intermediatePoints)
         }
         val modelSnippet = customModel?.toRequestSnippet()
             ?: GraphHopperCustomModelStub.default(preferences = preferences).toRequestSnippet()
+        val idPrefix = if (avoidUnderBridges.isEmpty()) "stub" else "stub-detour"
         return PathResult.Ok(
             RoutePath(
-                id = "stub-${start.latitude},${start.longitude}->${end.latitude},${end.longitude}",
+                id = "$idPrefix-${start.latitude},${start.longitude}->${end.latitude},${end.longitude}",
                 points = points,
                 durationSeconds = estimateDurationSeconds(points),
                 source = RoutePath.SOURCE_STUB,
@@ -97,6 +111,72 @@ class StubGraphHopperPathRouter(
             )
         }
         return points
+    }
+
+    /**
+     * Test-only simulation of GraphHopper blocked-edge avoidance: start →
+     * offset waypoint(s) past each avoid bridge → end.
+     */
+    private fun interpolateAvoiding(
+        start: RouteEndpoint,
+        end: RouteEndpoint,
+        avoid: List<RoutingBridgeConstraint>,
+        steps: Int,
+    ): List<LatLngPoint> {
+        val points = mutableListOf(LatLngPoint(start.latitude, start.longitude))
+        val bearing = bearingRad(start.latitude, start.longitude, end.latitude, end.longitude)
+        for (bridge in avoid) {
+            val offset = offsetPoint(
+                lat = bridge.latitude,
+                lng = bridge.longitude,
+                bearingRad = bearing + Math.PI / 2.0,
+                distanceM = BridgePassagePolicy.NEAR_PATH_M * 2.5,
+            )
+            points += offset
+        }
+        points += LatLngPoint(end.latitude, end.longitude)
+        // Densify for duration scoring parity with plain interpolate.
+        if (points.size == 2) return interpolate(start, end, steps)
+        return points
+    }
+
+    private fun bearingRad(
+        lat1: Double,
+        lon1: Double,
+        lat2: Double,
+        lon2: Double,
+    ): Double {
+        val φ1 = Math.toRadians(lat1)
+        val φ2 = Math.toRadians(lat2)
+        val Δλ = Math.toRadians(lon2 - lon1)
+        val y = kotlin.math.sin(Δλ) * kotlin.math.cos(φ2)
+        val x = kotlin.math.cos(φ1) * kotlin.math.sin(φ2) -
+            kotlin.math.sin(φ1) * kotlin.math.cos(φ2) * kotlin.math.cos(Δλ)
+        return kotlin.math.atan2(y, x)
+    }
+
+    private fun offsetPoint(
+        lat: Double,
+        lng: Double,
+        bearingRad: Double,
+        distanceM: Double,
+    ): LatLngPoint {
+        val r = 6_371_000.0
+        val δ = distanceM / r
+        val φ1 = Math.toRadians(lat)
+        val λ1 = Math.toRadians(lng)
+        val φ2 = kotlin.math.asin(
+            kotlin.math.sin(φ1) * kotlin.math.cos(δ) +
+                kotlin.math.cos(φ1) * kotlin.math.sin(δ) * kotlin.math.cos(bearingRad),
+        )
+        val λ2 = λ1 + kotlin.math.atan2(
+            kotlin.math.sin(bearingRad) * kotlin.math.sin(δ) * kotlin.math.cos(φ1),
+            kotlin.math.cos(δ) - kotlin.math.sin(φ1) * kotlin.math.sin(φ2),
+        )
+        return LatLngPoint(
+            latitude = Math.toDegrees(φ2),
+            longitude = Math.toDegrees(λ2),
+        )
     }
 
     /** Tiny diamond loop so round-trip Navigate still draws a visible path. */

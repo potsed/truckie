@@ -52,3 +52,16 @@ Feature: Active route polyline on home map
     Then the polyline uses LineManager via MapRoutePathAnnotations
     And managers recreate when style identity drifts or a manager layer is missing
     And satellite peek is not implemented by this feature
+
+  # Demo Airport run seeds a residential stop beside Colina St (1.9 m). Stop
+  # markers must not imply an empty LineManager — PathRouter geometry still
+  # draws current→start→stops→end when ff_map_route_polyline is on.
+  Scenario: Demo Airport run draws polyline when a stop is near a low bridge
+    Given ff_demo_mode, ff_map_home, and ff_map_route_polyline are enabled
+    And ff_bridge_passage is on with the Colina St underbridge in the pack
+    And the demo Airport run is the active route with the 3.5 m vehicle
+    And stop markers are visible for the seeded stops
+    When ActiveTourPath / MapRoutePolylineGeometry resolve for the home map
+    Then PathRouter geometry is Ready with at least two points
+    And LineManager receives that path (not an empty deleteAll-only bind)
+    And Room ActiveTour on the real store does not clear the demo in-memory route

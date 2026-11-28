@@ -8,6 +8,8 @@ import com.truckie1.app.settings.NavigationAppStore
 import com.truckie1.app.settings.PackageManagerNavigationAppQuery
 import com.truckie1.app.settings.SharedNavigationAppStore
 import com.truckie1.app.routing.AsyncRoutingIoCatalog
+import com.truckie1.app.routing.GraphHopperLiveCatalog
+import com.truckie1.app.routing.PathBlockDetourCatalog
 import com.truckie1.app.routing.RoutingBridgePackMapper
 import com.truckie1.app.trips.RouteNavigateSession
 import com.truckie1.app.ui.ActiveTourCatalog
@@ -74,15 +76,17 @@ class TruckieApp : Application() {
     val mapEngine = MapLibreNativeEngine()
 
     /**
-     * Optional live GraphHopper base URL (no trailing path). Empty / null → stub
-     * even when [FlagKeys.GRAPHHOPPER_LIVE] is on.
+     * Live GraphHopper base URL (no trailing path). From BuildConfig /
+     * `truckie.graphhopper.baseUrl` / `TRUCKIE_GRAPHHOPPER_BASE_URL`. Empty →
+     * stub even when [FlagKeys.GRAPHHOPPER_LIVE] is on (see docs/graphhopper-live.md).
      */
-    var graphHopperBaseUrl: String? = null
+    var graphHopperBaseUrl: String? = GraphHopperLiveCatalog.configuredBaseUrl().ifBlank { null }
 
     /**
      * Single app-owned PathRouter: stub vs live from `ff_graphhopper_live` +
      * [graphHopperBaseUrl], gated by async routing I/O (ATNA-88). Injected into
-     * Navigate **and** Optimise. Live HTTP is suspend / off-main.
+     * Navigate **and** Optimise. Live HTTP is suspend / off-main. Select-user
+     * alternates around blocks use this same live PathRouter (ATNA-102).
      */
     fun pathRouter(): PathRouter = GraphHopperPathRouterFactory.create(
         liveEnabled = AsyncRoutingIoCatalog.allowsLiveGraphHopper(featureFlags),
@@ -90,9 +94,9 @@ class TruckieApp : Application() {
     )
 
     /**
-     * Multi-stop GraphHopper tour optimiser (ATNA-68/71). Same [pathRouter] as
+     * Multi-stop GraphHopper tour optimiser (ATNA-68/71/102). Same [pathRouter] as
      * Navigate; pack bridges → routing constraints when `ff_bridge_passage` is
-     * on (additive composer args — passage UI policy owned by sibling).
+     * on; PathBlockDetour retries PathRouter around geographic blocks.
      */
     val routeOptimizer: MultiStopTourComposer
         get() {
@@ -109,6 +113,7 @@ class TruckieApp : Application() {
                     bridgePassageEnabled = passageOn,
                 ),
                 bridgePassageEnabled = passageOn,
+                pathBlockDetourEnabled = PathBlockDetourCatalog.isEnabled(featureFlags),
             )
         }
 
@@ -142,6 +147,11 @@ class TruckieApp : Application() {
         featureFlags.setEnabled(
             FlagKeys.ROOM_ROUTE_PERSIST,
             RoomRoutePersistCatalog.DEFAULT_ENABLED,
+        )
+        // ATNA-102: PathRouter alternates around blocks — defaults on.
+        featureFlags.setEnabled(
+            FlagKeys.PATH_BLOCK_DETOUR,
+            PathBlockDetourCatalog.DEFAULT_ENABLED,
         )
         val realTour: ActiveTourFacade = RoomActiveTour(db.activeTourDao())
         // ATNA-75: Real (Room vehicles + Room tour) vs Demo (read-only seed).
@@ -177,6 +187,13 @@ class TruckieApp : Application() {
             featureFlags.setEnabled(FlagKeys.STOP_MARKERS, true)
             // Constrained PathRouter route line on MapLibre home (ATNA-82).
             featureFlags.setEnabled(FlagKeys.MAP_ROUTE_POLYLINE, true)
+            // Live GraphHopper for select-user (ATNA-102) — needs base URL (see docs/graphhopper-live.md).
+            featureFlags.setEnabled(
+                FlagKeys.GRAPHHOPPER_LIVE,
+                GraphHopperLiveCatalog.ENABLED_BY_DEFAULT_IN_DEBUG,
+            )
+            // PathRouter detours around blocks (ATNA-102).
+            featureFlags.setEnabled(FlagKeys.PATH_BLOCK_DETOUR, true)
             // Next destination address while navigating (ATNA-83).
             featureFlags.setEnabled(FlagKeys.NEXT_DESTINATION_DISPLAY, true)
             // Verified CBD clearances: no mock heights (ATNA-42).

@@ -40,3 +40,13 @@ Feature: Single bridge passage policy and visibility pipeline
     Given a RoutingBridgeConstraint for an under-restricting low clearance
     When BridgePassageConstraint.heightConflictBlocksPath is evaluated for an under path
     Then the result equals BridgePassagePolicy.heightConflictBlocksPath for the same inputs
+
+  # Delivery next to a low structure is required (demo Wynnum / Colina St).
+  # Through-path under-passage still hard-blocks; stop proximity alone does not.
+  Scenario: Intentional stop near a low under-bridge does not hard-block the tour
+    Given ff_bridge_passage is enabled with pack bridges
+    And a tour stop lies within NEAR_PATH_M of a conflicting under-bridge
+    When MultiStopTourComposer / BridgePassagePolicy evaluate path conflicts
+    Then proximity at intentional stop coordinates is allowed (delivery)
+    And intermediate path points near the same under-bridge still hard-block
+    And ActiveTourPath / map polyline can still resolve PathRouter geometry

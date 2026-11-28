@@ -14,7 +14,8 @@ XML screen layouts were removed; do not add new AppCompat/XML screens.
 | `ff_stop_cargo` | Cargo H/W/L/mass pick-up/drop-off on stops; on-board clearance | off (on in debug) |
 | `ff_bridge_safe_routing` | Height/weight-aware GraphHopper Custom Model routing | off |
 | `ff_route_optimize` | Optimize for this vehicle — Fastest / Cheapest among safe GraphHopper tours (multi-stop stop-order; Trip stops UI) | off (on in debug) |
-| `ff_graphhopper_live` | Live GraphHopper HTTP PathRouter (ATNA-9/68); requires base URL — else stub | off |
+| `ff_graphhopper_live` | Live GraphHopper HTTP PathRouter (ATNA-9/68/102); requires base URL + AU graph — else stub. **Select-user / debug dogfood enables the flag**; URL via `GRAPHHOPPER_BASE_URL` / `truckie.graphhopper.baseUrl` / `TRUCKIE_GRAPHHOPPER_BASE_URL` (see `docs/graphhopper-live.md`) | off (on in debug) |
+| `ff_path_block_detour` | Alternate around geographic path blocks via PathRouter (ATNA-102): live GH Custom Model / blocked edges; never erase the tour polyline; stub only for tests / missing URL | **on** (defaults on) |
 | `ff_tolls` | Toll preference stub / avoid-allow settings | off |
 | `ff_offline_maps` | Offline map pack manager (MapLibre) | off |
 | `ff_android_auto` | Android Auto surfaces (requires API 23+) | off |
@@ -40,7 +41,7 @@ XML screen layouts were removed; do not add new AppCompat/XML screens.
 | `ff_tmr_structure_clearances` | TMR Structure Clearances in Queensland (ATNA-46): show published TMR spatial pack entries; off hides TMR rows only | off (on in debug) |
 | `ff_bcc_road_height_restrictions` | BCC Road Height Restrictions GIS (ATNA-46): show Brisbane Open Data under-4.6 m local pack entries; off keeps curated CBD samples | off (on in debug) |
 | `ff_vehicle_height_bridge_filter` | Home-map W5-8 conflicts only (ATNA-47): show low bridges where clearance &lt; vehicle height + system buffer; no usable height → show all low | off (on in debug) |
-| `ff_bridge_passage` | Bridge over vs under (ATNA-48 / ATNA-73): model under/over/both/unknown; shared `BridgePassagePolicy` blocks under-paths only (OK to drive over deck); home-map uses `BridgeVisibilityPipeline` | off (on in debug) |
+| `ff_bridge_passage` | Bridge over vs under (ATNA-48 / ATNA-73): model under/over/both/unknown; shared `BridgePassagePolicy` blocks under-paths only (OK to drive over deck); intentional stop proximity to a low structure is allowed (delivery — demo Wynnum/Colina); mid-path conflicts retry via `ff_path_block_detour` / PathRouter (never blank polyline); home-map uses `BridgeVisibilityPipeline` | off (on in debug) |
 | `ff_demo_mode` | Demo mode (ATNA-56 / ATNA-75) — Settings toggle selects the demo `AppDataSource` (same Vehicle/Route/TripStop schema; read-only sample SEQ run). Real data stays in the real store. Floating **DEMO MODE** pill is the only in-app demo label; dataset copy is neutral. Jump FAB removed (ATNA-67) | **off** (including debug — Settings opt-in only) |
 | `ff_map_heading_up` | Orient map to driving direction — map-chrome lock control (like Recenter); while following, MapLibre `TRACKING_GPS` course-up (off = north-up `TRACKING`) | off (on in debug) |
 | `ff_map_street_labels` | Prefer street/road name labels over POI clutter on OpenFreeMap Liberty (ATNA-78): runtime visibility + minzoom tweaks; same OSS style URL | off (on in debug) |
@@ -61,10 +62,13 @@ XML screen layouts were removed; do not add new AppCompat/XML screens.
    geometry as Optimise + map polyline; start→end-only Navigate is deleted. With
    `ff_route_path_from_location` (defaults on, ATNA-99), that geometry prepends a PathRouter
    approach from the fused current location to route start (then stops → end); without a fix
-   it falls back to start→stops→end. Pack bridges map into the composer when
-   `ff_bridge_passage` is on. Live HTTP only when `ff_async_routing_io` (defaults on) **and**
-   `ff_graphhopper_live` + base URL; otherwise stub. Live PathRouter / Nominatim are suspend
-   and never called from Compose `remember` (ATNA-88). With `ff_room_route_persist`
+   it falls back to start→stops→end.    Pack bridges map into the composer when
+   `ff_bridge_passage` is on. With `ff_path_block_detour` (defaults on, ATNA-102),
+   geographic blocks retry via the same PathRouter (live GH Custom Model / blocked
+   edges preferred) — never erase the tour line. Live HTTP when `ff_async_routing_io`
+   (defaults on) **and** `ff_graphhopper_live` + base URL; otherwise stub (degraded /
+   tests). Live PathRouter / Nominatim are suspend and never called from Compose
+   `remember` (ATNA-88). See `docs/graphhopper-live.md`. With `ff_room_route_persist`
    (defaults on, ATNA-89), Real ActiveTour persists routes/stops via Room (`RoomActiveTour`);
    demo stays read-only in-memory; Migration 1→2 + `exportSchema`; production Room builder
    does not `allowMainThreadQueries`. Toll preference stays stubbed as allow-all passthrough

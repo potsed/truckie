@@ -7,6 +7,7 @@ import com.truckie1.trips.OptimizeMode
 import com.truckie1.trips.TripStop
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -94,7 +95,7 @@ class MultiStopTourComposerTest {
     }
 
     @Test
-    fun blocksTourWhenUnderBridgeConflictsAlongPath() = runBlocking {
+    fun detoursViaPathRouterWhenUnderBridgeConflictsAlongPath() = runBlocking {
         val underLow = RoutingBridgeConstraint(
             id = "low-under",
             latitude = -27.425,
@@ -106,6 +107,7 @@ class MultiStopTourComposerTest {
             pathRouter = StubGraphHopperPathRouter(intermediatePoints = 8),
             bridges = listOf(underLow),
             bridgePassageEnabled = true,
+            pathBlockDetourEnabled = true,
         )
         val result = composer.optimize(
             stops = listOf(depot, near),
@@ -113,9 +115,57 @@ class MultiStopTourComposerTest {
             bufferM = 0.15,
             mode = OptimizeMode.FASTEST,
         )
-        assertTrue(result is OptimizeResult.Blocked)
-        val reason = (result as OptimizeResult.Blocked).reason.lowercase()
-        assertTrue(reason.contains("bridge") || reason.contains("clearance") || reason.contains("under"))
+        assertTrue(
+            "PathRouter detour must keep a drawable tour; got $result",
+            result is OptimizeResult.Ok,
+        )
+        val path = (result as OptimizeResult.Ok).path
+        assertNotNull(path)
+        assertTrue(path!!.points.size >= 2)
+        assertTrue(PathBlockDetour.usesPathRouter)
+        assertFalse(PathBlockDetour.usesHandRolledPolylineRule)
+    }
+
+    @Test
+    fun deliveryStopBesideUnderBridgeStillComposesOrderedPath() = runBlocking {
+        // Demo Wynnum residential stop ~32 m from Colina St (1.9 m) — stop markers
+        // show, so PathRouter geometry must still resolve for LineManager.
+        val wynnum = TripStop(
+            id = "wynnum",
+            addressLabel = "8 Colina Street, Wynnum QLD 4178",
+            latitude = -27.44395,
+            longitude = 153.16905,
+        )
+        val hemmant = TripStop(
+            id = "hemmant",
+            addressLabel = "Hemmant",
+            latitude = -27.4502,
+            longitude = 153.1295,
+        )
+        val colina = RoutingBridgeConstraint(
+            id = "qld-qr-wynnum-colina-street-berrima-street",
+            latitude = -27.443741,
+            longitude = 153.168832,
+            clearanceHeightM = 1.9,
+            passage = RoutingBridgePassage.UNDER,
+        )
+        val composer = MultiStopTourComposer(
+            pathRouter = StubGraphHopperPathRouter(),
+            bridges = listOf(colina),
+            bridgePassageEnabled = true,
+        )
+        val result = composer.composeOrdered(
+            stops = listOf(hemmant, wynnum, depot),
+            vehicle = vehicle,
+            bufferM = 0.15,
+        )
+        assertTrue(
+            "Expected Ready path when only stop proximity hits Colina; got $result",
+            result is OptimizeResult.Ok,
+        )
+        val path = (result as OptimizeResult.Ok).path
+        assertNotNull(path)
+        assertTrue(path!!.points.size >= 2)
     }
 
     @Test

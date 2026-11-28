@@ -9,11 +9,12 @@ import com.truckie1.trips.TourOptimizeGoals
 import com.truckie1.trips.TripStop
 
 /**
- * Multi-stop GraphHopper tour optimiser (ATNA-68 / ATNA-82).
+ * Multi-stop GraphHopper tour optimiser (ATNA-68 / ATNA-82 / ATNA-102).
  *
  * Origin (first stop) stays fixed; remaining stops are permuted. Each order is
  * scored by composing [PathRouter] legs with a truck Custom Model. Under-passage
- * low bridges hard-block when [bridgePassageEnabled]; over-deck remains OK.
+ * conflicts trigger [PathBlockDetour] (PathRouter retry / live GH alternate) when
+ * [pathBlockDetourEnabled] — never erase a drawable tour line. Over-deck OK.
  *
  * Selection uses [TourOptimizeGoals] checkboxes (Fastest + Cost Effective, both
  * on by default = AND) — not single-axis radio.
@@ -22,6 +23,11 @@ class MultiStopTourComposer(
     private val pathRouter: PathRouter,
     private val bridges: List<RoutingBridgeConstraint> = emptyList(),
     private val bridgePassageEnabled: Boolean = false,
+    /**
+     * Prefer PathRouter alternates around geographic blocks (ATNA-102). Defaults
+     * on; production select-user uses live GH Custom Model via the same PathRouter.
+     */
+    private val pathBlockDetourEnabled: Boolean = true,
     private val tollPreference: TollPreference = TollPreference.ALLOW_ALL,
     private val preferences: TruckRoutingPreferences = TruckRoutingPreferences.DEFAULT,
 ) {
@@ -169,42 +175,31 @@ class MultiStopTourComposer(
         vehicleHeightM: Double,
         bufferM: Double,
     ): TourCompose {
+        val allowed = stopPoints(ordered)
         if (ordered.size == 1) {
             val stop = ordered.first()
             val endpoint = stop.asEndpoint()
             return when (
-                val leg = pathRouter.path(
+                val leg = resolveLeg(
                     start = endpoint,
                     end = endpoint,
-                    preferences = model.preferences,
-                    customModel = model,
+                    model = model,
+                    vehicleHeightM = vehicleHeightM,
+                    bufferM = bufferM,
+                    allowedNearPoints = allowed,
                 )
             ) {
                 is PathResult.Blocked -> TourCompose.Blocked(leg.reason)
-                is PathResult.Ok -> {
-                    if (bridgePassageEnabled &&
-                        BridgePassageConstraint.pathConflictsWithUnderBridges(
-                            points = leg.path.points,
-                            bridges = bridges,
-                            vehicleHeightM = vehicleHeightM,
-                            bufferM = bufferM,
-                        )
-                    ) {
-                        return TourCompose.Blocked(
-                            reason = "Under-passage bridge clearance conflict on tour",
-                        )
-                    }
-                    TourCompose.Ok(
-                        route = RouteCandidate(
-                            id = leg.path.id,
-                            durationSeconds = leg.path.durationSeconds,
-                            costCents = estimateCostCents(leg.path.durationSeconds),
-                            maxHeightM = 50.0,
-                            maxWeightT = 50.0,
-                        ),
-                        path = leg.path,
-                    )
-                }
+                is PathResult.Ok -> TourCompose.Ok(
+                    route = RouteCandidate(
+                        id = leg.path.id,
+                        durationSeconds = leg.path.durationSeconds,
+                        costCents = estimateCostCents(leg.path.durationSeconds),
+                        maxHeightM = 50.0,
+                        maxWeightT = 50.0,
+                    ),
+                    path = leg.path,
+                )
             }
         }
 
@@ -218,11 +213,13 @@ class MultiStopTourComposer(
             val from = ordered[i].asEndpoint()
             val to = ordered[i + 1].asEndpoint()
             when (
-                val leg = pathRouter.path(
+                val leg = resolveLeg(
                     start = from,
                     end = to,
-                    preferences = model.preferences,
-                    customModel = model,
+                    model = model,
+                    vehicleHeightM = vehicleHeightM,
+                    bufferM = bufferM,
+                    allowedNearPoints = allowed,
                 )
             ) {
                 is PathResult.Blocked -> return TourCompose.Blocked(leg.reason)
@@ -238,19 +235,6 @@ class MultiStopTourComposer(
                     lastPrefs = leg.path.preferences
                 }
             }
-        }
-
-        if (bridgePassageEnabled &&
-            BridgePassageConstraint.pathConflictsWithUnderBridges(
-                points = allPoints,
-                bridges = bridges,
-                vehicleHeightM = vehicleHeightM,
-                bufferM = bufferM,
-            )
-        ) {
-            return TourCompose.Blocked(
-                reason = "Under-passage bridge clearance conflict on tour",
-            )
         }
 
         val path = RoutePath(
@@ -274,8 +258,46 @@ class MultiStopTourComposer(
         )
     }
 
+    private suspend fun resolveLeg(
+        start: com.truckie1.trips.RouteEndpoint,
+        end: com.truckie1.trips.RouteEndpoint,
+        model: GraphHopperCustomModelStub,
+        vehicleHeightM: Double,
+        bufferM: Double,
+        allowedNearPoints: List<LatLngPoint>,
+    ): PathResult {
+        if (!pathBlockDetourEnabled) {
+            return pathRouter.path(
+                start = start,
+                end = end,
+                preferences = model.preferences,
+                customModel = model,
+            )
+        }
+        return PathBlockDetour.resolveLeg(
+            pathRouter = pathRouter,
+            start = start,
+            end = end,
+            preferences = model.preferences,
+            customModel = model,
+            bridges = bridges,
+            vehicleHeightM = vehicleHeightM,
+            bufferM = bufferM,
+            allowedNearPoints = allowedNearPoints,
+            bridgePassageEnabled = bridgePassageEnabled,
+        )
+    }
+
     private fun estimateCostCents(durationSeconds: Long): Long =
         (durationSeconds / 10L).coerceAtLeast(1L)
+
+    /** Intentional stop coords — delivery near a structure is not through under-passage. */
+    private fun stopPoints(ordered: List<TripStop>): List<LatLngPoint> =
+        ordered.mapNotNull { stop ->
+            val lat = stop.latitude ?: return@mapNotNull null
+            val lng = stop.longitude ?: return@mapNotNull null
+            LatLngPoint(lat, lng)
+        }
 
     private fun candidateOrders(stops: List<TripStop>): List<List<TripStop>> {
         if (stops.size <= 1) return listOf(stops)
