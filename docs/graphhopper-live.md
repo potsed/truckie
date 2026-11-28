@@ -33,8 +33,15 @@ Any one of:
 Example:
 
 ```bash
-./gradlew :app:assembleDebug -Ptruckie.graphhopper.baseUrl=https://gh.example/api
+./gradlew :app:assembleDebug -Ptruckie.graphhopper.baseUrl=https://gh.example.com
 ```
+
+### Self-hosted on Oracle Cloud Free Tier
+
+Scaffold: [`infra/oci-graphhopper/`](../infra/oci-graphhopper/) (Terraform + cloud-init + Docker Compose + Caddy).  
+Operator steps: [`oci-graphhopper-runbook.md`](./oci-graphhopper-runbook.md).
+
+The GH host deploys **independently** of this Android app (no Gradle on the VM; stack sync pushes only `infra/oci-graphhopper/`). Point `GRAPHHOPPER_BASE_URL` at `https://<your-domain>` once the host is up. Do **not** use GraphHopper Cloud. Daniel supplies OCI Free Tier credentials — nothing is committed.
 
 ## What is missing when live is not active
 
@@ -60,4 +67,7 @@ detours in unit tests only — it is **not** the production alternate design.
 
 - `features/path_block_detour.feature`
 - `features/route_optimisation_graphhopper.feature`
+- `features/oci_graphhopper_host.feature`
 - `docs/feature-flags.md` (`ff_graphhopper_live`, `ff_path_block_detour`)
+- `docs/oci-graphhopper-runbook.md`
+- `infra/oci-graphhopper/README.md`

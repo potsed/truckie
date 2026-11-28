@@ -1,0 +1,93 @@
+#cloud-config
+# Host bootstrap only: Docker, UFW, SSH hardening, graphhopper system user.
+# Stack files (compose/scripts) are installed independently via:
+#   - Terraform file provisioner (provision.tf), or
+#   - scripts/sync-to-host.sh / scripts/install.sh from a local copy of this directory
+# Does NOT clone the Truckie monorepo. Does NOT build the mobile app.
+
+package_update: true
+package_upgrade: true
+
+packages:
+  - apt-transport-https
+  - ca-certificates
+  - curl
+  - gnupg
+  - ufw
+  - jq
+  - rsync
+  - osmium-tool
+  - fail2ban
+
+users:
+  - name: graphhopper
+    system: true
+    shell: /usr/sbin/nologin
+    home: /var/lib/graphhopper
+    create_home: true
+
+write_files:
+  - path: /etc/ssh/sshd_config.d/99-oci-graphhopper-hardening.conf
+    permissions: "0644"
+    content: |
+      PasswordAuthentication no
+      KbdInteractiveAuthentication no
+      ChallengeResponseAuthentication no
+      PermitRootLogin no
+      X11Forwarding no
+      AllowTcpForwarding no
+      ClientAliveInterval 300
+      ClientAliveCountMax 2
+
+  - path: /etc/oci-graphhopper/host.env
+    permissions: "0640"
+    owner: root:graphhopper
+    content: |
+      GRAPHHOPPER_DOMAIN=${graphhopper_domain}
+      LETSENCRYPT_EMAIL=${letsencrypt_email}
+      INSTALL_ROOT=/opt/oci-graphhopper
+      COMPOSE_PROJECT_NAME=oci-graphhopper
+
+  - path: /usr/local/sbin/oci-graphhopper-host-bootstrap.sh
+    permissions: "0755"
+    content: |
+      #!/usr/bin/env bash
+      set -euo pipefail
+      # shellcheck disable=SC1091
+      source /etc/oci-graphhopper/host.env
+
+      install -d -o graphhopper -g graphhopper -m 0750 /var/lib/graphhopper/{data,graph-cache,logs,custom-models}
+      install -d -m 0755 /opt/oci-graphhopper
+
+      if ! command -v docker >/dev/null 2>&1; then
+        curl -fsSL https://get.docker.com | sh
+      fi
+      systemctl enable --now docker
+      usermod -aG docker ubuntu || true
+      docker compose version >/dev/null
+
+      ufw --force reset
+      ufw default deny incoming
+      ufw default allow outgoing
+      ufw allow OpenSSH
+      ufw allow 80/tcp
+      ufw allow 443/tcp
+      ufw --force enable
+
+      # Marker for provisioner / operators: host ready; stack not yet synced
+      cat >/opt/oci-graphhopper/HOST_READY <<EOF
+      domain=$${GRAPHHOPPER_DOMAIN}
+      email=$${LETSENCRYPT_EMAIL}
+      ready_at=$$(date -u +%Y-%m-%dT%H:%M:%SZ)
+      awaiting=stack_sync_via_terraform_or_sync-to-host.sh
+      EOF
+
+      echo "Host bootstrap complete. Await stack sync (no Android repo clone)."
+
+runcmd:
+  - systemctl reload ssh || systemctl reload sshd || true
+  - /usr/local/sbin/oci-graphhopper-host-bootstrap.sh
+  - systemctl enable fail2ban || true
+  - systemctl start fail2ban || true
+
+final_message: "OCI GraphHopper host ready — sync infra/oci-graphhopper stack next."

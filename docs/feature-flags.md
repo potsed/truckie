@@ -14,7 +14,7 @@ XML screen layouts were removed; do not add new AppCompat/XML screens.
 | `ff_stop_cargo` | Cargo H/W/L/mass pick-up/drop-off on stops; on-board clearance | off (on in debug) |
 | `ff_bridge_safe_routing` | Height/weight-aware GraphHopper Custom Model routing | off |
 | `ff_route_optimize` | Optimize for this vehicle — Fastest / Cheapest among safe GraphHopper tours (multi-stop stop-order; Trip stops UI) | off (on in debug) |
-| `ff_graphhopper_live` | Live GraphHopper HTTP PathRouter (ATNA-9/68/102); requires base URL + AU graph — else stub. **Select-user / debug dogfood enables the flag**; URL via `GRAPHHOPPER_BASE_URL` / `truckie.graphhopper.baseUrl` / `TRUCKIE_GRAPHHOPPER_BASE_URL` (see `docs/graphhopper-live.md`) | off (on in debug) |
+| `ff_graphhopper_live` | Live GraphHopper HTTP PathRouter (ATNA-9/68/102); requires base URL + AU graph — else stub. **Select-user / debug dogfood enables the flag**; URL via `GRAPHHOPPER_BASE_URL` / `truckie.graphhopper.baseUrl` / `TRUCKIE_GRAPHHOPPER_BASE_URL` (see `docs/graphhopper-live.md`). Self-host on OCI Free Tier: `infra/oci-graphhopper/`, `docs/oci-graphhopper-runbook.md` | off (on in debug) |
 | `ff_path_block_detour` | Alternate around geographic path blocks via PathRouter (ATNA-102): live GH Custom Model / blocked edges; never erase the tour polyline; stub only for tests / missing URL | **on** (defaults on) |
 | `ff_tolls` | Toll preference stub / avoid-allow settings | off |
 | `ff_offline_maps` | Offline map pack manager (MapLibre) | off |

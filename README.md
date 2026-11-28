@@ -11,7 +11,7 @@ AU-first (QLD/Brisbane), expandable. Product UI term: **Vehicle** (not Truck).
 | UI | Jetpack Compose Material3 (Compose BOM **2024.12.01**) |
 | Modules | `app`, `core-routing`, `core-profiles`, `core-trips`, `core-maps`, `core-flags` |
 | Map | MapLibre Native Android (`:core-maps` + `:app` map home, `ff_map_home`) |
-| Routing | GraphHopper client stub (`:core-routing`) |
+| Routing | GraphHopper PathRouter (`:core-routing`); live HTTPS via self-hosted OSS GH |
 | Flags | Local feature-flag facade (`:core-flags`) |
 | Profiles | Room by rego (`ff_vehicle_profiles`); make/model/year, H/W/L, mass/TARE/GVM/GCM, axles, network |
 | Trips | In-memory stop list (`ff_multi_stop`); cargo pick-up/drop-off (`ff_stop_cargo`); optimize Fastest/Cheapest (`ff_route_optimize`) |
@@ -60,6 +60,16 @@ Debug APK path: `app/build/outputs/apk/debug/app-debug.apk`
 ## Feature flags
 
 Every user-facing capability is gated. See [docs/feature-flags.md](docs/feature-flags.md).
+
+## Live GraphHopper (select-user)
+
+Self-host **open-source GraphHopper** (not GraphHopper Cloud) on **Oracle Cloud Free Tier**. Deploy is **independent of the Android app** (only `infra/oci-graphhopper/`):
+
+- Scaffold: [`infra/oci-graphhopper/`](infra/oci-graphhopper/)
+- Operator runbook: [`docs/oci-graphhopper-runbook.md`](docs/oci-graphhopper-runbook.md)
+- Optional later app URL: [`docs/graphhopper-live.md`](docs/graphhopper-live.md) (`GRAPHHOPPER_BASE_URL` / `ff_graphhopper_live`)
+
+Bridge/weight packs stay on GitHub Releases. No Firebase.
 
 ## Gherkin
 
