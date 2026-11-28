@@ -16,7 +16,7 @@ object ValhallaPathRouterFactory {
     ): PathRouter {
         val trimmed = baseUrl?.trim().orEmpty()
         if (!liveEnabled || trimmed.isEmpty()) {
-            return StubGraphHopperPathRouter()
+            return StubPathRouter()
         }
         val key = apiKey?.trim()?.ifEmpty { null }
         return if (httpClient != null) {

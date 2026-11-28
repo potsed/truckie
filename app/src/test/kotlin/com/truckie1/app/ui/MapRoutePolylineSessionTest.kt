@@ -61,7 +61,7 @@ class MapRoutePolylineSessionTest {
             vehicle = vehicle,
             bufferM = 0.15,
             bridgePassage = true,
-            graphHopperLive = false,
+            valhallaLive = false,
         )
         session.rememberPreview(key, path)
         assertEquals(path, session.cachedPreview(key))
@@ -72,7 +72,7 @@ class MapRoutePolylineSessionTest {
             vehicle = vehicle,
             bufferM = 0.3,
             bridgePassage = true,
-            graphHopperLive = false,
+            valhallaLive = false,
         )
         assertNotEquals(key, otherKey)
 

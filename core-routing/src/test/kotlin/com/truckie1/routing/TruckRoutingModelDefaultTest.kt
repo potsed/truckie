@@ -6,14 +6,14 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * Gherkin: features/route_optimisation_graphhopper.feature —
- * shared default Custom Model (ATNA-71); no duplicated 4.0 m / 12 t literals.
+ * Gherkin: features/route_optimisation.feature —
+ * shared default truck model (ATNA-71); no duplicated 4.0 m / 12 t literals.
  */
-class GraphHopperCustomModelDefaultTest {
+class TruckRoutingModelDefaultTest {
 
     @Test
     fun defaultUsesSharedClearanceMassWidthLength() {
-        val model = GraphHopperCustomModelStub.default()
+        val model = TruckRoutingModel.default()
         assertEquals(4.0, model.requiredClearanceHeightM, 0.0)
         assertEquals(12.0, model.requiredMassT, 0.0)
         assertEquals(2.5, model.vehicleWidthM, 0.0)
@@ -23,7 +23,7 @@ class GraphHopperCustomModelDefaultTest {
 
     @Test
     fun stubPathRouterUsesSharedDefaultWhenModelNull() = runBlocking {
-        val router = StubGraphHopperPathRouter()
+        val router = StubPathRouter()
         val start = com.truckie1.trips.RouteEndpoint("A", -27.4, 153.0)
         val end = com.truckie1.trips.RouteEndpoint("B", -27.5, 153.1)
         when (val result = router.path(start, end, customModel = null)) {
@@ -32,7 +32,7 @@ class GraphHopperCustomModelDefaultTest {
                 assertTrue(snippet.contains("4.0"))
                 assertTrue(snippet.contains("12.0"))
                 assertEquals(
-                    GraphHopperCustomModelStub.default().toRequestSnippet(),
+                    TruckRoutingModel.default().toRequestSnippet(),
                     snippet,
                 )
             }
@@ -41,20 +41,23 @@ class GraphHopperCustomModelDefaultTest {
     }
 
     @Test
-    fun livePathRouterUsesSharedDefaultWhenModelNull() = runBlocking {
+    fun liveValhallaPathRouterUsesSharedDefaultWhenModelNull() = runBlocking {
         val json = """
             {
-              "paths": [{
-                "distance": 100.0,
-                "time": 60000,
-                "points": { "coordinates": [[153.0, -27.4], [153.1, -27.5]] }
-              }]
+              "trip": {
+                "summary": { "time": 60.0 },
+                "legs": [{
+                  "shape": "_p~iF~ps|U_ulLnnqC"
+                }]
+              }
             }
         """.trimIndent()
-        val router = LiveGraphHopperPathRouter(
-            baseUrl = "https://gh.example",
-            httpClient = { _, body ->
-                assertTrue(body.contains(GraphHopperCustomModelStub.default().toRequestSnippet()))
+        val router = LiveValhallaPathRouter(
+            baseUrl = "https://vh.example",
+            httpClient = { _, body, _ ->
+                assertTrue(body.contains("\"costing\": \"truck\""))
+                assertTrue(body.contains("\"height\": 4.0"))
+                assertTrue(body.contains("\"weight\": 12.0"))
                 json
             },
         )

@@ -6,7 +6,7 @@ Feature: Retire legacy Activity hosts
   # ATNA-74 / P2-1 + ATNA-92 residual cleanup.
   # Product toggles: ff_nav_chrome + ff_map_home still gate chrome / map-home content.
   # Architecture: NavHost-only — delete redirect Activities and dual list-Home Activity path.
-  # Out of scope: OCI GraphHopper infra; Phase C product depth; force map-home on in release.
+  # Out of scope: OCI Valhalla self-host (future); Phase C product depth; force map-home on in release.
 
   Scenario: MainActivity is the only screen Activity
     Given Truckie ships Compose Material3 screens

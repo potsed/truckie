@@ -8,7 +8,7 @@ import com.truckie1.routing.LatLngPoint
 import com.truckie1.routing.MultiStopTourComposer
 import com.truckie1.routing.RoutingBridgeConstraint
 import com.truckie1.routing.RoutingBridgePassage
-import com.truckie1.routing.StubGraphHopperPathRouter
+import com.truckie1.routing.StubPathRouter
 import com.truckie1.trips.ActiveTourFacade
 import com.truckie1.trips.ActiveTourSession
 import java.time.LocalDate
@@ -79,7 +79,7 @@ class DemoRoutePolylineVisibilityTest {
         )
         val route = DemoDataset.buildRoute(today = today)
         val vehicle = DemoDataset.vehicle
-        val router = StubGraphHopperPathRouter()
+        val router = StubPathRouter()
         val composer = MultiStopTourComposer(
             pathRouter = router,
             bridges = listOf(colina),

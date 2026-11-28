@@ -1,11 +1,8 @@
 # Live Valhalla (select-user)
 
-Truckie routes **in-app** via [PathRouter](../core-routing/src/main/kotlin/com/truckie1/routing/GraphHopperPathRouter.kt).
+Truckie routes **in-app** via [PathRouter](../core-routing/src/main/kotlin/com/truckie1/routing/PathRouter.kt).
 Road-following Navigate / Optimise polylines use **Valhalla truck costing**
 ([LiveValhallaPathRouter](../core-routing/src/main/kotlin/com/truckie1/routing/LiveValhallaPathRouter.kt)).
-
-GraphHopper Cloud was abandoned (signup closed). Legacy `ff_graphhopper_live` remains
-a secondary fallback only when Valhalla credentials are missing.
 
 ## Interim vs long-term host
 
@@ -31,7 +28,7 @@ Same Valhalla HTTP `/route` body either way — swap base URL, drop Bearer.
 | Costing | `costing: truck` + height/width/length/weight from vehicle Custom Model |
 
 Factory: `ValhallaPathRouterFactory.create(liveEnabled, baseUrl, apiKey)`.
-App wiring: `TruckieApp.pathRouter()` prefers Valhalla over GraphHopper live.
+App wiring: `TruckieApp.pathRouter()` uses Valhalla live or stub only.
 
 ## Configure hosted Valhalla (interim)
 
@@ -74,5 +71,5 @@ summary label this as **degraded stub** (`ValhallaLiveCatalog.routingGeometrySta
 
 - `features/route_follow_roads.feature`
 - `docs/feature-flags.md` (`ff_valhalla_live`)
-- `docs/graphhopper-live.md` (legacy GH live / OCI GH scaffold)
+- `docs/valhalla-self-host-notes.md` (self-host / OCI notes — docs only)
 - `secrets.properties.example`

@@ -5,7 +5,7 @@ Feature: Home pull-up drawer scroll and insets
 
   # Product toggle: ff_map_home (ships with map-home sheet; no new surface flag)
   # Fixes visible-height sheet layout (not a one-off bottom padding patch).
-  # Out of scope: GraphHopper / optimised routing, Phase C vehicle depth.
+  # Out of scope: PathRouter / optimised routing, Phase C vehicle depth.
 
   Scenario: Sheet height matches the on-screen pull-up area
     Given ff_map_home is enabled

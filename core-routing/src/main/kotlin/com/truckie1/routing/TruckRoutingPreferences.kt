@@ -3,7 +3,7 @@ package com.truckie1.routing
 import com.truckie1.trips.OptimizeMode
 
 /**
- * First-class truck routing goals for GraphHopper Custom Model / path requests.
+ * First-class truck routing goals for truck routing model / path requests.
  *
  * Among tours that satisfy bridge / weight / toll constraints (and soft
  * non-residential through-route preference with minimised residential

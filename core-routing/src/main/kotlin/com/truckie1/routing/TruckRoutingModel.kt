@@ -3,14 +3,15 @@ package com.truckie1.routing
 import com.truckie1.profiles.Vehicle
 
 /**
- * Stub GraphHopper Custom Model built from active vehicle + [TruckRoutingPreferences].
+ * Truck routing constraint model from active vehicle + [TruckRoutingPreferences].
  *
- * Encodes bridges (max_height), weight (max_weight), tolls, and a **soft**
- * non-residential through-route preference in the request snippet shape.
- * Residential is never hard-blocked — deliveries to residential addresses remain OK.
- * Live evaluation + restriction packs remain Phase D.
+ * Encodes bridges (max height), weight, tolls, and a **soft** non-residential
+ * through-route preference. Residential is never hard-blocked — deliveries to
+ * residential addresses remain OK. Live Valhalla costing reads dimensions via
+ * [ValhallaTruckCosting]; [toRequestSnippet] records the shared constraint shape
+ * for stub / debug.
  */
-data class GraphHopperCustomModelStub(
+data class TruckRoutingModel(
     val requiredClearanceHeightM: Double,
     val requiredMassT: Double,
     val vehicleWidthM: Double,
@@ -41,8 +42,6 @@ data class GraphHopperCustomModelStub(
             if (preferences.preferNonResidentialThroughRoutes) {
                 // Soft preference only (multiply_by > 0): prefer arterial/through roads.
                 // Never hard-block — residential delivery start/end/stops must stay reachable.
-                // When residential is required, minimise penetration (last-mile access only,
-                // not as a through-route between non-residential segments).
                 val residentialFactor = if (preferences.minimiseResidentialPenetration) {
                     "0.05"
                 } else {
@@ -52,7 +51,7 @@ data class GraphHopperCustomModelStub(
             }
         }.joinToString(",\n                       ")
         // Among height-/weight-/toll-safe edges (with soft residential preference),
-        // ask GraphHopper for the most efficient (FASTEST) or cost-effective (CHEAPEST) tour.
+        // prefer the most efficient (FASTEST) or cost-effective (CHEAPEST) tour.
         val optimize = preferences.optimizeMode.name
         return """
         {
@@ -81,12 +80,12 @@ data class GraphHopperCustomModelStub(
         const val DEFAULT_LENGTH_M: Double = 12.0
 
         /**
-         * Single default Custom Model builder (ATNA-71). Stub and live PathRouters
-         * must use this — do not re-hardcode 4.0 m / 12 t literals at call sites.
+         * Single default truck model builder. Stub and live PathRouters must use
+         * this — do not re-hardcode 4.0 m / 12 t literals at call sites.
          */
         fun default(
             preferences: TruckRoutingPreferences = TruckRoutingPreferences.DEFAULT,
-        ): GraphHopperCustomModelStub = GraphHopperCustomModelStub(
+        ): TruckRoutingModel = TruckRoutingModel(
             requiredClearanceHeightM = DEFAULT_CLEARANCE_HEIGHT_M,
             requiredMassT = DEFAULT_MASS_T,
             vehicleWidthM = DEFAULT_WIDTH_M,
@@ -102,7 +101,7 @@ data class GraphHopperCustomModelStub(
             preferences: TruckRoutingPreferences = TruckRoutingPreferences.DEFAULT.copy(
                 tollPreference = tollPreference,
             ),
-        ): GraphHopperCustomModelStub = GraphHopperCustomModelStub(
+        ): TruckRoutingModel = TruckRoutingModel(
             requiredClearanceHeightM = requiredClearanceHeightM,
             requiredMassT = requiredMassT,
             vehicleWidthM = vehicle.widthM,

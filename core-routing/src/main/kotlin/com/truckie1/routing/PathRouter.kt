@@ -3,24 +3,24 @@ package com.truckie1.routing
 import com.truckie1.trips.RouteEndpoint
 
 /**
- * GraphHopper path leg used by [MultiStopTourComposer] / ActiveTourPath
- * (Navigate + map polyline) and Optimise.
+ * Path leg used by [MultiStopTourComposer] / ActiveTourPath (Navigate + map
+ * polyline) and Optimise.
  *
  * Always runs in-app with [TruckRoutingPreferences] (bridges, weight, tolls,
  * residential avoidance). [path] is **suspend** (ATNA-88): live HTTP hops off
- * the caller thread; [StubGraphHopperPathRouter] stays instantaneous (tests /
- * degraded when live URL is unset).
+ * the caller thread; [StubPathRouter] stays instantaneous (tests / degraded
+ * when live Valhalla credentials are unset).
  *
- * [avoidUnderBridges]: production live GH encodes under-passage via Custom
- * Model blocked edges; the stub may simulate avoidance for unit tests only
- * (ATNA-102 — never a hand-rolled map polyline rule outside PathRouter).
+ * Live engine: [LiveValhallaPathRouter] (`ff_valhalla_live`). [avoidUnderBridges]
+ * maps to Valhalla exclude polygons; the stub may simulate avoidance for unit
+ * tests only (ATNA-102 — never a hand-rolled map polyline rule outside PathRouter).
  */
 interface PathRouter {
     suspend fun path(
         start: RouteEndpoint,
         end: RouteEndpoint,
         preferences: TruckRoutingPreferences = TruckRoutingPreferences.DEFAULT,
-        customModel: GraphHopperCustomModelStub? = null,
+        customModel: TruckRoutingModel? = null,
         avoidUnderBridges: List<RoutingBridgeConstraint> = emptyList(),
     ): PathResult
 }
@@ -34,10 +34,10 @@ data class RoutePath(
     val id: String,
     val points: List<LatLngPoint>,
     val durationSeconds: Long = 0L,
-    /** `graphhopper-stub` until live Valhalla / GraphHopper HTTP is enabled. */
+    /** `path-stub` until live Valhalla HTTP is enabled. */
     val source: String = SOURCE_STUB,
     val preferences: TruckRoutingPreferences = TruckRoutingPreferences.DEFAULT,
-    /** Custom Model / costing snippet for constrained truck routing. */
+    /** Truck costing / constraint snippet for constrained truck routing. */
     val customModelSnippet: String? = null,
 ) {
     init {
@@ -45,15 +45,14 @@ data class RoutePath(
     }
 
     /**
-     * Live road-network geometry (Valhalla or GraphHopper). Stub interpolate
-     * is **not** road-following (ATNA-113 degraded fallback only).
+     * Live road-network geometry (Valhalla). Stub interpolate is **not**
+     * road-following (ATNA-113 degraded fallback only).
      */
     val followsRoadNetwork: Boolean
-        get() = source == SOURCE_VALHALLA || source == SOURCE_LIVE
+        get() = source == SOURCE_VALHALLA
 
     companion object {
-        const val SOURCE_STUB: String = "graphhopper-stub"
-        const val SOURCE_LIVE: String = "graphhopper-live"
+        const val SOURCE_STUB: String = "path-stub"
         /** Hosted or self-hosted Valhalla truck path (ATNA-113). */
         const val SOURCE_VALHALLA: String = "valhalla-live"
     }
@@ -66,21 +65,21 @@ sealed class PathResult {
 
 /**
  * Offline stub: interpolates a simple path from start to end (and a short loop
- * for round trips) so Navigate can render without a live GH server.
- * Records [TruckRoutingPreferences] / Custom Model shape for constrained truck routing.
+ * for round trips) so Navigate can render without a live Valhalla server.
+ * Records [TruckRoutingPreferences] / truck model shape for constrained routing.
  *
  * When [avoidUnderBridges] is non-empty, skirts those points so unit tests can
- * exercise ATNA-102 PathRouter detours without a live GH instance. Production
- * select-user builds use [LiveGraphHopperPathRouter] + Custom Model instead.
+ * exercise ATNA-102 PathRouter detours without a live instance. Production
+ * select-user builds use [LiveValhallaPathRouter] + truck costing instead.
  */
-class StubGraphHopperPathRouter(
+class StubPathRouter(
     private val intermediatePoints: Int = 6,
 ) : PathRouter {
     override suspend fun path(
         start: RouteEndpoint,
         end: RouteEndpoint,
         preferences: TruckRoutingPreferences,
-        customModel: GraphHopperCustomModelStub?,
+        customModel: TruckRoutingModel?,
         avoidUnderBridges: List<RoutingBridgeConstraint>,
     ): PathResult {
         val points = if (start.samePlaceAs(end)) {
@@ -91,7 +90,7 @@ class StubGraphHopperPathRouter(
             interpolate(start, end, intermediatePoints)
         }
         val modelSnippet = customModel?.toRequestSnippet()
-            ?: GraphHopperCustomModelStub.default(preferences = preferences).toRequestSnippet()
+            ?: TruckRoutingModel.default(preferences = preferences).toRequestSnippet()
         val idPrefix = if (avoidUnderBridges.isEmpty()) "stub" else "stub-detour"
         return PathResult.Ok(
             RoutePath(
@@ -123,8 +122,8 @@ class StubGraphHopperPathRouter(
     }
 
     /**
-     * Test-only simulation of GraphHopper blocked-edge avoidance: start →
-     * offset waypoint(s) past each avoid bridge → end.
+     * Test-only simulation of blocked-edge avoidance: start → offset
+     * waypoint(s) past each avoid bridge → end.
      */
     private fun interpolateAvoiding(
         start: RouteEndpoint,

@@ -5,22 +5,22 @@ import com.truckie1.trips.RouteEndpoint
 /**
  * Alternate around geographic path blocks via [PathRouter] (ATNA-102).
  *
- * Production path: **live GraphHopper** Custom Model / blocked edges
- * (`ff_graphhopper_live` + base URL + AU data). When a leg is Blocked or the
- * composed points conflict with under-passage pack bridges, re-invoke
- * [PathRouter.path] with the same Custom Model so GH (or the stub under test)
- * returns an alternate — never a hand-rolled MapLibre polyline rule, and never
- * erase the tour line when PathRouter can still produce ≥2 points.
+ * Production path: **live Valhalla** truck costing / exclude polygons
+ * (`ff_valhalla_live` + credentials). When a leg is Blocked or the composed
+ * points conflict with under-passage pack bridges, re-invoke [PathRouter.path]
+ * with the same truck model so Valhalla (or the stub under test) returns an
+ * alternate — never a hand-rolled MapLibre polyline rule, and never erase the
+ * tour line when PathRouter can still produce ≥2 points.
  *
  * Stub PathRouter may simulate blocked-edge avoidance for unit tests only.
  *
  * Gherkin: features/path_block_detour.feature
  */
 object PathBlockDetour {
-    /** Production design uses GraphHopper PathRouter — not DIY polylines. */
+    /** Production design uses Valhalla PathRouter — not DIY polylines. */
     const val usesPathRouter: Boolean = true
     const val usesHandRolledPolylineRule: Boolean = false
-    const val prefersLiveGraphHopper: Boolean = true
+    const val prefersLiveValhalla: Boolean = true
 
     /**
      * Resolve one leg: first PathRouter attempt, then PathRouter retry with
@@ -32,7 +32,7 @@ object PathBlockDetour {
         start: RouteEndpoint,
         end: RouteEndpoint,
         preferences: TruckRoutingPreferences,
-        customModel: GraphHopperCustomModelStub?,
+        customModel: TruckRoutingModel?,
         bridges: List<RoutingBridgeConstraint>,
         vehicleHeightM: Double,
         bufferM: Double,
@@ -40,7 +40,7 @@ object PathBlockDetour {
         bridgePassageEnabled: Boolean = false,
     ): PathResult {
         val model = customModel
-            ?: GraphHopperCustomModelStub.default(preferences = preferences)
+            ?: TruckRoutingModel.default(preferences = preferences)
         val first = pathRouter.path(
             start = start,
             end = end,

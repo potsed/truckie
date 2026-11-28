@@ -1,28 +1,27 @@
-Feature: Multi-stop route optimisation with GraphHopper
+Feature: Multi-stop route optimisation with PathRouter
   As a single-owner-operator driver
-  I want Truckie to optimise stop order with truck-aware GraphHopper routing
+  I want Truckie to optimise stop order with truck-aware PathRouter routing
   So that I get a clearance-safe, cost-effective tour without driving under low bridges
 
-  # ATNA-68 / ATNA-71. Optimisation + Navigate share one app-owned PathRouter
-  # (GraphHopperPathRouterFactory). Bridge passage: hard-block under when
-  # clearance < height+buffer; over deck OK. Live HTTP behind ff_graphhopper_live;
+  # ATNA-68 / ATNA-71 / ATNA-114. Optimisation + Navigate share one app-owned
+  # PathRouter (ValhallaPathRouterFactory). Bridge passage: hard-block under when
+  # clearance < height+buffer; over deck OK. Live HTTP behind ff_valhalla_live;
   # stub otherwise. UI on Trip stops only (ff_route_optimize).
-  # Sibling workers own pack merge + BridgePassage UI — do not edit those here.
 
   @ff_route_optimize @ff_multi_stop
-  Scenario: Optimise stop order using GraphHopper legs
+  Scenario: Optimise stop order using PathRouter legs
     Given feature flag "ff_route_optimize" is enabled
     And a multi-stop trip with verified coordinates and an active vehicle
-    When I optimise for "Fastest" with GraphHopper tour composition
-    Then the trip stop order is replaced with the GraphHopper-optimised tour
-    And the result includes a composed route path and Custom Model snippet
+    When I optimise for "Fastest" with PathRouter tour composition
+    Then the trip stop order is replaced with the PathRouter-optimised tour
+    And the result includes a composed route path and truck model snippet
 
   @ff_route_optimize @ff_bridge_passage
   Scenario: Under-passage low bridge hard-blocks a tour
     Given feature flag "ff_route_optimize" is enabled
     And feature flag "ff_bridge_passage" is enabled
     And an under-passage bridge clearance is below vehicle height plus buffer
-    When GraphHopper candidates would drive under that bridge
+    When PathRouter candidates would drive under that bridge
     Then those tours are rejected as unsafe
     And driving over a low bridge deck remains allowed
 
@@ -35,26 +34,27 @@ Feature: Multi-stop route optimisation with GraphHopper
     Then pack bridges are mapped to RoutingBridgeConstraint and passed in
     And when ff_bridge_passage is off the composer receives an empty bridge list
 
-  @ff_navigate @ff_graphhopper_live @ff_route_optimize
+  @ff_navigate @ff_valhalla_live @ff_route_optimize
   Scenario: Navigate and Optimise share the app PathRouter factory
     Given feature flag "ff_navigate" is enabled
     And feature flag "ff_route_optimize" is enabled
-    When the app resolves PathRouter via GraphHopperPathRouterFactory
+    When the app resolves PathRouter via ValhallaPathRouterFactory
     Then RouteNavigateSession uses that same PathRouter (not a hard-wired Stub)
     And MultiStopTourComposer uses that same PathRouter
 
-  @ff_route_optimize @ff_graphhopper_live
-  Scenario: Live GraphHopper is used when flag and base URL are set
-    Given feature flag "ff_graphhopper_live" is enabled
-    And a GraphHopper base URL is configured
+  @ff_route_optimize @ff_valhalla_live
+  Scenario: Live Valhalla is used when flag and credentials are set
+    Given feature flag "ff_valhalla_live" is enabled
+    And Valhalla credentials resolve a base URL
     When the path router factory resolves
-    Then the live GraphHopper PathRouter is selected
+    Then the live Valhalla PathRouter is selected
 
-  @ff_graphhopper_live
-  Scenario: Stub GraphHopper when live flag is off
-    Given feature flag "ff_graphhopper_live" is disabled
+  @ff_valhalla_live
+  Scenario: Stub PathRouter when live credentials are missing
+    Given feature flag "ff_valhalla_live" is enabled
+    And VALHALLA_API_KEY and VALHALLA_BASE_URL are unset
     When the path router factory resolves
-    Then the stub GraphHopper PathRouter is selected
+    Then the stub PathRouter is selected
 
   @ff_route_optimize
   Scenario: Optimise UI remains gated and available on Trip stops
@@ -63,7 +63,7 @@ Feature: Multi-stop route optimisation with GraphHopper
     And the optimised stop order summary can be shown after a successful run
 
   @ff_route_optimize
-  Scenario: Default Custom Model dimensions are shared (no duplicated literals)
-    Given a PathRouter is invoked without an explicit Custom Model
-    Then stub and live routers both use GraphHopperCustomModelStub.default()
+  Scenario: Default truck model dimensions are shared (no duplicated literals)
+    Given a PathRouter is invoked without an explicit truck model
+    Then stub and live routers both use TruckRoutingModel.default()
     And the default clearance is 4.0 m and default mass is 12 t

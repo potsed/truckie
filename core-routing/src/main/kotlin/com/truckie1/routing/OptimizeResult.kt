@@ -4,15 +4,15 @@ import com.truckie1.trips.OptimizeMode
 import com.truckie1.trips.TripStop
 
 /**
- * Result of multi-stop GraphHopper tour optimisation ([MultiStopTourComposer]).
+ * Result of multi-stop PathRouter tour optimisation ([MultiStopTourComposer]).
  */
 sealed class OptimizeResult {
     data class Ok(
         val orderedStops: List<TripStop>,
         val route: RouteCandidate,
         val mode: OptimizeMode,
-        val customModel: GraphHopperCustomModelStub,
-        /** Composed GraphHopper path for the winning tour. */
+        val customModel: TruckRoutingModel,
+        /** Composed PathRouter path for the winning tour. */
         val path: RoutePath? = null,
     ) : OptimizeResult()
 

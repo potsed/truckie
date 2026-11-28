@@ -13,8 +13,8 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * Gherkin: features/route_optimisation_graphhopper.feature —
- * GraphHopper leg composition for multi-stop tours (ATNA-68/71).
+ * Gherkin: features/route_optimisation.feature —
+ * PathRouter leg composition for multi-stop tours (ATNA-68/71).
  * Legacy VehicleTripOptimizer coverage moved here.
  */
 class MultiStopTourComposerTest {
@@ -58,7 +58,7 @@ class MultiStopTourComposerTest {
 
     @Test
     fun composesLegsAndPicksShorterTourForFastest() = runBlocking {
-        val composer = MultiStopTourComposer(pathRouter = StubGraphHopperPathRouter())
+        val composer = MultiStopTourComposer(pathRouter = StubPathRouter())
         val result = composer.optimize(
             stops = listOf(depot, far, near),
             vehicle = vehicle,
@@ -77,7 +77,7 @@ class MultiStopTourComposerTest {
 
     @Test
     fun picksLongerCheaperGeometryWhenModeIsCheapest() = runBlocking {
-        val composer = MultiStopTourComposer(pathRouter = StubGraphHopperPathRouter())
+        val composer = MultiStopTourComposer(pathRouter = StubPathRouter())
         val fastest = composer.optimize(
             stops = listOf(depot, far, near),
             vehicle = vehicle,
@@ -104,7 +104,7 @@ class MultiStopTourComposerTest {
             passage = RoutingBridgePassage.UNDER,
         )
         val composer = MultiStopTourComposer(
-            pathRouter = StubGraphHopperPathRouter(intermediatePoints = 8),
+            pathRouter = StubPathRouter(intermediatePoints = 8),
             bridges = listOf(underLow),
             bridgePassageEnabled = true,
             pathBlockDetourEnabled = true,
@@ -150,7 +150,7 @@ class MultiStopTourComposerTest {
             passage = RoutingBridgePassage.UNDER,
         )
         val composer = MultiStopTourComposer(
-            pathRouter = StubGraphHopperPathRouter(),
+            pathRouter = StubPathRouter(),
             bridges = listOf(colina),
             bridgePassageEnabled = true,
         )
@@ -176,7 +176,7 @@ class MultiStopTourComposerTest {
         val heavyDrop = far.copy(
             cargo = listOf(Cargo("steel", 2.0, 2.0, 4.0, 20.0, CargoAction.DROP_OFF)),
         )
-        val composer = MultiStopTourComposer(pathRouter = StubGraphHopperPathRouter())
+        val composer = MultiStopTourComposer(pathRouter = StubPathRouter())
         val result = composer.optimize(
             stops = listOf(depot, heavyPick, heavyDrop),
             vehicle = vehicle,
@@ -190,7 +190,7 @@ class MultiStopTourComposerTest {
 
     @Test
     fun requiresCoordinatesOnStops() = runBlocking {
-        val composer = MultiStopTourComposer(pathRouter = StubGraphHopperPathRouter())
+        val composer = MultiStopTourComposer(pathRouter = StubPathRouter())
         val result = composer.optimize(
             stops = listOf(
                 TripStop(id = "a", addressLabel = "A"),
@@ -206,7 +206,7 @@ class MultiStopTourComposerTest {
 
     @Test
     fun tollPreferenceDefaultsToAllowAllOnCustomModel() {
-        val model = GraphHopperCustomModelStub.from(
+        val model = TruckRoutingModel.from(
             vehicle = vehicle,
             requiredClearanceHeightM = 3.65,
             requiredMassT = 16.5,

@@ -20,12 +20,12 @@ android {
         minSdk = 24
         targetSdk = 35
         versionCode = 1
-        versionName = "0.8.44-qld-gnaf-address-pack"
+        versionName = "0.8.45-remove-graphhopper"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        // Live routing credentials (ATNA-113). Empty → stub PathRouter.
-        // Valhalla interim: API key (defaults base to Simple Routing hosted Valhalla).
+        // Live Valhalla credentials (ATNA-113). Empty → stub PathRouter.
+        // Interim: API key (defaults base to Simple Routing hosted Valhalla).
         // Self-hosted/offline later: set VALHALLA_BASE_URL, clear API key.
-        // Legacy GH URL still supported as secondary. See docs/valhalla-live.md.
+        // See docs/valhalla-live.md.
         val secretsFile = rootProject.file("secrets.properties")
         val secretsMap: Map<String, String> = if (secretsFile.exists()) {
             secretsFile.readLines()
@@ -48,13 +48,6 @@ android {
         fun escapeBuildConfig(value: String): String =
             value.replace("\\", "\\\\").replace("\"", "\\\"")
 
-        val ghBaseUrl = escapeBuildConfig(
-            secretOrEnv(
-                propKey = "GRAPHHOPPER_BASE_URL",
-                envKey = "TRUCKIE_GRAPHHOPPER_BASE_URL",
-                gradleProp = "truckie.graphhopper.baseUrl",
-            ),
-        )
         val valhallaBaseUrl = escapeBuildConfig(
             secretOrEnv(
                 propKey = "VALHALLA_BASE_URL",
@@ -69,7 +62,6 @@ android {
                 gradleProp = "truckie.valhalla.apiKey",
             ),
         )
-        buildConfigField("String", "GRAPHHOPPER_BASE_URL", "\"$ghBaseUrl\"")
         buildConfigField("String", "VALHALLA_BASE_URL", "\"$valhallaBaseUrl\"")
         buildConfigField("String", "VALHALLA_API_KEY", "\"$valhallaApiKey\"")
     }

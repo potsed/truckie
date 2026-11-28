@@ -12,7 +12,7 @@ import com.truckie1.routing.OptimizeResult
 import com.truckie1.routing.PathResult
 import com.truckie1.routing.PathRouter
 import com.truckie1.routing.RoutePath
-import com.truckie1.routing.StubGraphHopperPathRouter
+import com.truckie1.routing.StubPathRouter
 import com.truckie1.routing.TruckRoutingPreferences
 import com.truckie1.trips.Route
 import com.truckie1.trips.RouteEndpoint
@@ -89,7 +89,7 @@ class ActiveTourPathParityTest {
 
     @Test
     fun navigatePathMatchesComposerGeometryForSameRoute() = runBlocking {
-        val router = StubGraphHopperPathRouter()
+        val router = StubPathRouter()
         val composer = MultiStopTourComposer(pathRouter = router)
         val route = multiStopRoute()
         val session = RouteNavigateSession(composerProvider = { composer })
@@ -118,7 +118,7 @@ class ActiveTourPathParityTest {
 
     @Test
     fun navigatePathIsNotStartToEndOnlyWhenStopsExist() = runBlocking {
-        val router = StubGraphHopperPathRouter()
+        val router = StubPathRouter()
         val composer = MultiStopTourComposer(pathRouter = router)
         val route = multiStopRoute()
         val session = RouteNavigateSession(composerProvider = { composer })
@@ -148,7 +148,7 @@ class ActiveTourPathParityTest {
 
     @Test
     fun navigateAndPolylineShareActiveTourPathGeometry() = runBlocking {
-        val router = StubGraphHopperPathRouter()
+        val router = StubPathRouter()
         val composer = MultiStopTourComposer(pathRouter = router)
         val route = multiStopRoute()
         val flags = LocalFeatureFlags(
@@ -188,7 +188,7 @@ class ActiveTourPathParityTest {
 
     @Test
     fun navigatePrefersCachedOptimisedTourGeometry() = runBlocking {
-        val router = RecordingPathRouter(StubGraphHopperPathRouter())
+        val router = RecordingPathRouter(StubPathRouter())
         val composer = MultiStopTourComposer(pathRouter = router)
         val optimised = RoutePath(
             id = "optimised-tour",
@@ -228,7 +228,7 @@ class ActiveTourPathParityTest {
             start: RouteEndpoint,
             end: RouteEndpoint,
             preferences: TruckRoutingPreferences,
-            customModel: com.truckie1.routing.GraphHopperCustomModelStub?,
+            customModel: com.truckie1.routing.TruckRoutingModel?,
             avoidUnderBridges: List<com.truckie1.routing.RoutingBridgeConstraint>,
         ): PathResult {
             calls += 1

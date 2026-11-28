@@ -7,7 +7,7 @@ class ValhallaTruckCostingTest {
 
     @Test
     fun optionsIncludeVehicleDimensionsFromModel() {
-        val model = GraphHopperCustomModelStub.default()
+        val model = TruckRoutingModel.default()
         val json = ValhallaTruckCosting.optionsJson(model)
         assertTrue(json.contains("\"height\": 4.0"))
         assertTrue(json.contains("\"width\": 2.5"))

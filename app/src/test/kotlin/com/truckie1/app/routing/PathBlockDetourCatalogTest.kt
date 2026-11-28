@@ -19,7 +19,7 @@ class PathBlockDetourCatalogTest {
         assertTrue(PathBlockDetourCatalog.DEFAULT_ENABLED)
         assertTrue(PathBlockDetourCatalog.usesPathRouter)
         assertFalse(PathBlockDetourCatalog.usesHandRolledPolylineRule)
-        assertTrue(PathBlockDetourCatalog.prefersLiveGraphHopper)
+        assertTrue(PathBlockDetourCatalog.prefersLiveValhalla)
         val flags = LocalFeatureFlags()
         assertFalse(PathBlockDetourCatalog.isEnabled(flags))
         PathBlockDetourCatalog.setEnabled(flags, true)

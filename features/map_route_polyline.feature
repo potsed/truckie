@@ -1,6 +1,6 @@
 Feature: Active route polyline on home map
   As a single-owner-operator driver
-  I want the constrained GraphHopper route drawn on MapLibre home
+  I want the constrained PathRouter route drawn on MapLibre home
   So that I can see the bridge-safe path between stops before Navigate
 
   # Product toggle: ff_map_route_polyline (requires ff_map_home).

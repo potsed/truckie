@@ -8,7 +8,6 @@ import com.truckie1.app.settings.NavigationAppStore
 import com.truckie1.app.settings.PackageManagerNavigationAppQuery
 import com.truckie1.app.settings.SharedNavigationAppStore
 import com.truckie1.app.routing.AsyncRoutingIoCatalog
-import com.truckie1.app.routing.GraphHopperLiveCatalog
 import com.truckie1.app.routing.PathBlockDetourCatalog
 import com.truckie1.app.routing.RoutingBridgePackMapper
 import com.truckie1.app.routing.ValhallaLiveCatalog
@@ -29,9 +28,9 @@ import com.truckie1.flags.FlagKeys
 import com.truckie1.flags.LocalFeatureFlags
 import com.truckie1.maps.MapLibreNativeEngine
 import com.truckie1.profiles.VehicleProfileRepository
-import com.truckie1.routing.GraphHopperPathRouterFactory
 import com.truckie1.routing.MultiStopTourComposer
 import com.truckie1.routing.PathRouter
+import com.truckie1.routing.StubPathRouter
 import com.truckie1.routing.ValhallaPathRouterFactory
 import com.truckie1.trips.ActiveTourFacade
 import com.truckie1.trips.ActiveTourSession
@@ -77,12 +76,6 @@ class TruckieApp : Application() {
     val mapRoutePolylineSession = MapRoutePolylineSession()
     val mapEngine = MapLibreNativeEngine()
 
-    /**
-     * Live GraphHopper base URL (legacy secondary). Prefer Valhalla
-     * ([graphHopperBaseUrl] unused when `ff_valhalla_live` credentials resolve).
-     */
-    var graphHopperBaseUrl: String? = GraphHopperLiveCatalog.configuredBaseUrl().ifBlank { null }
-
     /** Valhalla base URL / Simple Routing default when API key set. */
     var valhallaBaseUrl: String? = ValhallaLiveCatalog.effectiveBaseUrl().ifBlank { null }
 
@@ -90,9 +83,9 @@ class TruckieApp : Application() {
     var valhallaApiKey: String? = ValhallaLiveCatalog.configuredApiKey().ifBlank { null }
 
     /**
-     * Single app-owned PathRouter: prefer live Valhalla (`ff_valhalla_live` +
-     * credentials), else legacy GraphHopper live, else stub. Gated by async
-     * routing I/O (ATNA-88). Injected into Navigate **and** Optimise.
+     * Single app-owned PathRouter: live Valhalla (`ff_valhalla_live` +
+     * credentials) or stub. Gated by async routing I/O (ATNA-88). Injected
+     * into Navigate **and** Optimise. Sole live engine — no GraphHopper path.
      */
     fun pathRouter(): PathRouter {
         if (AsyncRoutingIoCatalog.allowsLiveValhalla(featureFlags) &&
@@ -104,16 +97,13 @@ class TruckieApp : Application() {
                 apiKey = valhallaApiKey ?: ValhallaLiveCatalog.configuredApiKey().ifBlank { null },
             )
         }
-        return GraphHopperPathRouterFactory.create(
-            liveEnabled = AsyncRoutingIoCatalog.allowsLiveGraphHopper(featureFlags),
-            baseUrl = graphHopperBaseUrl,
-        )
+        return StubPathRouter()
     }
 
     /**
-     * Multi-stop GraphHopper tour optimiser (ATNA-68/71/102). Same [pathRouter] as
-     * Navigate; pack bridges → routing constraints when `ff_bridge_passage` is
-     * on; PathBlockDetour retries PathRouter around geographic blocks.
+     * Multi-stop tour optimiser (ATNA-68/71/102). Same [pathRouter] as Navigate;
+     * pack bridges → routing constraints when `ff_bridge_passage` is on;
+     * PathBlockDetour retries PathRouter around geographic blocks.
      */
     val routeOptimizer: MultiStopTourComposer
         get() {
@@ -155,7 +145,7 @@ class TruckieApp : Application() {
             FlagKeys.ROUTE_PATH_FROM_LOCATION,
             RoutePathFromLocationCatalog.DEFAULT_ENABLED,
         )
-        // ATNA-88: async GH + Nominatim — defaults on; sync-on-main live path deleted.
+        // ATNA-88: async Valhalla + Nominatim — defaults on; sync-on-main live path deleted.
         featureFlags.setEnabled(
             FlagKeys.ASYNC_ROUTING_IO,
             AsyncRoutingIoCatalog.DEFAULT_ENABLED,
@@ -210,11 +200,6 @@ class TruckieApp : Application() {
             featureFlags.setEnabled(
                 FlagKeys.VALHALLA_LIVE,
                 ValhallaLiveCatalog.ENABLED_BY_DEFAULT_IN_DEBUG,
-            )
-            // Legacy GraphHopper live remains available if Valhalla credentials missing.
-            featureFlags.setEnabled(
-                FlagKeys.GRAPHHOPPER_LIVE,
-                GraphHopperLiveCatalog.ENABLED_BY_DEFAULT_IN_DEBUG,
             )
             // PathRouter detours around blocks (ATNA-102).
             featureFlags.setEnabled(FlagKeys.PATH_BLOCK_DETOUR, true)

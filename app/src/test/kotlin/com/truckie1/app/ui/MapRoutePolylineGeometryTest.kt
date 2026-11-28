@@ -12,7 +12,7 @@ import com.truckie1.routing.PathRouter
 import com.truckie1.routing.RoutePath
 import com.truckie1.routing.RoutingBridgeConstraint
 import com.truckie1.routing.RoutingBridgePassage
-import com.truckie1.routing.StubGraphHopperPathRouter
+import com.truckie1.routing.StubPathRouter
 import com.truckie1.routing.TollPreference
 import com.truckie1.trips.OptimizeMode
 import com.truckie1.trips.Route
@@ -90,8 +90,8 @@ class MapRoutePolylineGeometryTest {
             route = route(),
             vehicle = vehicle,
             bufferM = 0.15,
-            pathRouter = StubGraphHopperPathRouter(),
-            composer = MultiStopTourComposer(pathRouter = StubGraphHopperPathRouter()),
+            pathRouter = StubPathRouter(),
+            composer = MultiStopTourComposer(pathRouter = StubPathRouter()),
         )
         assertTrue(result is MapRoutePolylineGeometry.Result.FlagOff)
         assertTrue(MapRoutePolylineGeometry.pointsOrEmpty(result).isEmpty())
@@ -110,7 +110,7 @@ class MapRoutePolylineGeometryTest {
             ),
             source = RoutePath.SOURCE_STUB,
         )
-        val trackingRouter = TrackingPathRouter(StubGraphHopperPathRouter())
+        val trackingRouter = TrackingPathRouter(StubPathRouter())
         val result = MapRoutePolylineGeometry.resolve(
             flags = flags,
             mapHomeEnabled = true,
@@ -131,7 +131,7 @@ class MapRoutePolylineGeometryTest {
     @Test
     fun composesPathRouterLegsInCurrentOrderWhenNoOptimisedPath() = runBlocking {
         val flags = LocalFeatureFlags(mapOf(FlagKeys.MAP_ROUTE_POLYLINE to true))
-        val router = StubGraphHopperPathRouter()
+        val router = StubPathRouter()
         val result = MapRoutePolylineGeometry.resolve(
             flags = flags,
             mapHomeEnabled = true,
@@ -169,8 +169,8 @@ class MapRoutePolylineGeometryTest {
             route = route(),
             vehicle = vehicle,
             bufferM = 0.15,
-            pathRouter = StubGraphHopperPathRouter(),
-            composer = MultiStopTourComposer(pathRouter = StubGraphHopperPathRouter()),
+            pathRouter = StubPathRouter(),
+            composer = MultiStopTourComposer(pathRouter = StubPathRouter()),
             optimisedPath = RoutePath(
                 id = "optimised",
                 points = listOf(
@@ -208,7 +208,7 @@ class MapRoutePolylineGeometryTest {
             ),
         )
         // Stub PathRouter simulates GH blocked-edge avoidance when avoid list set.
-        val router = StubGraphHopperPathRouter(intermediatePoints = 8)
+        val router = StubPathRouter(intermediatePoints = 8)
         val composer = MultiStopTourComposer(
             pathRouter = router,
             bridges = listOf(underLow),
@@ -280,7 +280,7 @@ class MapRoutePolylineGeometryTest {
                 FlagKeys.TOLLS to true,
             ),
         )
-        val router = StubGraphHopperPathRouter()
+        val router = StubPathRouter()
         val result = MapRoutePolylineGeometry.resolve(
             flags = flagsOn,
             mapHomeEnabled = true,
@@ -305,7 +305,7 @@ class MapRoutePolylineGeometryTest {
 
     @Test
     fun composeOrderedReusesMultiStopTourComposerWithoutPermutation() = runBlocking {
-        val router = StubGraphHopperPathRouter()
+        val router = StubPathRouter()
         val composer = MultiStopTourComposer(pathRouter = router)
         val stops = listOf(
             TripStop("depot", "Depot", -27.42, 153.10),
@@ -336,7 +336,7 @@ class MapRoutePolylineGeometryTest {
             start: com.truckie1.trips.RouteEndpoint,
             end: com.truckie1.trips.RouteEndpoint,
             preferences: com.truckie1.routing.TruckRoutingPreferences,
-            customModel: com.truckie1.routing.GraphHopperCustomModelStub?,
+            customModel: com.truckie1.routing.TruckRoutingModel?,
             avoidUnderBridges: List<RoutingBridgeConstraint>,
         ): PathResult {
             calls += 1

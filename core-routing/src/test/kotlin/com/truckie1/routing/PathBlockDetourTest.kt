@@ -24,12 +24,12 @@ class PathBlockDetourTest {
     fun catalogPrefersPathRouterNotHandRolledPolyline() {
         assertTrue(PathBlockDetour.usesPathRouter)
         assertFalse(PathBlockDetour.usesHandRolledPolylineRule)
-        assertTrue(PathBlockDetour.prefersLiveGraphHopper)
+        assertTrue(PathBlockDetour.prefersLiveValhalla)
     }
 
     @Test
     fun resolveLegRetriesPathRouterWithAvoidAndKeepsDrawablePoints() = runBlocking {
-        val router = StubGraphHopperPathRouter(intermediatePoints = 8)
+        val router = StubPathRouter(intermediatePoints = 8)
         val start = RouteEndpoint("Depot", -27.42, 153.10)
         val end = RouteEndpoint("Near", -27.43, 153.11)
         val chord = listOf(
@@ -50,7 +50,7 @@ class PathBlockDetourTest {
             start = start,
             end = end,
             preferences = TruckRoutingPreferences.DEFAULT,
-            customModel = GraphHopperCustomModelStub.default(),
+            customModel = TruckRoutingModel.default(),
             bridges = listOf(underLow),
             vehicleHeightM = 3.5,
             bufferM = 0.15,
@@ -76,7 +76,7 @@ class PathBlockDetourTest {
 
     @Test
     fun clearLegDoesNotForceAvoidRetry() = runBlocking {
-        val router = StubGraphHopperPathRouter()
+        val router = StubPathRouter()
         val start = RouteEndpoint("A", -27.42, 153.10)
         val end = RouteEndpoint("B", -27.421, 153.101)
         val result = PathBlockDetour.resolveLeg(

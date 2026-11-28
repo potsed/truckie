@@ -1,6 +1,6 @@
 package com.truckie1.app.trips
 
-import com.truckie1.routing.GraphHopperCustomModelStub
+import com.truckie1.routing.TruckRoutingModel
 import com.truckie1.routing.LatLngPoint
 import com.truckie1.routing.OptimizeResult
 import com.truckie1.routing.RouteCandidate
@@ -20,7 +20,7 @@ class OptimizeResultSummaryTest {
         ),
         route = RouteCandidate("t", 120, 12, 5.0, 40.0),
         mode = OptimizeMode.FASTEST,
-        customModel = GraphHopperCustomModelStub(3.65, 12.0, 2.5, 12.0),
+        customModel = TruckRoutingModel(3.65, 12.0, 2.5, 12.0),
         path = RoutePath(
             id = "p",
             points = listOf(

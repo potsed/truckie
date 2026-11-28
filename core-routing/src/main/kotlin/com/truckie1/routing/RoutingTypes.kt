@@ -1,11 +1,11 @@
 package com.truckie1.routing
 
 /**
- * Shared GraphHopper routing value types used by [MultiStopTourComposer] and
+ * Shared routing value types used by [MultiStopTourComposer] and
  * [TourPathSelector].
  *
- * Path geometry goes through [PathRouter] / [GraphHopperPathRouterFactory].
- * Clearance / mass hard-blocks live on the composer + PathRouter Custom Model
+ * Path geometry goes through [PathRouter] / [ValhallaPathRouterFactory].
+ * Clearance / mass hard-blocks live on the composer + PathRouter truck model
  * path — the legacy SafeRouteSelector candidate filter was deleted (ATNA-92).
  */
 

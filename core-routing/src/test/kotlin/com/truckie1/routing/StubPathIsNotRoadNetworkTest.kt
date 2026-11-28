@@ -12,7 +12,7 @@ class StubPathIsNotRoadNetworkTest {
 
     @Test
     fun stubInterpolateIsColinearAndNotRoadNetwork() = runBlocking {
-        val router = StubGraphHopperPathRouter(intermediatePoints = 4)
+        val router = StubPathRouter(intermediatePoints = 4)
         val start = RouteEndpoint("A", -27.40, 153.00)
         val end = RouteEndpoint("B", -27.50, 153.10)
         when (val result = router.path(start, end)) {

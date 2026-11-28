@@ -7,7 +7,7 @@ Feature: Downloadable Australia bridge pack
   # Long-term source of truth: versioned downloadable pack + local cache → SymbolManager.
   # Local-first / power efficiency: loadActive never networks; refresh downloads only
   # when the remote version is newer. Live OSM/NHVR ingest stays ATNA-11.
-  # Out of scope: live CDN hosting, full OSM/NHVR ingest, GraphHopper Custom Model.
+  # Out of scope: live CDN hosting, full OSM/NHVR ingest, truck routing model.
 
   Scenario: Pack is the preferred source over the baked-in sample
     Given ff_bridge_markers is enabled

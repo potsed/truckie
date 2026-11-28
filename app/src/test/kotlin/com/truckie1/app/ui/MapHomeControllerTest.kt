@@ -6,7 +6,7 @@ import com.truckie1.flags.FlagKeys
 import com.truckie1.flags.LocalFeatureFlags
 import com.truckie1.routing.LatLngPoint
 import com.truckie1.routing.MultiStopTourComposer
-import com.truckie1.routing.StubGraphHopperPathRouter
+import com.truckie1.routing.StubPathRouter
 import com.truckie1.trips.ActiveTourSession
 import com.truckie1.trips.RouteDateChoice
 import com.truckie1.trips.StopKind
@@ -38,7 +38,7 @@ class MapHomeControllerTest {
         return MapHomeController(
             routeSession = tour,
             navigateSession = RouteNavigateSession(
-                composerProvider = { MultiStopTourComposer(StubGraphHopperPathRouter()) },
+                composerProvider = { MultiStopTourComposer(StubPathRouter()) },
             ),
             polylineSession = MapRoutePolylineSession(),
             flags = flags,

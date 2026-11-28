@@ -27,7 +27,7 @@ class TruckRoutingPreferencesTest {
 
     @Test
     fun customModelSnippetEncodesSoftResidentialMinimisePenetration() {
-        val model = GraphHopperCustomModelStub(
+        val model = TruckRoutingModel(
             requiredClearanceHeightM = 4.3,
             requiredMassT = 16.0,
             vehicleWidthM = 2.5,
@@ -56,7 +56,7 @@ class TruckRoutingPreferencesTest {
     @Test
     fun cheapestOptimizeModeEncodedInSnippet() {
         val prefs = TruckRoutingPreferences.DEFAULT.copy(optimizeMode = OptimizeMode.CHEAPEST)
-        val model = GraphHopperCustomModelStub(
+        val model = TruckRoutingModel(
             requiredClearanceHeightM = 4.0,
             requiredMassT = 10.0,
             vehicleWidthM = 2.4,
@@ -69,7 +69,7 @@ class TruckRoutingPreferencesTest {
     @Test
     fun softResidentialPreferenceCanBeDisabled() {
         val prefs = TruckRoutingPreferences.DEFAULT.copy(preferNonResidentialThroughRoutes = false)
-        val model = GraphHopperCustomModelStub(
+        val model = TruckRoutingModel(
             requiredClearanceHeightM = 4.0,
             requiredMassT = 10.0,
             vehicleWidthM = 2.4,
@@ -99,7 +99,7 @@ class TruckRoutingPreferencesTest {
             axleCount = 2,
             networkClass = "GML",
         )
-        val model = GraphHopperCustomModelStub.from(
+        val model = TruckRoutingModel.from(
             vehicle = vehicle,
             requiredClearanceHeightM = 3.65,
             requiredMassT = 16.5,

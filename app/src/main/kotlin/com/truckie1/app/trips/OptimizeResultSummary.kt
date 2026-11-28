@@ -17,7 +17,6 @@ object OptimizeResultSummary {
         val source = result.path?.source ?: RoutePath.SOURCE_STUB
         return when (source) {
             RoutePath.SOURCE_VALHALLA -> "Valhalla live"
-            RoutePath.SOURCE_LIVE -> "GraphHopper live"
             else ->
                 "Stub (degraded — not road network; set VALHALLA_API_KEY or VALHALLA_BASE_URL)"
         }

@@ -39,7 +39,7 @@ object MapRoutePolylineState {
     ): List<LatLngPoint> {
         var points by remember { mutableStateOf<List<LatLngPoint>>(emptyList()) }
         val bridgePassage = flags.isEnabled(FlagKeys.BRIDGE_PASSAGE)
-        val graphHopperLive = flags.isEnabled(FlagKeys.GRAPHHOPPER_LIVE)
+        val valhallaLive = flags.isEnabled(FlagKeys.VALHALLA_LIVE)
         val fromLocation = flags.isEnabled(FlagKeys.ROUTE_PATH_FROM_LOCATION)
         val approach = RoutePathFromLocationCatalog.approachFix(
             flags = flags,
@@ -50,7 +50,7 @@ object MapRoutePolylineState {
             vehicle = vehicle,
             bufferM = bufferM,
             bridgePassage = bridgePassage,
-            graphHopperLive = graphHopperLive,
+            valhallaLive = valhallaLive,
             currentLocation = approach,
             routePathFromLocation = fromLocation,
         )
@@ -63,7 +63,7 @@ object MapRoutePolylineState {
             revision,
             cacheKey,
             bridgePassage,
-            graphHopperLive,
+            valhallaLive,
             fromLocation,
             approach?.latitude,
             approach?.longitude,

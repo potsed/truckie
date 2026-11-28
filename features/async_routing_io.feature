@@ -1,22 +1,22 @@
-Feature: Async GraphHopper and Nominatim routing I/O
+Feature: Async Valhalla and Nominatim routing I/O
   As a single-owner-operator driver
-  I want live GraphHopper and Nominatim work off the Compose main thread
+  I want live Valhalla and Nominatim work off the Compose main thread
   So that map home never ANRs when live routing or autocomplete is enabled
 
   # Product toggle: ff_async_routing_io (defaults on). ATNA-88 / P1-3.
   # Live PathRouter + Nominatim are suspend/async (IO dispatcher). Stub PathRouter
   # may stay instantaneous. Compose never calls live HTTP from remember or a
   # main-thread click path. Sync-on-main live path is deleted.
-  # Do not enable ff_graphhopper_live in production defaults.
+  # Do not enable ff_valhalla_live in production defaults.
   # Out of scope: god-file splits (P1-5 / ATNA-90).
   # Room persist (P1-4 / ATNA-89): see room_route_persist.feature.
 
   Scenario: Async routing I/O is feature-flagged and defaults on
     Given a fresh app start
     Then ff_async_routing_io is on
-    And live GraphHopper PathRouter path is suspend and hops off main
+    And live Valhalla PathRouter path is suspend and hops off main
     And Nominatim suggest is suspend and hops off main
-    And Compose remember does not call live HTTP for GH or Nominatim
+    And Compose remember does not call live HTTP for Valhalla or Nominatim
 
   Scenario: Nominatim suggestions load asynchronously
     Given ff_address_autocomplete and ff_async_routing_io are enabled
@@ -31,7 +31,7 @@ Feature: Async GraphHopper and Nominatim routing I/O
     Then PathRouter legs run through suspend MultiStopTourComposer / ActiveTourPath
     And MapRoutePolylineSession may cache the composed preview or Optimise path
 
-  Scenario: Live GraphHopper stays off in production defaults
+  Scenario: Live Valhalla stays off in production defaults
     Given a fresh production app start
-    Then ff_graphhopper_live is off
-    And PathRouter remains the stub until live is explicitly enabled with a base URL
+    Then ff_valhalla_live is off
+    And PathRouter remains the stub until live is explicitly enabled with credentials

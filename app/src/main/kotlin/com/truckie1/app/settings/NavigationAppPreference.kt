@@ -11,9 +11,9 @@ import com.truckie1.flags.FlagKeys
  * Settings preference: optional **post-route** navigation handoff app.
  *
  * Key: [KEY] (`navigation_app_package`)
- * Default: [VALUE_IN_APP] — stay on Truckie MapLibre after GraphHopper calculates.
- * External: installed app package for handoff **after** in-app GraphHopper path finding
- * (bridges/weight constraints). External apps never replace GraphHopper for routing.
+ * Default: [VALUE_IN_APP] — stay on Truckie MapLibre after PathRouter calculates.
+ * External: installed app package for handoff **after** in-app PathRouter path finding
+ * (bridges/weight constraints). External apps never replace PathRouter for routing.
  */
 object NavigationAppPreference {
     const val KEY: String = "navigation_app_package"

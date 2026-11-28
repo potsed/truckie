@@ -4,9 +4,9 @@ Feature: Navigate and Optimise polylines follow road network geometry
   So that Navigate and Optimise show real road paths, not straight stubs
 
   # ATNA-113. Root cause on main: missing live credentials →
-  # StubGraphHopperPathRouter linear interpolate (straight / stub geometry).
+  # StubPathRouter linear interpolate (straight / stub geometry).
   # Engine: Valhalla truck costing. Interim: hosted Valhalla (Simple Routing).
-  # Long-term: self-hosted / on-device Valhalla tiles. GraphHopper Cloud abandoned.
+  # Long-term: self-hosted / on-device Valhalla tiles. GraphHopper removed; Valhalla is the sole live PathRouter.
   # Flag: ff_valhalla_live (+ ff_async_routing_io). Docs: docs/valhalla-live.md
 
   @ff_valhalla_live @ff_map_route_polyline @ff_route_optimize @ff_navigate
@@ -32,7 +32,7 @@ Feature: Navigate and Optimise polylines follow road network geometry
     Given feature flag "ff_valhalla_live" is enabled
     And VALHALLA_API_KEY and VALHALLA_BASE_URL are unset
     When ValhallaPathRouterFactory resolves
-    Then StubGraphHopperPathRouter is selected
+    Then StubPathRouter is selected
     And ValhallaLiveCatalog reports degraded stub (not road network)
     And OptimizeResultSummary / Settings label the path as degraded stub
     And stub PathRouter geometry is colinear start→end interpolate

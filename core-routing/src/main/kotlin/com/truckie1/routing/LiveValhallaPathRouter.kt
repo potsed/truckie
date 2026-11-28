@@ -18,7 +18,7 @@ import kotlinx.coroutines.withContext
  * with optional Bearer [apiKey]. Long-term: same client against self-hosted /
  * on-device Valhalla tiles — swap [baseUrl], clear key.
  *
- * Truck costing from [GraphHopperCustomModelStub] / vehicle profile.
+ * Truck costing from [TruckRoutingModel] / vehicle profile.
  * Shape is Valhalla encoded polyline **precision 6**.
  */
 class LiveValhallaPathRouter(
@@ -33,10 +33,10 @@ class LiveValhallaPathRouter(
         start: RouteEndpoint,
         end: RouteEndpoint,
         preferences: TruckRoutingPreferences,
-        customModel: GraphHopperCustomModelStub?,
+        customModel: TruckRoutingModel?,
         avoidUnderBridges: List<RoutingBridgeConstraint>,
     ): PathResult = withContext(ioDispatcher) {
-        val model = customModel ?: GraphHopperCustomModelStub.default(preferences = preferences)
+        val model = customModel ?: TruckRoutingModel.default(preferences = preferences)
         val body = buildRequestBody(start, end, model, avoidUnderBridges)
         val url = baseUrl.trimEnd('/') + "/route"
         val raw = try {
@@ -50,7 +50,7 @@ class LiveValhallaPathRouter(
     private fun buildRequestBody(
         start: RouteEndpoint,
         end: RouteEndpoint,
-        model: GraphHopperCustomModelStub,
+        model: TruckRoutingModel,
         avoidUnderBridges: List<RoutingBridgeConstraint>,
     ): String {
         val exclude = excludePolygonsJson(avoidUnderBridges)

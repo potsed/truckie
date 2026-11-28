@@ -1,7 +1,7 @@
 package com.truckie1.app.ui
 
 /**
- * MapLibre line style for in-app GraphHopper paths (Navigate + home route
+ * MapLibre line style for in-app PathRouter paths (Navigate + home route
  * polyline). Both features share [MapLineBind] / LineManager — not a parallel
  * line stack.
  */

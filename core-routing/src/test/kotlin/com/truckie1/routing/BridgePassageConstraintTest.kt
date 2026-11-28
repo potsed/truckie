@@ -6,7 +6,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * Gherkin: features/route_optimisation_graphhopper.feature —
+ * Gherkin: features/route_optimisation.feature —
  * under-passage hard-block; over deck OK.
  */
 class BridgePassageConstraintTest {

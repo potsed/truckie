@@ -8,8 +8,8 @@ import com.truckie1.routing.PathBlockDetour
 /**
  * Alternate around path blocks via PathRouter (`ff_path_block_detour`, ATNA-102).
  *
- * Defaults **on**. Production design: live GraphHopper Custom Model / blocked
- * edges. Never erase the tour polyline when PathRouter can still draw.
+ * Defaults **on**. Production design: live Valhalla truck costing / exclude
+ * polygons. Never erase the tour polyline when PathRouter can still draw.
  *
  * Gherkin: features/path_block_detour.feature
  */
@@ -21,7 +21,7 @@ object PathBlockDetourCatalog {
 
     val usesPathRouter: Boolean = PathBlockDetour.usesPathRouter
     val usesHandRolledPolylineRule: Boolean = PathBlockDetour.usesHandRolledPolylineRule
-    val prefersLiveGraphHopper: Boolean = PathBlockDetour.prefersLiveGraphHopper
+    val prefersLiveValhalla: Boolean = PathBlockDetour.prefersLiveValhalla
 
     fun isEnabled(flags: FeatureFlags): Boolean =
         flags.isEnabled(FlagKeys.PATH_BLOCK_DETOUR)
