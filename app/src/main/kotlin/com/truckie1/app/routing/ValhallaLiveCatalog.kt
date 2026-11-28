@@ -122,10 +122,15 @@ object ValhallaLiveCatalog {
     }
 
     fun selfHostedSwapSteps(): List<String> = listOf(
-        "Build or obtain AU Valhalla tiles (self-host on OCI Free Tier or on-device)",
+        "Deploy infra/oci-valhalla (OCI Free Tier) or local compose — QLD/SEQ " +
+            "tiles first; see docs/oci-valhalla-runbook.md",
         "Set truckie.valhalla.baseUrl / TRUCKIE_VALHALLA_BASE_URL / VALHALLA_BASE_URL " +
-            "to https://<host> (path prefix that serves /route)",
+            "(secrets.properties or local.properties) to https://<host> " +
+            "(path prefix that serves /route)",
         "Clear VALHALLA_API_KEY / TRUCKIE_VALHALLA_API_KEY (Bearer unused for self-host)",
         "Rebuild with ff_valhalla_live on — same LiveValhallaPathRouter client",
     )
+
+    /** Operator catalog for OCI Free Tier host (ATNA-9). */
+    val ociHostStackPath: String = OciValhallaHostCatalog.STACK_PATH
 }

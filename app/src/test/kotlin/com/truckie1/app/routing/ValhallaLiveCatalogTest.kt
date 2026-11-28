@@ -44,5 +44,10 @@ class ValhallaLiveCatalogTest {
         assertTrue(steps.any { it.contains("tiles", ignoreCase = true) })
         assertTrue(steps.any { it.contains("VALHALLA_BASE_URL") })
         assertTrue(steps.any { it.contains("VALHALLA_API_KEY") })
+        assertTrue(steps.any { it.contains("oci-valhalla") || it.contains("infra/") })
+        assertEquals(
+            OciValhallaHostCatalog.STACK_PATH,
+            ValhallaLiveCatalog.ociHostStackPath,
+        )
     }
 }

@@ -19,7 +19,10 @@ In-app: **Settings → Licenses** (`ff_licenses_page`, defaults **on**). Gherkin
 | --- | --- | --- |
 | MapLibre Native Android (`org.maplibre.gl:android-sdk` **13.7.1**) + Annotation plugin (`android-plugin-annotation` **4.0.0**) | BSD-2-Clause | Wired in `:app`; facade/stub in `:core-maps` |
 | **OpenFreeMap Liberty** + **OpenStreetMap** data | ODbL (OSM) | Basemap tiles (`tiles.openfreemap.org`). **© OpenStreetMap contributors** — attribution required; MapLibre map attribution stays enabled **and** listed on Licenses |
-| Valhalla | MIT | Live PathRouter HTTP client in `:core-routing`. **Interim:** hosted Valhalla; **long-term / offline:** self-hosted or on-device tiles (`docs/valhalla-live.md`, `docs/valhalla-self-host-notes.md`) |
+| Valhalla | MIT | Live PathRouter HTTP client in `:core-routing`. **Interim:** hosted Valhalla; **self-host:** OCI Free Tier / compose (`infra/oci-valhalla/`, `docs/oci-valhalla-runbook.md`) |
+| Valhalla scripted Docker image (`ghcr.io/valhalla/valhalla-scripted`) | MIT (Valhalla) | Ops-only tile host under `infra/oci-valhalla/` — not an Android Maven dep |
+| Caddy (`caddy:2.8-alpine`) | Apache-2.0 | HTTPS reverse proxy in `infra/oci-valhalla/compose` — ops-only |
+| OpenStreetMap PBF (Geofabrik AU → SEQ clip) | ODbL | Routing tiles built on the Valhalla host; © OpenStreetMap contributors |
 | Geoscape **G-NAF** / G-NAF Core (data.gov.au) | CC-BY 4.0 + G-NAF EULA (no bulk mailing) | Seed for owned AU address pack; cite in pack `source` + Licenses. OK for navigation geocoding — not for bulk mail |
 | AndroidX / Jetpack Compose / Material3 / Room / Navigation / DataStore | Apache-2.0 | Via Maven (Compose BOM **2026.11.01**, Room **2.8.5**, …) — curated, not every transitive |
 | Google Play Services Location | Play services ToS (free with Play) | Fused Location Provider |

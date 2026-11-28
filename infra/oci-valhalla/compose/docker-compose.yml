@@ -1,0 +1,76 @@
+# Self-contained OSS Valhalla + Caddy (HTTPS) for OCI Free Tier.
+# Independent of the Truckie Android app / Gradle.
+# Valhalla listens on loopback only; Caddy terminates TLS for clients.
+#
+# Usage (on the VM, after install.sh or terraform stack sync):
+#   cd /opt/oci-valhalla/compose
+#   docker compose up -d
+#
+# Local dogfood (no Caddy domain): start valhalla only, then import-qld-seq.sh.
+
+name: oci-valhalla
+
+services:
+  valhalla:
+    image: ${VALHALLA_IMAGE:-ghcr.io/valhalla/valhalla-scripted:3.9.3}
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      # Prefer tiles already built in the volume; import script force-rebuilds.
+      use_tiles_ignore_pbf: "${USE_TILES_IGNORE_PBF:-True}"
+      force_rebuild: "${FORCE_REBUILD:-False}"
+      build_elevation: "False"
+      build_admins: "False"
+      build_time_zones: "False"
+      build_transit: "False"
+      build_tar: "True"
+      serve_tiles: "True"
+      server_threads: "${SERVER_THREADS:-2}"
+    volumes:
+      - vh_custom_files:/custom_files
+    # Bind localhost only — never publish 8002 on 0.0.0.0
+    ports:
+      - "127.0.0.1:8002:8002"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -fsS http://127.0.0.1:8002/status || exit 1",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 20
+      start_period: 300s
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp
+
+  caddy:
+    image: caddy:2.8-alpine
+    restart: unless-stopped
+    depends_on:
+      valhalla:
+        condition: service_started
+    env_file:
+      - .env
+    environment:
+      VALHALLA_DOMAIN: "${VALHALLA_DOMAIN}"
+      LETSENCRYPT_EMAIL: "${LETSENCRYPT_EMAIL}"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    security_opt:
+      - no-new-privileges:true
+    profiles:
+      - tls
+
+volumes:
+  vh_custom_files:
+  caddy_data:
+  caddy_config:

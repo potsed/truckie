@@ -3,32 +3,40 @@
 Truckie’s **sole** live PathRouter is Valhalla (`ff_valhalla_live` /
 [LiveValhallaPathRouter](../core-routing/src/main/kotlin/com/truckie1/routing/LiveValhallaPathRouter.kt)).
 
-This document is **docs-only** guidance for a future self-hosted or on-device
-Valhalla tile host. It does **not** ship Terraform, Compose, or an apply runbook —
-the former GraphHopper OCI scaffold (`infra/oci-graphhopper/`) was removed with
-ATNA-114.
+**Working path (ATNA-9):** reusable OCI Free Tier + local Compose scaffold under
+[`infra/oci-valhalla/`](../infra/oci-valhalla/). Operator runbook:
+[`oci-valhalla-runbook.md`](./oci-valhalla-runbook.md).
 
-## App wiring (already in-tree)
+GraphHopper OCI (`infra/oci-graphhopper/`) stays **deleted** (ATNA-114) — do not revive.
+
+## App wiring (in-tree)
 
 | Piece | Where |
 | --- | --- |
 | Flag | `ff_valhalla_live` |
-| Catalog | `ValhallaLiveCatalog` / `ValhallaLiveCatalog.selfHostedSwapSteps()` |
+| Catalog | `ValhallaLiveCatalog` / `OciValhallaHostCatalog` |
 | Factory | `ValhallaPathRouterFactory` |
 | Interim hosted | `VALHALLA_API_KEY` → Simple Routing default base |
 | Self-host / offline | `VALHALLA_BASE_URL` serving `/route`; **clear** API key |
 
 See [`valhalla-live.md`](./valhalla-live.md) for credentials and request shape.
 
-## Operator intent (when tiles exist)
+## Operator path
 
-1. Build or obtain **AU** Valhalla tiles (OCI Free Tier VM or on-device pack).
-2. Expose Valhalla’s HTTP `/route` behind HTTPS (Caddy/nginx — your choice).
+1. Deploy [`infra/oci-valhalla/`](../infra/oci-valhalla/) (Terraform + `import-qld-seq.sh`) **or** local `docker compose`.
+2. SEQ (QLD-first) tiles are the Free Tier default — Brisbane sample smoke included.
 3. Point Truckie at the host:
    - `truckie.valhalla.baseUrl=https://<domain>` or `TRUCKIE_VALHALLA_BASE_URL` /
-     `VALHALLA_BASE_URL` in `secrets.properties`
+     `VALHALLA_BASE_URL` in `secrets.properties` / `local.properties`
 4. Clear `VALHALLA_API_KEY` / `TRUCKIE_VALHALLA_API_KEY`.
 5. Rebuild with `ff_valhalla_live` on — same client as hosted interim.
 
-Do **not** invent or commit OCI Terraform here until a Valhalla self-host task
-owns infra. Bridge/weight packs stay on GitHub Releases. No Firebase.
+Bridge/weight packs stay on GitHub Releases. No Firebase.
+
+## Limits + next steps
+
+| Slice | Free Tier | Notes |
+| --- | --- | --- |
+| SEQ (default) | Yes | Ship this first |
+| Wider QLD | Maybe | Widen `--bbox`; watch RAM |
+| Full AU | Usually no | Larger VM / regional packs / on-device tiles later |

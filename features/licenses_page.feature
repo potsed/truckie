@@ -25,7 +25,8 @@ Feature: Licenses page for third-party dependencies
     Given the licenses inventory SoT
     Then it includes MapLibre Native Android
     And it includes OpenFreeMap with OpenStreetMap attribution
-    And it includes Valhalla with an interim hosted routing note
+    And it includes Valhalla with interim hosted and self-host (OCI) notes
+    And it includes the Valhalla scripted Docker image and Caddy as ops-only entries
     And it includes G-NAF with CC-BY and EULA constraints
     And it includes AndroidX / Compose / Room as practical curated entries
 
