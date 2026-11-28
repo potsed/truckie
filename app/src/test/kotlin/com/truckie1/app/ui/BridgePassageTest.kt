@@ -13,9 +13,10 @@ import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 
 /**
- * Gherkin: features/bridge_passage.feature — ATNA-48.
+ * Gherkin: features/bridge_passage.feature — ATNA-48 / ATNA-94.
  *
- * Passage under/over/both/unknown; height conflicts block under-paths only.
+ * Passage under/over/both/unknown; wire passage preferred over CBD id heuristics;
+ * height conflicts block under-paths only.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28])
@@ -188,7 +189,7 @@ class BridgePassageTest {
     }
 
     @Test
-    fun packInfersPassageForKnownProvidersAndCbdSamples() {
+    fun packWirePassageDrivesCbdSamplesAndProviders() {
         val bridges = BridgeMarkersCatalog.loadFromAssets(RuntimeEnvironment.getApplication())
         assertTrue(bridges.isNotEmpty())
 
@@ -198,6 +199,7 @@ class BridgePassageTest {
             assertEquals("${it.id} should be under", BridgePassage.UNDER, it.passage)
         }
 
+        // CBD river samples: pack JSON wire `passage`, not id-name heuristics (ATNA-94).
         val story = bridges.first { it.id.contains("story-bridge", ignoreCase = true) }
         val victoria = bridges.first { it.id.contains("victoria-bridge", ignoreCase = true) }
         assertEquals(BridgePassage.BOTH, story.passage)
@@ -254,7 +256,118 @@ class BridgePassageTest {
     }
 
     @Test
-    fun resolveInfersWithoutInventingClearanceHeights() {
+    fun parseJsonWithoutWireDoesNotInventCbdPassageFromIds() {
+        val raw = """
+            [
+              {
+                "id": "qld-story-bridge-orphan",
+                "name": "Story Bridge orphan",
+                "lat": -27.468,
+                "lng": 153.036,
+                "clearanceHeightM": 3.8,
+                "clearanceStatus": "verified"
+              },
+              {
+                "id": "qld-captain-cook-orphan",
+                "name": "Captain Cook orphan",
+                "lat": -27.48,
+                "lng": 153.029,
+                "clearanceStatus": "unknown"
+              }
+            ]
+        """.trimIndent()
+        val parsed = BridgeMarkersCatalog.parseJson(raw)
+        assertEquals(2, parsed.size)
+        // Verified under-clearance fallback — not Story-name → both.
+        assertEquals(BridgePassage.UNDER, parsed[0].passage)
+        // No wire, no provider, no verified height — unknown, not Captain-Cook → over.
+        assertEquals(BridgePassage.UNKNOWN, parsed[1].passage)
+        assertEquals(null, parsed[1].clearanceHeightM)
+    }
+
+    @Test
+    fun resolvePrefersWirePassageOverCbdIdHeuristics() {
+        // Explicit pack wire wins even on Story/Captain-Cook-style ids (ATNA-94).
+        assertEquals(
+            BridgePassage.BOTH,
+            BridgePassageInference.resolve(
+                id = "qld-story-bridge-sample",
+                clearanceProvider = null,
+                clearanceHeightM = 3.8,
+                clearanceStatus = BridgeClearanceStatus.VERIFIED,
+                explicit = BridgePassage.BOTH,
+            ),
+        )
+        assertEquals(
+            BridgePassage.OVER,
+            BridgePassageInference.resolve(
+                id = "qld-captain-cook-bridge-sample",
+                clearanceProvider = null,
+                clearanceHeightM = null,
+                clearanceStatus = BridgeClearanceStatus.UNKNOWN,
+                explicit = BridgePassage.OVER,
+            ),
+        )
+        // Wire also wins over provider default.
+        assertEquals(
+            BridgePassage.BOTH,
+            BridgePassageInference.resolve(
+                id = "qld-qr-x",
+                clearanceProvider = QueenslandRailClearances.PROVIDER_WIRE,
+                clearanceHeightM = 4.0,
+                clearanceStatus = BridgeClearanceStatus.VERIFIED,
+                explicit = BridgePassage.BOTH,
+            ),
+        )
+    }
+
+    @Test
+    fun resolveDoesNotInferPassageFromCbdBridgeNames() {
+        // Without wire passage, Story/Victoria ids must not invent "both".
+        assertEquals(
+            BridgePassage.UNDER,
+            BridgePassageInference.resolve(
+                id = "qld-story-bridge-sample",
+                clearanceProvider = null,
+                clearanceHeightM = 3.8,
+                clearanceStatus = BridgeClearanceStatus.VERIFIED,
+                explicit = null,
+            ),
+        )
+        assertEquals(
+            BridgePassage.UNDER,
+            BridgePassageInference.resolve(
+                id = "qld-victoria-bridge-sample",
+                clearanceProvider = null,
+                clearanceHeightM = 4.4,
+                clearanceStatus = BridgeClearanceStatus.VERIFIED,
+                explicit = null,
+            ),
+        )
+        // Without wire passage, Captain Cook / William Jolly / etc. must not invent "over".
+        listOf(
+            "qld-captain-cook-bridge-sample",
+            "qld-william-jolly-bridge-sample",
+            "qld-go-between-bridge-sample",
+            "qld-goodwill-bridge-sample",
+            "qld-kurilpa-bridge-sample",
+        ).forEach { id ->
+            assertEquals(
+                id,
+                BridgePassage.UNKNOWN,
+                BridgePassageInference.resolve(
+                    id = id,
+                    clearanceProvider = null,
+                    clearanceHeightM = null,
+                    clearanceStatus = BridgeClearanceStatus.UNKNOWN,
+                    explicit = null,
+                ),
+            )
+        }
+    }
+
+    @Test
+    fun resolveInfersProviderUnderWithoutInventingClearanceHeights() {
         assertEquals(
             BridgePassage.UNDER,
             BridgePassageInference.resolve(
@@ -266,34 +379,34 @@ class BridgePassageTest {
             ),
         )
         assertEquals(
-            BridgePassage.BOTH,
+            BridgePassage.UNDER,
             BridgePassageInference.resolve(
-                id = "qld-story-bridge-sample",
-                clearanceProvider = null,
+                id = "qld-tmr-24215",
+                clearanceProvider = TmrStructureClearances.PROVIDER_WIRE,
+                clearanceHeightM = 4.3,
+                clearanceStatus = BridgeClearanceStatus.VERIFIED,
+                explicit = null,
+            ),
+        )
+        assertEquals(
+            BridgePassage.UNDER,
+            BridgePassageInference.resolve(
+                id = "qld-bcc-b0001-13",
+                clearanceProvider = BccRoadHeightRestrictions.PROVIDER_WIRE,
                 clearanceHeightM = 3.8,
                 clearanceStatus = BridgeClearanceStatus.VERIFIED,
                 explicit = null,
             ),
         )
+        // Published verified clearance without provider/wire → under (not CBD name).
         assertEquals(
-            BridgePassage.OVER,
+            BridgePassage.UNDER,
             BridgePassageInference.resolve(
-                id = "qld-captain-cook-bridge-sample",
+                id = "generic-low-span",
                 clearanceProvider = null,
-                clearanceHeightM = null,
-                clearanceStatus = BridgeClearanceStatus.UNKNOWN,
-                explicit = null,
-            ),
-        )
-        // Explicit pack value wins.
-        assertEquals(
-            BridgePassage.BOTH,
-            BridgePassageInference.resolve(
-                id = "qld-qr-x",
-                clearanceProvider = QueenslandRailClearances.PROVIDER_WIRE,
-                clearanceHeightM = 4.0,
+                clearanceHeightM = 3.5,
                 clearanceStatus = BridgeClearanceStatus.VERIFIED,
-                explicit = BridgePassage.BOTH,
+                explicit = null,
             ),
         )
     }

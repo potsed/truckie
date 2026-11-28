@@ -15,15 +15,21 @@ import com.truckie1.routing.BridgePassageRelation
 typealias BridgePassage = BridgePassageRelation
 
 /**
- * Pack passage inference for home-map / bootstrap rows (ATNA-48).
+ * Pack passage resolution for home-map / bootstrap rows (ATNA-48 / ATNA-94).
  *
- * Explicit wire `passage` wins. Otherwise infer from known providers / CBD
- * samples — **never invents clearance heights**. Prefer wire values in JSON.
+ * One clear path:
+ * 1. Explicit pack JSON wire `passage` wins
+ * 2. Else known under-clearance providers (QR / TMR / BCC) → under
+ * 3. Else published verified clearance without other cues → under
+ * 4. Else unknown
+ *
+ * CBD bridge names (Story / Victoria / Captain Cook / …) are **not** inferred
+ * from ids — pack wire carries `both` / `over`. Never invents clearance heights.
  */
 object BridgePassageInference {
     /**
-     * Resolve pack passage. Explicit wire value wins. Otherwise infer from
-     * known providers / CBD samples — **never invents clearance heights**.
+     * Resolve pack passage. Wire value wins; provider / verified-under
+     * fallbacks only — no CBD id-name heuristics (ATNA-94).
      */
     fun resolve(
         id: String,
@@ -35,25 +41,24 @@ object BridgePassageInference {
         if (explicit != null && explicit != BridgePassage.UNKNOWN) return explicit
         val idLower = id.lowercase()
         return when {
-            clearanceProvider == QueenslandRailClearances.PROVIDER_WIRE ||
-                idLower.startsWith("qld-qr-") -> BridgePassage.UNDER
-            clearanceProvider == TmrStructureClearances.PROVIDER_WIRE ||
-                idLower.startsWith("qld-tmr-") -> BridgePassage.UNDER
-            clearanceProvider == BccRoadHeightRestrictions.PROVIDER_WIRE ||
-                idLower.startsWith("qld-bcc-") -> BridgePassage.UNDER
-            idLower.contains("story-bridge") ||
-                idLower.contains("victoria-bridge") -> BridgePassage.BOTH
-            idLower.contains("captain-cook") ||
-                idLower.contains("william-jolly") ||
-                idLower.contains("go-between") ||
-                idLower.contains("goodwill") ||
-                idLower.contains("kurilpa") -> BridgePassage.OVER
+            isUnderClearanceProvider(clearanceProvider, idLower) -> BridgePassage.UNDER
             // Published road clearance without other cues = under-path restriction.
             clearanceHeightM != null &&
                 clearanceStatus == BridgeClearanceStatus.VERIFIED -> BridgePassage.UNDER
             else -> BridgePassage.UNKNOWN
         }
     }
+
+    private fun isUnderClearanceProvider(
+        clearanceProvider: String?,
+        idLower: String,
+    ): Boolean =
+        clearanceProvider == QueenslandRailClearances.PROVIDER_WIRE ||
+            idLower.startsWith("qld-qr-") ||
+            clearanceProvider == TmrStructureClearances.PROVIDER_WIRE ||
+            idLower.startsWith("qld-tmr-") ||
+            clearanceProvider == BccRoadHeightRestrictions.PROVIDER_WIRE ||
+            idLower.startsWith("qld-bcc-")
 }
 
 /**

@@ -58,7 +58,7 @@ With an **active vehicle** that has a usable height, home-map W5-8 symbols show 
 | **API** | `VehicleHeightBridgeFilter.bridgesAffectingVehicle(…)` |
 | **Passage** | With `ff_bridge_passage`, conflicts require under-restriction (ATNA-48) — OK to drive **over** the deck. |
 
-## Bridge passage over vs under (ATNA-48)
+## Bridge passage over vs under (ATNA-48 / ATNA-94)
 
 Flag **`ff_bridge_passage`**. Pack field `passage`: `under` | `over` | `both` | `unknown`.
 
@@ -68,6 +68,8 @@ Flag **`ff_bridge_passage`**. Pack field `passage`: `under` | `over` | `both` | 
 | **over** | Drive across the deck (river road bridges without published under clearance) |
 | **both** | Deck is driveable over **and** a published under-path clearance exists (Story, Victoria) |
 | **unknown** | Not classified without inventing data |
+
+**Source of truth:** pack JSON wire `passage` (ATNA-94). `BridgePassageInference` does **not** classify Story / Victoria / Captain Cook (and similar) from id/name heuristics — CBD `both` / `over` values come from the pack. Fallbacks when wire is absent: QR / TMR / BCC provider (or id prefix) → `under`; published verified clearance → `under`; else `unknown`.
 
 **Routing rule (Daniel):** OK to drive **over** a low bridge deck; **not OK to drive under** when clearance conflicts with vehicle height + buffer. Home-map and PathRouter share **`BridgePassagePolicy`** in `:core-routing` (ATNA-73) — map `BridgePassageFilter` and routing `BridgePassageConstraint` are thin facades. Never invent clearances.
 

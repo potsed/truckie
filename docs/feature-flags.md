@@ -51,7 +51,7 @@ XML screen layouts were removed; do not add new AppCompat/XML screens.
 | `ff_tmr_structure_clearances` | TMR Structure Clearances in Queensland (ATNA-46): show published TMR spatial pack entries; off hides TMR rows only | off (on in debug) |
 | `ff_bcc_road_height_restrictions` | BCC Road Height Restrictions GIS (ATNA-46): show Brisbane Open Data under-4.6 m local pack entries; off keeps curated CBD samples | off (on in debug) |
 | `ff_vehicle_height_bridge_filter` | Home-map W5-8 conflicts only (ATNA-47): show low bridges where clearance &lt; vehicle height + system buffer; no usable height → show all low | off (on in debug) |
-| `ff_bridge_passage` | Bridge over vs under (ATNA-48 / ATNA-73): model under/over/both/unknown; shared `BridgePassagePolicy` blocks under-paths only (OK to drive over deck); intentional stop proximity to a low structure is allowed (delivery — demo Wynnum/Colina); mid-path conflicts retry via `ff_path_block_detour` / PathRouter (never blank polyline); home-map uses `BridgeVisibilityPipeline` | off (on in debug) |
+| `ff_bridge_passage` | Bridge over vs under (ATNA-48 / ATNA-73 / ATNA-94): model under/over/both/unknown from pack wire `passage` (no CBD id-name heuristics); shared `BridgePassagePolicy` blocks under-paths only (OK to drive over deck); intentional stop proximity to a low structure is allowed (delivery — demo Wynnum/Colina); mid-path conflicts retry via `ff_path_block_detour` / PathRouter (never blank polyline); home-map uses `BridgeVisibilityPipeline` | off (on in debug) |
 | `ff_demo_mode` | Demo mode (ATNA-56 / ATNA-75) — Settings toggle selects the demo `AppDataSource` (same Vehicle/Route/TripStop schema; read-only sample SEQ run). Real data stays in the real store. Floating **DEMO MODE** pill is the only in-app demo label; dataset copy is neutral. Jump FAB + residual helpers removed (ATNA-67 / ATNA-92) | **off** (including debug — Settings opt-in only) |
 | `ff_map_heading_up` | Orient map to driving direction — map-chrome lock control (like Recenter); while following, MapLibre `TRACKING_GPS` course-up (off = north-up `TRACKING`) | off (on in debug) |
 | `ff_map_street_labels` | Prefer street/road name labels over POI clutter on OpenFreeMap Liberty (ATNA-78): runtime visibility + minzoom tweaks; same OSS style URL | off (on in debug) |
@@ -182,8 +182,9 @@ enablement. Catalogs encode the contracts; Gherkin lives under `features/`.
     conflicts (`clearance < vehicleHeight + ClearanceBuffer`). Keeps W5-8 low-only
     rules; never invents heights. No active vehicle / no usable height → show all
     low-pack markers (`show_all_low`) so CBD samples remain visible without an active vehicle.
-19. Bridge passage (`ff_bridge_passage`, ATNA-48): pack models under/over/both/unknown.
-    Height conflicts (and future routing) block driving **under** a restricted
+19. Bridge passage (`ff_bridge_passage`, ATNA-48 / ATNA-94): pack JSON wire
+    `passage` is SoT for under/over/both/unknown (CBD Story/Victoria/Captain Cook
+    ids are not inferred). Height conflicts block driving **under** a restricted
     structure — OK to drive **over** the deck. Bootstrap `0.7.0-sample`. Never
     invents clearances.
 20. Demo mode (`ff_demo_mode`, ATNA-56 / ATNA-75) is a Settings switch that selects

@@ -7,9 +7,10 @@ Feature: Bridge over vs under passage
   # Passage: under | over | both | unknown
   # Routing rule (Daniel): OK to drive over a low bridge deck; not OK to drive under
   # when clearance conflicts with vehicle height + buffer.
-  # QR underbridges → under. River road bridges (Story etc.) → primarily over for the
-  # deck; published clearances apply to under paths (both). Never invent clearances.
-  # ATNA-48
+  # Pack JSON wire `passage` is source of truth (ATNA-94). Provider prefixes
+  # (QR / TMR / BCC) and verified under-clearance remain the only inference
+  # fallbacks — no Story / Victoria / Captain Cook id name heuristics.
+  # Never invent clearances. ATNA-48 / ATNA-94
 
   Scenario: Bridge passage is feature-flagged
     Given the feature flag ff_bridge_passage is off
@@ -17,11 +18,18 @@ Feature: Bridge over vs under passage
     When ff_bridge_passage is enabled
     Then height conflicts apply only when the vehicle path goes under a restricted structure
 
-  Scenario: Pack models under, over, both, and unknown
+  Scenario: Pack wire passage is preferred over CBD id heuristics
+    Given a pack row with explicit wire passage both on a Story-style id
+    Then resolve uses the wire value both
+    And a Captain-Cook-style id without wire passage does not infer over from the name
+    And a Story-style id without wire passage does not infer both from the name
+    And Queensland Rail / TMR / BCC provider rows still infer under without inventing heights
+
+  Scenario: Pack models under, over, both, and unknown from wire
     Given the Australia-first bridge pack is loaded
     Then Queensland Rail road-under-rail rows have passage under
-    And Story Bridge and Victoria Bridge have passage both (deck over + published under clearance)
-    And Captain Cook / William Jolly / Go Between have passage over (road deck; no under clearance invented)
+    And Story Bridge and Victoria Bridge have wire passage both (deck over + published under clearance)
+    And Captain Cook / William Jolly / Go Between have wire passage over (road deck; no under clearance invented)
     And unknown is used only when passage cannot be classified without inventing data
 
   Scenario: Height conflict blocks under, not over
