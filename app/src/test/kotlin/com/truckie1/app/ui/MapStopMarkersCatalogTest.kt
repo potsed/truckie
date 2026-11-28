@@ -54,13 +54,15 @@ class MapStopMarkersCatalogTest {
     @Test
     fun usesStyleSymbolLayerNotAnnotationOrDeprecatedMarkerApi() {
         assertTrue(MapStopMarkersCatalog.usesStyleSymbolLayer)
+        assertTrue(MapStopMarkersCatalog.usesNumberedSpriteIcons)
+        assertFalse(MapStopMarkersCatalog.stopSymbolLayerUsesTextField)
         assertFalse(MapStopMarkersCatalog.usesSymbolManager)
         assertFalse(MapStopMarkersCatalog.usesDeprecatedMarkerApi)
         assertTrue(MapStopMarkersCatalog.usesSharedStyleOverlayBindPath)
         assertTrue(MapStopMarkersCatalog.sharesStyleLifecycleWithBridges)
         assertTrue(MapSymbolBind.sharesPathWithBridgeAndStopMarkers)
-        assertTrue(MapStopMarkersCatalog.requiresOpenFreeMapCompatibleTextFont)
-        assertEquals("Noto Sans Regular", MapStopMarkersCatalog.symbolTextFont.single())
+        // Stop index is sprite-baked — stop layer does not need OpenFreeMap glyphs.
+        assertFalse(MapStopMarkersCatalog.requiresOpenFreeMapCompatibleTextFont)
     }
 
     @Test
@@ -72,6 +74,14 @@ class MapStopMarkersCatalogTest {
         assertEquals(
             MapStopMarkersCatalog.ICON_DROPOFF,
             MapStopMarkersCatalog.iconIdFor(StopKind.DROP_OFF_UNLOAD),
+        )
+        assertEquals(
+            "truckie_stop_pickup_1",
+            MapStopMarkersCatalog.iconIdFor(StopKind.PICKUP_LOAD, 1),
+        )
+        assertEquals(
+            "truckie_stop_dropoff_2",
+            MapStopMarkersCatalog.iconIdFor(StopKind.DROP_OFF_UNLOAD, 2),
         )
         assertNotEquals(
             MapStopMarkersCatalog.ICON_PICKUP,
@@ -88,10 +98,12 @@ class MapStopMarkersCatalogTest {
         val pickup = MapStopMarkersCatalog.createStopMarkerBitmap(
             sizePx = 48,
             kind = StopKind.PICKUP_LOAD,
+            orderIndex = 1,
         )
         val dropoff = MapStopMarkersCatalog.createStopMarkerBitmap(
             sizePx = 48,
             kind = StopKind.DROP_OFF_UNLOAD,
+            orderIndex = 2,
         )
         assertNotNull(pickup)
         assertNotNull(dropoff)

@@ -111,15 +111,22 @@ class MapOverlayGeoJsonTest {
         val pickup = features.getJSONObject(0)
         val pickupProps = pickup.getJSONObject("properties")
         assertEquals("s1", pickupProps.getString("id"))
-        assertEquals(MapStopMarkersCatalog.ICON_PICKUP, pickupProps.getString(MapOverlayGeoJson.PROP_ICON))
-        assertEquals("1", pickupProps.getString(MapOverlayGeoJson.PROP_LABEL))
+        assertEquals(
+            MapStopMarkersCatalog.iconIdFor(StopKind.PICKUP_LOAD, 1),
+            pickupProps.getString(MapOverlayGeoJson.PROP_ICON),
+        )
+        // Number baked into sprite — no textField label property (ATNA-121).
+        assertFalse(pickupProps.has(MapOverlayGeoJson.PROP_LABEL))
         val pickupCoords = pickup.getJSONObject("geometry").getJSONArray("coordinates")
         assertEquals(153.02, pickupCoords.getDouble(0), 1e-6)
         assertEquals(-27.47, pickupCoords.getDouble(1), 1e-6)
 
         val drop = features.getJSONObject(1).getJSONObject("properties")
-        assertEquals(MapStopMarkersCatalog.ICON_DROPOFF, drop.getString(MapOverlayGeoJson.PROP_ICON))
-        assertEquals("2", drop.getString(MapOverlayGeoJson.PROP_LABEL))
+        assertEquals(
+            MapStopMarkersCatalog.iconIdFor(StopKind.DROP_OFF_UNLOAD, 2),
+            drop.getString(MapOverlayGeoJson.PROP_ICON),
+        )
+        assertFalse(drop.has(MapOverlayGeoJson.PROP_LABEL))
     }
 
     @Test

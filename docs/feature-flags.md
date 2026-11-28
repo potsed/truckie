@@ -43,7 +43,7 @@ XML screen layouts were removed; do not add new AppCompat/XML screens.
 | `ff_room_route_persist` | Room-persist active route + stops (ATNA-89 / P1-4): Real AppDataSource ActiveTour read/write through Room; demo stays isolated read-only in-memory; `exportSchema` + Migration 1→2; no main-thread Room allow | **on** (defaults on) |
 | `ff_active_tour` | Single ActiveTourSession SoT (ATNA-86): map-home Route + Plan Trip / Optimise + demo; TripStop is a projection | **on** (defaults on) |
 | `ff_bridge_markers` | Low-bridge markers on MapLibre home (Australia-first sample JSON asset; GeoJSON symbol layer + optional clearance label) | off (on in debug) |
-| `ff_stop_markers` | Route stop markers on MapLibre home (ATNA-81 / ATNA-117): pickup vs drop-off style-layer icons from active AppDataSource route; shares bridge GeoJSON / style lifecycle bind path | off (on in debug) |
+| `ff_stop_markers` | Route stop markers on MapLibre home (ATNA-81 / ATNA-117 / ATNA-121): numbered pickup/drop-off style-image sprites + one symbol layer from active AppDataSource route; shares bridge GeoJSON / style lifecycle bind path | off (on in debug) |
 | `ff_map_route_polyline` | Active route polyline on MapLibre home (ATNA-82 / ATNA-117): PathRouter / MultiStopTourComposer constrained geometry via shared style line layer with Navigate; Fastest + Cost Effective checkboxes both on by default (AND); stub geometry only when stub PathRouter is active | off (on in debug) |
 | `ff_next_destination_display` | While navigating, show upcoming stop / end address (ATNA-83): compact optional phone chip; **must** show clearly on Android Auto when ATNA-10 lands. Human-driver first-class destination (not turn-only). No route overlay changes | off (on in debug) |
 | `ff_verified_cbd_clearances` | Verified CBD sample clearances (ATNA-42): labels only for published road heights; unknown / not_applicable omit invented mocks | off (on in debug) |
@@ -156,11 +156,12 @@ enablement. Catalogs encode the contracts; Gherkin lives under `features/`.
     when `clearanceHeightM` is present (text-font **Noto Sans Regular** for OpenFreeMap
     Liberty — default Open Sans stack 404s and hides icons). Requires map home to be the
     active surface; does not change create-route or vehicle UI.
-12b. Stop markers (`ff_stop_markers`, ATNA-81 / ATNA-117) plot active-route pickup/drop-off
-    stops on the same MapLibre home via the **same** [MapStyleOverlayBind] /
+12b. Stop markers (`ff_stop_markers`, ATNA-81 / ATNA-117 / ATNA-121) plot active-route
+    pickup/drop-off stops on the same MapLibre home via the **same** [MapStyleOverlayBind] /
     [MapLibreStyleLifecycle] path as bridges (shared GeoJSON / style-layer path — not a
-    parallel stack). Stops come from [AppDataSource] (demo or real). Distinct icons for
-    pickup/load vs drop-off/unload. Satellite peek is out of scope.
+    parallel stack). Stops come from [AppDataSource] (demo or real). **Numbered style-image
+    sprites** (`Style.addImage` + one icon-only symbol layer — no textField, no Annotation).
+    Distinct pickup/drop-off colours. Satellite peek is out of scope.
 13. Verified CBD clearances (`ff_verified_cbd_clearances`, ATNA-42) replace mock demo heights
     with BCC/QR/TMR-sourced road clearances (or omit height as unknown / not_applicable).
     When on, map labels show only `clearanceStatus=verified` heights. Pack meta cites sources

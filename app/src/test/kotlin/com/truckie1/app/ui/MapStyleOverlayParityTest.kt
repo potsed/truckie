@@ -58,6 +58,8 @@ class MapStyleOverlayParityTest {
     @Test
     fun stopCatalogDeclaresStyleSymbolLayerParity() {
         assertTrue(MapStopMarkersCatalog.usesStyleSymbolLayer)
+        assertTrue(MapStopMarkersCatalog.usesNumberedSpriteIcons)
+        assertFalse(MapStopMarkersCatalog.stopSymbolLayerUsesTextField)
         assertFalse(MapStopMarkersCatalog.usesSymbolManager)
         assertFalse(MapStopMarkersCatalog.usesDeprecatedMarkerApi)
         assertTrue(MapStopMarkersCatalog.usesSharedStyleOverlayBindPath)
@@ -66,18 +68,11 @@ class MapStyleOverlayParityTest {
             MapStyleOverlayCatalog.IconSize.STOP,
             MapStopMarkersCatalog.ICON_SIZE,
         )
-        assertEquals(
-            MapLibreSymbolText.openFreeMapTextFont.toList(),
-            MapStopMarkersCatalog.symbolTextFont.toList(),
-        )
-        assertEquals("#FFFFFF", MapStyleOverlayCatalog.StopLabel.TEXT_COLOR_HEX)
-        assertEquals("#0B1F33", MapStyleOverlayCatalog.StopLabel.TEXT_HALO_COLOR_HEX)
-        assertEquals(12f, MapStyleOverlayCatalog.StopLabel.TEXT_SIZE)
-        assertEquals(1.0f, MapStyleOverlayCatalog.StopLabel.TEXT_HALO_WIDTH)
-        assertEquals(
-            listOf(0f, 0.05f),
-            MapStyleOverlayCatalog.StopLabel.TEXT_OFFSET.toList(),
-        )
+        assertEquals("center", MapStyleOverlayCatalog.StopPin.ICON_ANCHOR)
+        assertTrue(MapStyleOverlayBind.stopSymbolLayerUsesIconOnly)
+        assertFalse(MapStyleOverlayBind.stopSymbolLayerUsesTextField)
+        assertTrue(MapLibreHost.usesSingleApplyOverlaysPath)
+        assertFalse(MapLibreHost.usesDuplicateOverlayBinds)
     }
 
     @Test

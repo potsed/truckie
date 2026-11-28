@@ -42,16 +42,14 @@ class MapLibreSymbolTextTest {
     }
 
     @Test
-    fun bridgeAndStopMarkersShareOpenFreeMapFontContract() {
+    fun bridgeClearanceLabelsNeedOpenFreeMapFontStopPinsDoNot() {
         assertTrue(BridgeMarkersVisibility.requiresOpenFreeMapCompatibleTextFont)
-        assertTrue(MapStopMarkersCatalog.requiresOpenFreeMapCompatibleTextFont)
         assertArrayEquals(
             MapLibreSymbolText.openFreeMapTextFont,
             BridgeMarkersVisibility.symbolTextFont,
         )
-        assertArrayEquals(
-            MapLibreSymbolText.openFreeMapTextFont,
-            MapStopMarkersCatalog.symbolTextFont,
-        )
+        // Stop order is sprite-baked; stop SymbolLayer has no textField (ATNA-121).
+        assertFalse(MapStopMarkersCatalog.requiresOpenFreeMapCompatibleTextFont)
+        assertFalse(MapStopMarkersCatalog.stopSymbolLayerUsesTextField)
     }
 }
