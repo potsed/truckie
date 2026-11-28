@@ -12,7 +12,7 @@ AU-first (QLD/Brisbane), expandable. Product UI term: **Vehicle** (not Truck).
 | Modules | `app`, `core-routing`, `core-profiles`, `core-trips`, `core-maps`, `core-flags` |
 | Map | MapLibre Native Android (`:core-maps` + `:app` map home, `ff_map_home`) |
 | Routing | Valhalla PathRouter (`:core-routing`); interim hosted Valhalla, later self-hosted/offline tiles |
-| Flags | Local feature-flag facade (`:core-flags`) |
+| Flags | Local feature-flag facade (`:core-flags`); durable overrides via Preferences DataStore (`FeatureFlagStore`, ATNA-93) |
 | Profiles | Room by rego (`ff_vehicle_profiles`); make/model/year, H/W/L, mass/TARE/GVM/GCM, axles, network |
 | Trips | In-memory stop list (`ff_multi_stop`); cargo pick-up/drop-off (`ff_stop_cargo`); optimize Fastest/Cheapest (`ff_route_optimize`) |
 | minSdk | **24** (Compose Material3 1.5 / BOM 2026.11; Android Auto gated in code) |
@@ -60,6 +60,10 @@ Debug APK path: `app/build/outputs/apk/debug/app-debug.apk`
 ## Feature flags
 
 Every user-facing capability is gated. See [docs/feature-flags.md](docs/feature-flags.md).
+
+**Durable prefs (ATNA-93):** Demo mode (Settings) and heading-up lock survive process
+death via Preferences DataStore `truckie_feature_flags`. Production defaults stay off;
+debug dogfood uses `seedIfAbsent` so persisted toggles are not overwritten.
 
 ## Live Valhalla (select-user)
 

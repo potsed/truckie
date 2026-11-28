@@ -2,6 +2,15 @@
 
 Facade: `:core-flags` (`FeatureFlags` / `LocalFeatureFlags`).
 
+**Durable prefs (ATNA-93):** flag overrides (including Demo mode and heading-up)
+persist through one Preferences DataStore path —
+`FeatureFlagStore` / `DataStoreFeatureFlagStore` (`truckie_feature_flags`) —
+bound via `FeatureFlagPersistence.bind`. `LocalFeatureFlags.setEnabled` is the
+only write-through; `seedIfAbsent` fills debug / structural defaults in memory
+without writing the store and never overwrites a persisted override (including
+persisted `false`). Production defaults stay **off** until seeded or toggled.
+See `features/feature_flag_persist.feature`.
+
 Production defaults are **off** until explicitly enabled for dogfood or release.
 
 Presentation stack: **Jetpack Compose Material3** (see `features/compose_ui.feature`). Not a product toggle —
@@ -173,12 +182,16 @@ See `features/map_home_orchestration.feature`. Live routing is Valhalla only
     Berrima St Wynnum 1.9 m underbridge), **3.5 m** vehicle. Jump FAB + residual
     helpers removed (ATNA-67 / ATNA-92). Defaults **off** in production **and**
     debug — Settings opt-in only (`DemoModeCatalog.ENABLED_BY_DEFAULT_IN_DEBUG = false`).
+    **Persists** across process death via the shared [FeatureFlagStore] (ATNA-93) —
+    same path as other flag overrides; no separate Demo prefs file.
 21. Map heading-up (`ff_map_heading_up`) is a **map-chrome orientation lock** (same overlay
     pattern as Recenter — not a Settings switch). Requires `ff_map_home` +
     `ff_map_location_puck` follow. Locked → course-up (`TRACKING_GPS` + GPS puck);
     unlocked → north-up `TRACKING`. Free pan exits rotation; Recenter restores follow
     (and course-up when lock is on). While already following, orientation lock syncs
     modes via the same [MapFollowReconcile] path (does not exit follow or touch zoom).
+    Lock state **persists** via [FeatureFlagStore] (ATNA-93); debug `seedIfAbsent`
+    does not overwrite a persisted unlock.
 22. Street labels (`ff_map_street_labels`, ATNA-78) keep the OpenFreeMap Liberty style
     URL and apply **runtime** layer visibility / minzoom tweaks after load: ensure
     `highway-name-major` / `highway-name-minor` are visible, lower minor-road name

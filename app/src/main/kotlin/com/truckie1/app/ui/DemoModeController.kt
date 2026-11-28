@@ -10,8 +10,9 @@ import java.util.concurrent.atomic.AtomicInteger
  * no backup/restore, no [ensureSeededIfDemo], no competing seed paths (ATNA-75).
  *
  * Call [setEnabled] from Settings. UI keys refreshes off [revision].
+ * Persistence is [LocalFeatureFlags.setEnabled] → FeatureFlagStore (ATNA-93).
  *
- * Gherkin: features/demo_mode.feature
+ * Gherkin: features/demo_mode.feature, features/feature_flag_persist.feature
  */
 class DemoModeController(
     private val flags: LocalFeatureFlags,

@@ -28,6 +28,12 @@ Feature: Map orients to driving direction while following
     Then ff_map_heading_up toggles on or off
     And while locked and following the camera mode is TRACKING_GPS
 
+  # Durable prefs (ATNA-93): see feature_flag_persist.feature.
+  Scenario: Orientation lock survives process death
+    Given the driver locks orientation (ff_map_heading_up on)
+    When the process is killed and LocalFeatureFlags hydrates from FeatureFlagStore
+    Then ff_map_heading_up is still on
+
   Scenario: Orientation lock and Recenter stay visually consistent
     Given the map-home location chrome is shown
     Then both circular map icon controls use primary surface and onPrimary icon tint
