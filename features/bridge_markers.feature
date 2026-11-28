@@ -64,7 +64,7 @@ Feature: Bridge markers on home map
     Then bridge markers use a GeoJSONSource symbol layer not deprecated MarkerOptions
     And the marker icon is the AU W5-8 low-bridge road sign only for qualifying low bridges
       (see low_bridge_w5_8.feature / ff_w5_8_low_only)
-    And W5-8 style-layer iconSize is 1.25× the prior shared scale (stops stay relatively larger)
+    And W5-8 style-layer iconSize is 1.25× the ATNA-118 scale (another +25%; stops stay relatively larger)
     And a short clearance label is shown when a verified height is present on a W5-8 marker
     And unknown / not_applicable / high spans do not get W5-8
     And clearance labels use an OpenFreeMap-hosted fontstack

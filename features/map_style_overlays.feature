@@ -23,7 +23,7 @@ Feature: MapLibre style-layer overlays for bridges, stops, and route
     When MapLibreHost binds bridge overlays
     Then GeoJSON point features carry the pre-filtered bridges only
     And the symbol layer uses the AU W5-8 icon at the shared neighbourhood iconSize
-    And W5-8 iconSize is 1.25× the prior 0.5× baseline (relative sizing vs stops kept)
+    And W5-8 iconSize is 1.25× the ATNA-118 size (0.5× baseline × 1.25 × 1.25; relative sizing vs stops kept)
     And verified clearance labels use Noto Sans Regular with textOptional
     And bind does not re-apply LowBridgeW58 / passage / vehicle-height filters
     And Annotation SymbolManager is not used
