@@ -15,6 +15,8 @@ import com.truckie1.app.TruckieApp
 import com.truckie1.app.AndroidAutoGate
 import com.truckie1.app.profiles.HomeVehicleSummary
 import com.truckie1.app.profiles.VehicleFormParser
+import com.truckie1.app.routing.ActiveTourPath
+import com.truckie1.app.routing.GeographicTourOrderCatalog
 import com.truckie1.app.trips.HomeTripSummary
 import com.truckie1.app.trips.OptimizeForVehicleGate
 import com.truckie1.app.trips.OptimizeResultSummary
@@ -134,17 +136,29 @@ internal fun ColumnScope.TripStopsRoute(
                 Toast.makeText(context, context.getString(R.string.optimize_need_stops), Toast.LENGTH_SHORT).show()
                 return@TripStopsScreen
             }
+            val geographic = GeographicTourOrderCatalog.isEnabled(app.featureFlags)
+            val route = app.routeSession.activeRoute()
+            val optimizeStops = if (geographic && route != null && route.hasEndpoints) {
+                ActiveTourPath.tourStopsFrom(route)
+            } else {
+                currentStops
+            }
             optimizeScope.launch {
                 when (
                     val result = app.routeOptimizer.optimize(
-                        stops = currentStops,
+                        stops = optimizeStops,
                         vehicle = vehicle,
                         bufferM = app.clearanceBufferM,
                         goals = optimizeGoals,
                     )
                 ) {
                     is OptimizeResult.Ok -> {
-                        app.tripSession.replaceStops(result.orderedStops)
+                        val persisted = if (geographic) {
+                            GeographicTourOrderCatalog.intermediateStops(result.orderedStops)
+                        } else {
+                            result.orderedStops
+                        }
+                        app.tripSession.replaceStops(persisted)
                         app.tripSession.lastOptimizeMode =
                             optimizeGoals.asLegacyMode() ?: OptimizeMode.FASTEST
                         app.mapRoutePolylineSession.rememberOptimised(result.path)

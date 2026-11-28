@@ -60,6 +60,15 @@ class LocalFeatureFlagsTest {
     }
 
     @Test
+    fun geographicTourOrderFlagKey() {
+        assertTrue(FlagKeys.GEOGRAPHIC_TOUR_ORDER == "ff_geographic_tour_order")
+        val flags = LocalFeatureFlags()
+        assertFalse(flags.isEnabled(FlagKeys.GEOGRAPHIC_TOUR_ORDER))
+        flags.setEnabled(FlagKeys.GEOGRAPHIC_TOUR_ORDER, true)
+        assertTrue(flags.isEnabled(FlagKeys.GEOGRAPHIC_TOUR_ORDER))
+    }
+
+    @Test
     fun navChromeFlagKey() {
         assertTrue(FlagKeys.NAV_CHROME == "ff_nav_chrome")
         val flags = LocalFeatureFlags()

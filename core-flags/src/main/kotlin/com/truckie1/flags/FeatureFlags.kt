@@ -14,6 +14,13 @@ object FlagKeys {
     const val BRIDGE_SAFE_ROUTING = "ff_bridge_safe_routing"
     /** Fastest / Cheapest among height- and weight-safe tours. */
     const val ROUTE_OPTIMIZE = "ff_route_optimize"
+    /**
+     * Geographic tour stop order (ATNA-120): Optimise / PathRouter tours keep
+     * start and end anchored and permute only intermediate stops — closer-first,
+     * shortest feasible under bridge/weight/toll constraints (no city zig-zag
+     * when a tighter tour exists). Requires [ROUTE_OPTIMIZE] for the Optimise UI.
+     */
+    const val GEOGRAPHIC_TOUR_ORDER = "ff_geographic_tour_order"
 
     @Deprecated("Use ROUTE_OPTIMIZE (ff_route_optimize)", ReplaceWith("ROUTE_OPTIMIZE"))
     const val OPTIMIZE_FOR_VEHICLE = ROUTE_OPTIMIZE

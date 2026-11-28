@@ -16,6 +16,16 @@ Feature: Multi-stop route optimisation with PathRouter
     Then the trip stop order is replaced with the PathRouter-optimised tour
     And the result includes a composed route path and truck model snippet
 
+  @ff_route_optimize @ff_geographic_tour_order
+  Scenario: Geographic tour keeps start/end and avoids farthest-first zig-zag
+    Given feature flag "ff_route_optimize" is enabled
+    And feature flag "ff_geographic_tour_order" is enabled
+    And a SEQ-like round trip with zig-zag intermediate stop order
+    When I optimise with PathRouter tour composition
+    Then start and end stay anchored
+    And the farthest stop is not the first intermediate after start
+    And see features/geographic_tour_order.feature
+
   @ff_route_optimize @ff_bridge_passage
   Scenario: Under-passage low bridge hard-blocks a tour
     Given feature flag "ff_route_optimize" is enabled
