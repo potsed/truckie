@@ -222,6 +222,10 @@ class TruckieApp : Application() {
             if (DemoModeCatalog.ENABLED_BY_DEFAULT_IN_DEBUG) {
                 featureFlags.seedIfAbsent(FlagKeys.DEMO_MODE, true)
             }
+            // Offline maps / Android Auto / NHVR overlay stay off (ATNA-95) —
+            // see OfflineMapsCatalog / AndroidAutoCatalog / NhvrOverlayCatalog
+            // ENABLED_BY_DEFAULT_IN_DEBUG = false. Do not seed those FlagKeys here.
+
         }
         // AU bridge pack: local-first (bundled sample → disk cache). loadActive
         // never networks; refresh only when a newer remote version is advertised.

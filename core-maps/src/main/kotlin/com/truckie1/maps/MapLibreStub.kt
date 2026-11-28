@@ -29,7 +29,9 @@ class MapLibreStubEngine : MapEngine {
 
 /**
  * Identity for the real MapLibre Native Android SDK wired in the app module.
- * Offline pack manager hooks land with [com.truckie1.flags.FlagKeys.OFFLINE_MAPS].
+ * Offline pack manager hooks land with [com.truckie1.flags.FlagKeys.OFFLINE_MAPS]
+ * (ATNA-95 contracts in features/offline_maps.feature). Until OfflineManager is
+ * wired, this engine reports packs unavailable even if the flag is flipped in tests.
  */
 class MapLibreNativeEngine : MapEngine {
     override val engineName: String = "MapLibre"
