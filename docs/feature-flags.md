@@ -47,6 +47,7 @@ XML screen layouts were removed; do not add new AppCompat/XML screens.
 | `ff_map_heading_up` | Orient map to driving direction — map-chrome lock control (like Recenter); while following, MapLibre `TRACKING_GPS` course-up (off = north-up `TRACKING`) | off (on in debug) |
 | `ff_map_street_labels` | Prefer street/road name labels over POI clutter on OpenFreeMap Liberty (ATNA-78): runtime visibility + minzoom tweaks; same OSS style URL | off (on in debug) |
 | `ff_au_low_bridges_pack` | Consume public AU low-bridges JSON pack (ATNA-50) local-first from GitHub Release when newer | off (on in debug) |
+| `ff_owned_address_pack` | Owned AU address pack SoT (ATNA-109): **G-NAF-only** local-first JSON; one pack/search path (no multi-dataset merges). Nominatim = typeahead until G-NAF resolves. See `docs/au-address-datasource.md` | off (on in debug) |
 
 ## Architecture (not a separate ship toggle)
 

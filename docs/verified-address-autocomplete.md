@@ -4,11 +4,13 @@ Feature flags:
 
 - **`ff_address_autocomplete`** (on in debug) — verified Nominatim AU suggestions
 - **`ff_gnaf_address_geocode`** (on in debug) — G-NAF premise points when OSM lacks unit/housenumber
+- **`ff_owned_address_pack`** (on in debug) — owned G-NAF pack SoT scaffold (ATNA-109); see [`docs/au-address-datasource.md`](au-address-datasource.md)
 
 Gherkin:
 
 - [`features/verified_address_autocomplete.feature`](../features/verified_address_autocomplete.feature)
 - [`features/address_autocomplete_housenumber.feature`](../features/address_autocomplete_housenumber.feature)
+- [`features/owned_au_address_pack.feature`](../features/owned_au_address_pack.feature)
 
 ## Behaviour
 
@@ -38,6 +40,8 @@ Inject another `AddressAutocomplete` (or `AddressHttpClient` for Nominatim tests
 - Ranking: housenumber / building / landuse beats `highway` street centroids
 
 Respect Nominatim usage policy (identify the app; avoid heavy polling).
+
+**Long-term SoT:** **G-NAF data first only** (`ff_owned_address_pack`, ATNA-109) — plan [`docs/au-address-datasource.md`](au-address-datasource.md). One G-NAF pack/search path; no multi-dataset merges. **Nominatim = typeahead UI at most** until G-NAF resolves the hit. Today’s `ff_gnaf_address_geocode` QLD sample is the interim premise path until the owned pack lands.
 
 ## G-NAF (premise-level)
 
