@@ -86,7 +86,10 @@ object ActiveTourPath {
     }
 
     /**
-     * Resolve constrained tour geometry for [route].
+     * Resolve constrained tour geometry for [route] (sole production entry).
+     *
+     * Suspend-only — callers must be coroutines (Navigate `routingScope`,
+     * polyline `LaunchedEffect`, tests via `runBlocking`). No sync overload.
      *
      * Preference: cached [optimisedPath] (with approach prepended when
      * [currentLocation] is set) → [MultiStopTourComposer.composeOrdered] for
@@ -145,8 +148,11 @@ object ActiveTourPath {
     /**
      * Prepend current → tour-start PathRouter leg onto a cached Optimise path.
      * When no current fix (or already at start), returns [tourPath] unchanged.
+     *
+     * Suspend: calls [MultiStopTourComposer.composeOrdered] (same async PathRouter
+     * path as [compose]). No sync/runBlocking dual path.
      */
-    private fun withApproach(
+    private suspend fun withApproach(
         tourPath: RoutePath,
         route: Route,
         vehicle: Vehicle,
