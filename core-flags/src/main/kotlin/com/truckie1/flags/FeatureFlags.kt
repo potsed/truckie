@@ -154,6 +154,13 @@ object FlagKeys {
      * in-memory. Defaults on. No Firebase.
      */
     const val ROOM_ROUTE_PERSIST = "ff_room_route_persist"
+    /**
+     * Alternate around geographic path blocks via PathRouter (ATNA-102):
+     * live GraphHopper Custom Model / blocked edges — never erase the tour
+     * polyline. Stub PathRouter only for tests / when live URL is unset.
+     * Defaults on.
+     */
+    const val PATH_BLOCK_DETOUR = "ff_path_block_detour"
 }
 
 /**

@@ -23,8 +23,8 @@ import org.junit.Test
  * (ATNA-101). Gherkin: features/map_route_polyline.feature,
  * features/demo_mode.feature, features/bridge_passage_pipeline.feature.
  *
- * Root cause: BridgePassagePolicy treated the Wynnum stop (~32 m from the
- * 1.9 m underbridge) as an under-passage conflict and Blocked the whole tour.
+ * Root cause: under-passage hard-block emptied LineManager. Fix: stop-proximity
+ * allowance + PathBlockDetour via PathRouter (live GH preferred; stub in tests).
  */
 class DemoRoutePolylineVisibilityTest {
 

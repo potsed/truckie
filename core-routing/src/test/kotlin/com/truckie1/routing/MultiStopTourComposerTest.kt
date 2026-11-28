@@ -7,6 +7,7 @@ import com.truckie1.trips.OptimizeMode
 import com.truckie1.trips.TripStop
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -94,7 +95,7 @@ class MultiStopTourComposerTest {
     }
 
     @Test
-    fun blocksTourWhenUnderBridgeConflictsAlongPath() = runBlocking {
+    fun detoursViaPathRouterWhenUnderBridgeConflictsAlongPath() = runBlocking {
         val underLow = RoutingBridgeConstraint(
             id = "low-under",
             latitude = -27.425,
@@ -106,6 +107,7 @@ class MultiStopTourComposerTest {
             pathRouter = StubGraphHopperPathRouter(intermediatePoints = 8),
             bridges = listOf(underLow),
             bridgePassageEnabled = true,
+            pathBlockDetourEnabled = true,
         )
         val result = composer.optimize(
             stops = listOf(depot, near),
@@ -113,9 +115,15 @@ class MultiStopTourComposerTest {
             bufferM = 0.15,
             mode = OptimizeMode.FASTEST,
         )
-        assertTrue(result is OptimizeResult.Blocked)
-        val reason = (result as OptimizeResult.Blocked).reason.lowercase()
-        assertTrue(reason.contains("bridge") || reason.contains("clearance") || reason.contains("under"))
+        assertTrue(
+            "PathRouter detour must keep a drawable tour; got $result",
+            result is OptimizeResult.Ok,
+        )
+        val path = (result as OptimizeResult.Ok).path
+        assertNotNull(path)
+        assertTrue(path!!.points.size >= 2)
+        assertTrue(PathBlockDetour.usesPathRouter)
+        assertFalse(PathBlockDetour.usesHandRolledPolylineRule)
     }
 
     @Test

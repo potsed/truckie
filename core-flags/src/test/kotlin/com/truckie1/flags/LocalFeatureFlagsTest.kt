@@ -263,4 +263,13 @@ class LocalFeatureFlagsTest {
         flags.setEnabled(FlagKeys.ROOM_ROUTE_PERSIST, true)
         assertTrue(flags.isEnabled(FlagKeys.ROOM_ROUTE_PERSIST))
     }
+
+    @Test
+    fun pathBlockDetourFlagKey() {
+        assertTrue(FlagKeys.PATH_BLOCK_DETOUR == "ff_path_block_detour")
+        val flags = LocalFeatureFlags()
+        assertFalse(flags.isEnabled(FlagKeys.PATH_BLOCK_DETOUR))
+        flags.setEnabled(FlagKeys.PATH_BLOCK_DETOUR, true)
+        assertTrue(flags.isEnabled(FlagKeys.PATH_BLOCK_DETOUR))
+    }
 }

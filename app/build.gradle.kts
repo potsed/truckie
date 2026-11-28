@@ -20,8 +20,16 @@ android {
         minSdk = 24
         targetSdk = 35
         versionCode = 1
-        versionName = "0.8.39-route-polyline-visibility"
+        versionName = "0.8.40-path-block-detour"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        // Live GraphHopper base URL for select-user (ATNA-102). Empty → stub PathRouter.
+        // Set via -Ptruckie.graphhopper.baseUrl=… or TRUCKIE_GRAPHHOPPER_BASE_URL.
+        val ghBaseUrl = (
+            (project.findProperty("truckie.graphhopper.baseUrl") as String?)
+                ?: System.getenv("TRUCKIE_GRAPHHOPPER_BASE_URL")
+                ?: ""
+            ).replace("\\", "\\\\").replace("\"", "\\\"")
+        buildConfigField("String", "GRAPHHOPPER_BASE_URL", "\"$ghBaseUrl\"")
     }
 
     buildTypes {

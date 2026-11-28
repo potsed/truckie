@@ -95,6 +95,7 @@ class SharedPathRouterInjectionTest {
             end: RouteEndpoint,
             preferences: TruckRoutingPreferences,
             customModel: com.truckie1.routing.GraphHopperCustomModelStub?,
+            avoidUnderBridges: List<com.truckie1.routing.RoutingBridgeConstraint>,
         ): PathResult {
             calls++
             return PathResult.Ok(

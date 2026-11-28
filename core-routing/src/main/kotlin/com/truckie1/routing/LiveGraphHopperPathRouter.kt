@@ -33,9 +33,12 @@ class LiveGraphHopperPathRouter(
         end: RouteEndpoint,
         preferences: TruckRoutingPreferences,
         customModel: GraphHopperCustomModelStub?,
+        avoidUnderBridges: List<RoutingBridgeConstraint>,
     ): PathResult = withContext(ioDispatcher) {
         val model = customModel ?: GraphHopperCustomModelStub.default(preferences = preferences)
-        val body = buildRequestBody(start, end, model)
+        // Custom Model already encodes under-passage / weight blocked edges;
+        // avoidUnderBridges are pack hints for areas (alternate around blocks).
+        val body = buildRequestBody(start, end, model, avoidUnderBridges)
         val url = baseUrl.trimEnd('/') + "/route"
         val raw = try {
             httpClient(url, body)
@@ -49,7 +52,10 @@ class LiveGraphHopperPathRouter(
         start: RouteEndpoint,
         end: RouteEndpoint,
         model: GraphHopperCustomModelStub,
-    ): String = """
+        avoidUnderBridges: List<RoutingBridgeConstraint> = emptyList(),
+    ): String {
+        val areasJson = avoidAreasJson(avoidUnderBridges)
+        return """
         {
           "profile": "truck",
           "points": [
@@ -58,9 +64,39 @@ class LiveGraphHopperPathRouter(
           ],
           "points_encoded": false,
           "instructions": false,
-          "custom_model": ${model.toRequestSnippet()}
+          "custom_model": ${model.toRequestSnippet().replace("\"areas\": {}", "\"areas\": $areasJson")}
         }
-    """.trimIndent()
+        """.trimIndent()
+    }
+
+    /**
+     * Pack under-bridges as tiny avoid areas so live GH can route around
+     * (ATNA-102). Empty when no avoid list — Custom Model max_height still applies.
+     */
+    private fun avoidAreasJson(avoid: List<RoutingBridgeConstraint>): String {
+        if (avoid.isEmpty()) return "{}"
+        // ~80 m box around each structure (degrees ≈ metres / 111_320).
+        val d = BridgePassagePolicy.NEAR_PATH_M / 111_320.0
+        val entries = avoid.mapIndexed { index, bridge ->
+            val south = bridge.latitude - d
+            val north = bridge.latitude + d
+            val west = bridge.longitude - d
+            val east = bridge.longitude + d
+            """
+            "avoid_$index": {
+              "type": "Feature",
+              "properties": { "id": "${bridge.id}" },
+              "geometry": {
+                "type": "Polygon",
+                "coordinates": [[
+                  [$west, $south], [$east, $south], [$east, $north], [$west, $north], [$west, $south]
+                ]]
+              }
+            }
+            """.trimIndent()
+        }
+        return "{ ${entries.joinToString(", ")} }"
+    }
 
     private fun parseResponse(
         raw: String,

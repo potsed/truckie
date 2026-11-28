@@ -192,7 +192,7 @@ class MapRoutePolylineGeometryTest {
     }
 
     @Test
-    fun hardBlocksUnderPassageUsingComposerAndPackBridges() = runBlocking {
+    fun detoursAroundUnderPassageViaPathRouterNotBlankPolyline() = runBlocking {
         val underLow = RoutingBridgeConstraint(
             id = "under-low",
             latitude = -27.55,
@@ -204,56 +204,70 @@ class MapRoutePolylineGeometryTest {
             mapOf(
                 FlagKeys.MAP_ROUTE_POLYLINE to true,
                 FlagKeys.BRIDGE_PASSAGE to true,
+                FlagKeys.PATH_BLOCK_DETOUR to true,
             ),
         )
-        // Path that crosses the under-low bridge corridor.
-        val crossing = object : PathRouter {
-            override suspend fun path(
-                start: com.truckie1.trips.RouteEndpoint,
-                end: com.truckie1.trips.RouteEndpoint,
-                preferences: com.truckie1.routing.TruckRoutingPreferences,
-                customModel: com.truckie1.routing.GraphHopperCustomModelStub?,
-            ): PathResult = PathResult.Ok(
-                RoutePath(
-                    id = "cross",
-                    points = listOf(
-                        LatLngPoint(start.latitude, start.longitude),
-                        LatLngPoint(underLow.latitude, underLow.longitude),
-                        LatLngPoint(end.latitude, end.longitude),
-                    ),
-                    source = RoutePath.SOURCE_STUB,
-                    preferences = preferences,
-                    customModelSnippet = customModel?.toRequestSnippet(),
-                ),
-            )
-        }
+        // Stub PathRouter simulates GH blocked-edge avoidance when avoid list set.
+        val router = StubGraphHopperPathRouter(intermediatePoints = 8)
         val composer = MultiStopTourComposer(
-            pathRouter = crossing,
+            pathRouter = router,
             bridges = listOf(underLow),
             bridgePassageEnabled = true,
+            pathBlockDetourEnabled = true,
         )
-        val result = MapRoutePolylineGeometry.resolve(
-            flags = flags,
-            mapHomeEnabled = true,
-            route = route(stops = listOf(stopA)),
-            vehicle = vehicle,
-            bufferM = 0.15,
-            pathRouter = crossing,
-            composer = composer,
+        // Chord from stopA → end crosses underLow mid-path on plain interpolate.
+        val midRoute = route(
+            stops = listOf(
+                RouteStop(
+                    id = "a",
+                    addressLabel = "A",
+                    latitude = -27.54,
+                    longitude = 153.17,
+                    kind = StopKind.PICKUP_LOAD,
+                    order = 0,
+                ),
+            ),
+        ).copy(
+            start = RouteEndpoint("Start", -27.54, 153.17),
+            end = RouteEndpoint("End", -27.56, 153.19),
         )
-        assertTrue(result is MapRoutePolylineGeometry.Result.Blocked)
-        val reason = (result as MapRoutePolylineGeometry.Result.Blocked).reason.lowercase()
-        assertTrue(reason.contains("under") || reason.contains("bridge"))
         assertTrue(
             BridgePassageConstraint.pathConflictsWithUnderBridges(
                 points = listOf(
-                    LatLngPoint(stopA.latitude!!, stopA.longitude!!),
+                    LatLngPoint(-27.54, 153.17),
                     LatLngPoint(underLow.latitude, underLow.longitude),
-                    LatLngPoint(end.latitude, end.longitude),
+                    LatLngPoint(-27.56, 153.19),
                 ),
                 bridges = listOf(underLow),
                 vehicleHeightM = vehicle.heightM,
                 bufferM = 0.15,
+            ),
+        )
+        val result = MapRoutePolylineGeometry.resolve(
+            flags = flags,
+            mapHomeEnabled = true,
+            route = midRoute,
+            vehicle = vehicle,
+            bufferM = 0.15,
+            pathRouter = router,
+            composer = composer,
+        )
+        assertTrue(
+            "PathRouter detour must keep a drawable line; got $result",
+            result is MapRoutePolylineGeometry.Result.Ready,
+        )
+        val points = MapRoutePolylineGeometry.pointsOrEmpty(result)
+        assertTrue(points.size >= 2)
+        assertFalse(
+            BridgePassageConstraint.pathConflictsWithUnderBridges(
+                points = points,
+                bridges = listOf(underLow),
+                vehicleHeightM = vehicle.heightM,
+                bufferM = 0.15,
+                allowedNearPoints = listOf(
+                    LatLngPoint(-27.54, 153.17),
+                    LatLngPoint(-27.56, 153.19),
+                ),
             ),
         )
     }
@@ -323,9 +337,10 @@ class MapRoutePolylineGeometryTest {
             end: com.truckie1.trips.RouteEndpoint,
             preferences: com.truckie1.routing.TruckRoutingPreferences,
             customModel: com.truckie1.routing.GraphHopperCustomModelStub?,
+            avoidUnderBridges: List<RoutingBridgeConstraint>,
         ): PathResult {
             calls += 1
-            return delegate.path(start, end, preferences, customModel)
+            return delegate.path(start, end, preferences, customModel, avoidUnderBridges)
         }
     }
 }

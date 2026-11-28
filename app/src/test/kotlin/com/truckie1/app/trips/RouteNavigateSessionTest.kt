@@ -245,6 +245,7 @@ class RouteNavigateSessionTest {
                 end: RouteEndpoint,
                 preferences: com.truckie1.routing.TruckRoutingPreferences,
                 customModel: com.truckie1.routing.GraphHopperCustomModelStub?,
+                avoidUnderBridges: List<com.truckie1.routing.RoutingBridgeConstraint>,
             ): PathResult = PathResult.Blocked("no path")
         }
         val navigateSession = session(blocked)
