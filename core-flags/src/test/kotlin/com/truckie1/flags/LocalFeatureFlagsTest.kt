@@ -229,6 +229,15 @@ class LocalFeatureFlagsTest {
     }
 
     @Test
+    fun valhallaLiveFlagKey() {
+        assertTrue(FlagKeys.VALHALLA_LIVE == "ff_valhalla_live")
+        val flags = LocalFeatureFlags()
+        assertFalse(flags.isEnabled(FlagKeys.VALHALLA_LIVE))
+        flags.setEnabled(FlagKeys.VALHALLA_LIVE, true)
+        assertTrue(flags.isEnabled(FlagKeys.VALHALLA_LIVE))
+    }
+
+    @Test
     fun activeTourFlagKey() {
         assertTrue(FlagKeys.ACTIVE_TOUR == "ff_active_tour")
         val flags = LocalFeatureFlags()

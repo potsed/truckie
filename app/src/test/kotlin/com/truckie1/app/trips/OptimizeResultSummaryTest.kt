@@ -42,7 +42,26 @@ class OptimizeResultSummaryTest {
         val text = OptimizeResultSummary.combined(ok)
         assertTrue(text.contains("Fastest"))
         assertTrue(text.contains("120s"))
-        assertTrue(text.contains("GraphHopper stub"))
+        assertTrue(text.contains("Stub") || text.contains("stub"))
         assertTrue(text.contains("1. Depot → 2. Yard"))
+    }
+
+    @Test
+    fun stubPathSourceLabelMarksDegradedNotRoadNetwork() {
+        val label = OptimizeResultSummary.pathSourceLabel(ok)
+        assertTrue(label.contains("Stub", ignoreCase = true) || label.contains("stub", ignoreCase = true))
+        assertTrue(
+            label.contains("degraded", ignoreCase = true) ||
+                label.contains("not road", ignoreCase = true) ||
+                label.contains("VALHALLA"),
+        )
+    }
+
+    @Test
+    fun valhallaPathSourceLabelIsLive() {
+        val live = ok.copy(
+            path = ok.path!!.copy(source = RoutePath.SOURCE_VALHALLA),
+        )
+        assertEquals("Valhalla live", OptimizeResultSummary.pathSourceLabel(live))
     }
 }

@@ -17,6 +17,7 @@ import com.truckie1.app.profiles.HomeVehicleSummary
 import com.truckie1.app.profiles.VehicleFormParser
 import com.truckie1.app.trips.HomeTripSummary
 import com.truckie1.app.trips.OptimizeForVehicleGate
+import com.truckie1.app.trips.OptimizeResultSummary
 import com.truckie1.app.trips.StopFormParser
 import com.truckie1.flags.FlagKeys
 import com.truckie1.profiles.Vehicle
@@ -151,6 +152,7 @@ internal fun ColumnScope.TripStopsRoute(
                             R.string.optimize_success,
                             result.mode.name.lowercase().replaceFirstChar { it.titlecase() },
                             result.route.durationSeconds,
+                            OptimizeResultSummary.pathSourceLabel(result),
                         )
                         bindList()
                     }

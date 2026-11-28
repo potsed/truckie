@@ -20,16 +20,58 @@ android {
         minSdk = 24
         targetSdk = 35
         versionCode = 1
-        versionName = "0.8.42-gnaf-premise-geocode"
+        versionName = "0.8.43-valhalla-live-roads"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        // Live GraphHopper base URL for select-user (ATNA-102). Empty → stub PathRouter.
-        // Set via -Ptruckie.graphhopper.baseUrl=… or TRUCKIE_GRAPHHOPPER_BASE_URL.
-        val ghBaseUrl = (
-            (project.findProperty("truckie.graphhopper.baseUrl") as String?)
-                ?: System.getenv("TRUCKIE_GRAPHHOPPER_BASE_URL")
-                ?: ""
-            ).replace("\\", "\\\\").replace("\"", "\\\"")
+        // Live routing credentials (ATNA-113). Empty → stub PathRouter.
+        // Valhalla interim: API key (defaults base to Simple Routing hosted Valhalla).
+        // Self-hosted/offline later: set VALHALLA_BASE_URL, clear API key.
+        // Legacy GH URL still supported as secondary. See docs/valhalla-live.md.
+        val secretsFile = rootProject.file("secrets.properties")
+        val secretsMap: Map<String, String> = if (secretsFile.exists()) {
+            secretsFile.readLines()
+                .map { it.trim() }
+                .filter { it.isNotEmpty() && !it.startsWith("#") && it.contains("=") }
+                .associate { line ->
+                    val idx = line.indexOf('=')
+                    line.substring(0, idx).trim() to line.substring(idx + 1).trim()
+                }
+        } else {
+            emptyMap()
+        }
+        fun secretOrEnv(propKey: String, envKey: String, gradleProp: String): String {
+            val fromGradle = (project.findProperty(gradleProp) as String?)?.trim().orEmpty()
+            if (fromGradle.isNotEmpty()) return fromGradle
+            val fromEnv = System.getenv(envKey)?.trim().orEmpty()
+            if (fromEnv.isNotEmpty()) return fromEnv
+            return secretsMap[propKey]?.trim().orEmpty()
+        }
+        fun escapeBuildConfig(value: String): String =
+            value.replace("\\", "\\\\").replace("\"", "\\\"")
+
+        val ghBaseUrl = escapeBuildConfig(
+            secretOrEnv(
+                propKey = "GRAPHHOPPER_BASE_URL",
+                envKey = "TRUCKIE_GRAPHHOPPER_BASE_URL",
+                gradleProp = "truckie.graphhopper.baseUrl",
+            ),
+        )
+        val valhallaBaseUrl = escapeBuildConfig(
+            secretOrEnv(
+                propKey = "VALHALLA_BASE_URL",
+                envKey = "TRUCKIE_VALHALLA_BASE_URL",
+                gradleProp = "truckie.valhalla.baseUrl",
+            ),
+        )
+        val valhallaApiKey = escapeBuildConfig(
+            secretOrEnv(
+                propKey = "VALHALLA_API_KEY",
+                envKey = "TRUCKIE_VALHALLA_API_KEY",
+                gradleProp = "truckie.valhalla.apiKey",
+            ),
+        )
         buildConfigField("String", "GRAPHHOPPER_BASE_URL", "\"$ghBaseUrl\"")
+        buildConfigField("String", "VALHALLA_BASE_URL", "\"$valhallaBaseUrl\"")
+        buildConfigField("String", "VALHALLA_API_KEY", "\"$valhallaApiKey\"")
     }
 
     buildTypes {
