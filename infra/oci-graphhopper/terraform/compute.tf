@@ -11,7 +11,6 @@ locals {
   cloud_init = templatefile("${path.module}/../cloud-init/user-data.yaml", {
     graphhopper_domain = var.graphhopper_domain
     letsencrypt_email  = var.letsencrypt_email
-    gh_repo_ref        = var.gh_repo_ref
   })
 }
 

@@ -37,7 +37,7 @@ Example:
 Scaffold: [`infra/oci-graphhopper/`](../infra/oci-graphhopper/) (Terraform + cloud-init + Docker Compose + Caddy).  
 Operator steps: [`oci-graphhopper-runbook.md`](./oci-graphhopper-runbook.md).
 
-Point `GRAPHHOPPER_BASE_URL` at `https://<your-domain>` (Caddy proxies `/route` to GraphHopper). Do **not** use GraphHopper Cloud. Daniel supplies OCI Free Tier credentials — nothing is committed.
+The GH host deploys **independently** of this Android app (no Gradle on the VM; stack sync pushes only `infra/oci-graphhopper/`). Point `GRAPHHOPPER_BASE_URL` at `https://<your-domain>` once the host is up. Do **not** use GraphHopper Cloud. Daniel supplies OCI Free Tier credentials — nothing is committed.
 
 ## What is missing when live is not active
 

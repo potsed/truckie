@@ -1,5 +1,8 @@
 # Copy to terraform.tfvars (gitignored) and fill with YOUR Free Tier values.
 # Never commit real OCIDs, fingerprints, or private key paths into git.
+#
+# This stack deploys GraphHopper independently of the Truckie Android app.
+# terraform apply syncs only infra/oci-graphhopper/{compose,scripts,secrets}.
 
 tenancy_ocid     = "ocid1.tenancy.oc1..REPLACE"
 user_ocid        = "ocid1.user.oc1..REPLACE"
@@ -8,21 +11,20 @@ private_key_path = "/home/YOU/.oci/oci_api_key.pem"
 region           = "ap-sydney-1"
 compartment_ocid = "ocid1.compartment.oc1..REPLACE"
 
-# SSH public key contents (one line). Password login is disabled on the VM.
-ssh_public_key = "ssh-ed25519 AAAA... you@host"
+# SSH keypair (password login disabled). Private key used only for stack sync.
+ssh_public_key       = "ssh-ed25519 AAAA... you@host"
+ssh_private_key_path = "/home/YOU/.ssh/id_ed25519"
+enable_stack_sync    = true
 
 # Optional: restrict SSH to your home/office CIDR
 # allowed_ssh_cidr = "203.0.113.10/32"
 
 # Always Free Ampere (adjust if capacity is exhausted in the AD)
-shape             = "VM.Standard.A1.Flex"
-ocpus             = 2
-memory_in_gbs     = 12
+shape                = "VM.Standard.A1.Flex"
+ocpus                = 2
+memory_in_gbs        = 12
 boot_volume_size_gbs = 100
 
 # DNS for Caddy / Let’s Encrypt (create A record after first apply → public_ip)
 graphhopper_domain = "gh.example.com"
 letsencrypt_email  = "you@example.com"
-
-# Clone compose/scripts from this ref on first boot
-gh_repo_ref = "main"

@@ -31,7 +31,19 @@ variable "compartment_ocid" {
 
 variable "ssh_public_key" {
   type        = string
-  description = "SSH public key for the opc/ubuntu admin user. Password SSH is disabled."
+  description = "SSH public key for the ubuntu admin user. Password SSH is disabled."
+}
+
+variable "ssh_private_key_path" {
+  type        = string
+  description = "Path to the matching SSH private key on the operator machine (for stack sync provisioner). Not committed."
+  default     = ""
+}
+
+variable "enable_stack_sync" {
+  type        = bool
+  description = "If true, terraform apply pushes infra/oci-graphhopper (compose/scripts only) onto the VM via SSH. Requires ssh_private_key_path. No Android/Gradle."
+  default     = true
 }
 
 variable "availability_domain_number" {
@@ -94,8 +106,3 @@ variable "letsencrypt_email" {
   default     = ""
 }
 
-variable "gh_repo_ref" {
-  type        = string
-  description = "Git ref of potsed/truckie to clone on the VM for compose/scripts (branch or tag)."
-  default     = "main"
-}

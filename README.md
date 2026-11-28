@@ -63,11 +63,11 @@ Every user-facing capability is gated. See [docs/feature-flags.md](docs/feature-
 
 ## Live GraphHopper (select-user)
 
-Self-host **open-source GraphHopper** (not GraphHopper Cloud) on **Oracle Cloud Free Tier**:
+Self-host **open-source GraphHopper** (not GraphHopper Cloud) on **Oracle Cloud Free Tier**. Deploy is **independent of the Android app** (only `infra/oci-graphhopper/`):
 
 - Scaffold: [`infra/oci-graphhopper/`](infra/oci-graphhopper/)
 - Operator runbook: [`docs/oci-graphhopper-runbook.md`](docs/oci-graphhopper-runbook.md)
-- App URL wiring: [`docs/graphhopper-live.md`](docs/graphhopper-live.md) (`GRAPHHOPPER_BASE_URL` / `ff_graphhopper_live`)
+- Optional later app URL: [`docs/graphhopper-live.md`](docs/graphhopper-live.md) (`GRAPHHOPPER_BASE_URL` / `ff_graphhopper_live`)
 
 Bridge/weight packs stay on GitHub Releases. No Firebase.
 
