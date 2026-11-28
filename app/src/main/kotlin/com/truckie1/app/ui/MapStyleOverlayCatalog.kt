@@ -2,14 +2,18 @@ package com.truckie1.app.ui
 
 /**
  * Shared MapLibre **style-layer** overlay contracts for bridges, stops, and
- * route polyline (ATNA-117).
+ * route polyline (ATNA-117 / ATNA-122).
  *
  * Replaces Annotation [org.maplibre.android.plugins.annotation.SymbolManager] /
  * LineManager with [org.maplibre.android.style.sources.GeoJsonSource] +
  * symbol / line layers. Visual constants match the Annotation-era values
  * (icon sizes, label fonts/colours/offsets, line colour/width).
  *
- * Gherkin: features/map_style_overlays.feature
+ * Stack order (native Style.addLayerAbove): stops top, route next, bridges
+ * below — see [MapOverlayZOrder].
+ *
+ * Gherkin: features/map_style_overlays.feature,
+ * features/map_overlay_z_order.feature
  */
 object MapStyleOverlayIds {
     const val BRIDGE_SOURCE: String = "truckie-bridges-source"
@@ -31,6 +35,8 @@ object MapStyleOverlayCatalog {
     const val usesMapLibreStyleLifecycle: Boolean = true
     /** Recenter / follow stay on LocationComponent — overlays must not touch them. */
     const val preservesRecenterAndFollow: Boolean = true
+    /** Stops above route above bridges via MapLibre native layer APIs (ATNA-122). */
+    const val usesNativeOverlayZOrder: Boolean = true
 
     const val iconAllowOverlap: Boolean = true
     const val iconIgnorePlacement: Boolean = true
