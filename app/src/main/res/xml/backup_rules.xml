@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Legacy fullBackupContent (API &lt; 31). Same excludes as data_extraction_rules.
+  ATNA-96 / PlayBackupPolicy.
+-->
+<full-backup-content>
+    <exclude domain="database" path="truckie_vehicles.db" />
+    <exclude domain="sharedpref" path="truckie_settings.xml" />
+</full-backup-content>

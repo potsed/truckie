@@ -226,6 +226,7 @@ fun TruckieRootApp(
                             demoEnabled = DemoModeCatalog.isEnabled(app.featureFlags)
                             demoRevision = app.demoModeController.revision()
                         },
+                        showDisclaimer = SettingsDisclaimerCatalog.shouldShow(app.featureFlags),
                     )
                 }
             }

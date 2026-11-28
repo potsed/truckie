@@ -319,4 +319,13 @@ class LocalFeatureFlagsTest {
         flags.setEnabled(FlagKeys.OWNED_ADDRESS_PACK, true)
         assertTrue(flags.isEnabled(FlagKeys.OWNED_ADDRESS_PACK))
     }
+
+    @Test
+    fun settingsDisclaimerFlagKey() {
+        assertTrue(FlagKeys.SETTINGS_DISCLAIMER == "ff_settings_disclaimer")
+        val flags = LocalFeatureFlags()
+        assertFalse(flags.isEnabled(FlagKeys.SETTINGS_DISCLAIMER))
+        flags.setEnabled(FlagKeys.SETTINGS_DISCLAIMER, true)
+        assertTrue(flags.isEnabled(FlagKeys.SETTINGS_DISCLAIMER))
+    }
 }

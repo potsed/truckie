@@ -57,6 +57,7 @@ XML screen layouts were removed; do not add new AppCompat/XML screens.
 | `ff_map_street_labels` | Prefer street/road name labels over POI clutter on OpenFreeMap Liberty (ATNA-78): runtime visibility + minzoom tweaks; same OSS style URL | off (on in debug) |
 | `ff_au_low_bridges_pack` | Consume public AU low-bridges JSON pack (ATNA-50) local-first from GitHub Release when newer | off (on in debug) |
 | `ff_owned_address_pack` | Owned AU address pack SoT (ATNA-109 / ATNA-111): **G-NAF-only** local-first JSON (QLD Kallangur bootstrap → downloadable QLD); one pack/search path. Nominatim = typeahead until G-NAF resolves. See `docs/owned-address-pack.md` | off (on in debug) |
+| `ff_settings_disclaimer` | Settings safety disclaimer (ATNA-96): not a permit; roadside signs override packs; verify with NHVR / road authorities; on-board weight is guidance only (not a hard lock). Play / select-user | **on** (defaults on) |
 
 ## Architecture (not a separate ship toggle)
 

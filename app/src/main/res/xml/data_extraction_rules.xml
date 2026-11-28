@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ATNA-96: exclude vehicle/route Room DB and settings prefs from cloud backup
+  and device transfer. See PlayBackupPolicy and features/play_hardening_backup_disclaimer.feature.
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="database" path="truckie_vehicles.db" />
+        <exclude domain="sharedpref" path="truckie_settings.xml" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="database" path="truckie_vehicles.db" />
+        <exclude domain="sharedpref" path="truckie_settings.xml" />
+    </device-transfer>
+</data-extraction-rules>

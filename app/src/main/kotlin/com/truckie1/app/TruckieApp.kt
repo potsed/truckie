@@ -28,6 +28,7 @@ import com.truckie1.app.ui.NavigateMultiStopCatalog
 import com.truckie1.app.ui.RealAppDataSource
 import com.truckie1.app.ui.RoomRoutePersistCatalog
 import com.truckie1.app.ui.RoutePathFromLocationCatalog
+import com.truckie1.app.ui.SettingsDisclaimerCatalog
 import com.truckie1.flags.FlagKeys
 import com.truckie1.flags.LocalFeatureFlags
 import com.truckie1.maps.MapLibreNativeEngine
@@ -170,6 +171,11 @@ class TruckieApp : Application() {
         featureFlags.seedIfAbsent(
             FlagKeys.PATH_BLOCK_DETOUR,
             PathBlockDetourCatalog.DEFAULT_ENABLED,
+        )
+        // ATNA-96: Settings safety disclaimer — defaults on for Play / select-user.
+        featureFlags.setEnabled(
+            FlagKeys.SETTINGS_DISCLAIMER,
+            SettingsDisclaimerCatalog.DEFAULT_ENABLED,
         )
         val realTour: ActiveTourFacade = RoomActiveTour(db.activeTourDao())
         // ATNA-75: Real (Room vehicles + Room tour) vs Demo (read-only seed).
