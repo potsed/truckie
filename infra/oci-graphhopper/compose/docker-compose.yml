@@ -1,0 +1,74 @@
+# Truckie OSS GraphHopper + Caddy (HTTPS).
+# GraphHopper listens on loopback only; Caddy terminates TLS for phones.
+#
+# Usage (on the VM):
+#   cd /opt/truckie/compose
+#   cp ../repo/infra/oci-graphhopper/secrets/env.example .env  # first time
+#   docker compose up -d --build
+
+name: truckie-gh
+
+services:
+  graphhopper:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        GH_VERSION: "${GH_VERSION:-11.1}"
+    image: truckie/graphhopper:${GH_VERSION:-11.1}
+    restart: unless-stopped
+    user: "10001:10001"
+    env_file:
+      - .env
+    environment:
+      JAVA_OPTS: "${JAVA_OPTS:--Xmx8g -Xms2g}"
+    volumes:
+      - gh_data:/data
+      - ./graphhopper/config.yml:/graphhopper/config/config.yml:ro
+      - ./graphhopper/custom-models:/graphhopper/custom-models:ro
+      - gh_logs:/graphhopper/logs
+    # Bind localhost only — never publish 8989 on 0.0.0.0
+    ports:
+      - "127.0.0.1:8989:8989"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -fsS http://127.0.0.1:8989/health || exit 1",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 120s
+    security_opt:
+      - no-new-privileges:true
+    read_only: false
+    tmpfs:
+      - /tmp
+
+  caddy:
+    image: caddy:2.8-alpine
+    restart: unless-stopped
+    depends_on:
+      graphhopper:
+        condition: service_started
+    env_file:
+      - .env
+    environment:
+      GRAPHHOPPER_DOMAIN: "${GRAPHHOPPER_DOMAIN}"
+      LETSENCRYPT_EMAIL: "${LETSENCRYPT_EMAIL}"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  gh_data:
+  gh_logs:
+  caddy_data:
+  caddy_config:

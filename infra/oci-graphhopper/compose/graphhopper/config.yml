@@ -1,0 +1,48 @@
+# GraphHopper 11.x server config for Truckie AU/SEQ truck routing.
+# Client Custom Model: GraphHopperCustomModelStub.toRequestSnippet()
+# Server base model: custom-models/truckie-base.json
+#
+# Height/weight hard-blocks are request-time (per vehicle), not fixed in the base
+# model — see GraphHopper's built-in truck.json for encoded_values requirements.
+# Request-time custom_model needs hybrid (LM) or flex mode — no CH for this profile.
+
+graphhopper:
+  datareader.file: /data/australia-seq.osm.pbf
+  graph.location: /data/graph-cache
+  custom_models.directory: /graphhopper/custom-models
+
+  # Matches GraphHopper 11 truck.json + road_class / toll for Truckie prefs
+  graph.encoded_values: road_access,car_access,hgv,max_width,max_height,car_average_speed,max_weight,max_weight_except,road_class,road_environment,toll,track_type
+
+  profiles:
+    - name: truck
+      turn_costs:
+        vehicle_types: [hgv, motorcar, motor_vehicle]
+      custom_model_files: [truckie-base.json]
+
+  # Empty CH — live PathRouter sends per-request custom_model (flex/hybrid)
+  profiles_ch: []
+
+  profiles_lm:
+    - profile: truck
+
+  prepare.min_network_size: 200
+  routing.max_visited_nodes: 1000000
+
+server:
+  application_connectors:
+    - type: http
+      bind_host: 0.0.0.0
+      port: 8989
+  request_log:
+    appenders: []
+  admin_connectors:
+    - type: http
+      bind_host: 127.0.0.1
+      port: 8990
+
+logging:
+  appenders:
+    - type: console
+      timeZone: Australia/Brisbane
+      logFormat: "%-6level [%d{HH:mm:ss.SSS}] [%t] %logger{5} - %msg%n"

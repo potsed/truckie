@@ -1,0 +1,120 @@
+#cloud-config
+# Idempotent-ish bootstrap for Truckie OSS GraphHopper on Ubuntu 22.04 aarch64.
+# Secrets: domain/email from Terraform; never bake OCI API keys into the image.
+
+package_update: true
+package_upgrade: true
+
+packages:
+  - apt-transport-https
+  - ca-certificates
+  - curl
+  - gnupg
+  - ufw
+  - git
+  - jq
+  - rsync
+  - osmium-tool
+  - fail2ban
+
+users:
+  - name: graphhopper
+    system: true
+    shell: /usr/sbin/nologin
+    home: /var/lib/graphhopper
+    create_home: true
+
+write_files:
+  - path: /etc/ssh/sshd_config.d/99-truckie-hardening.conf
+    permissions: "0644"
+    content: |
+      PasswordAuthentication no
+      KbdInteractiveAuthentication no
+      ChallengeResponseAuthentication no
+      PermitRootLogin no
+      X11Forwarding no
+      AllowTcpForwarding no
+      ClientAliveInterval 300
+      ClientAliveCountMax 2
+
+  - path: /etc/truckie/graphhopper.env
+    permissions: "0640"
+    owner: root:graphhopper
+    content: |
+      GRAPHHOPPER_DOMAIN=${graphhopper_domain}
+      LETSENCRYPT_EMAIL=${letsencrypt_email}
+      GH_REPO_REF=${gh_repo_ref}
+      COMPOSE_PROJECT_NAME=truckie-gh
+
+  - path: /usr/local/sbin/truckie-gh-bootstrap.sh
+    permissions: "0755"
+    content: |
+      #!/usr/bin/env bash
+      set -euo pipefail
+      # shellcheck disable=SC1091
+      source /etc/truckie/graphhopper.env
+
+      install -d -o graphhopper -g graphhopper -m 0750 /var/lib/graphhopper/{data,graph-cache,logs,custom-models}
+      install -d -o root -g root -m 0755 /opt/truckie
+
+      if [[ ! -d /opt/truckie/repo/.git ]]; then
+        git clone --depth 1 --branch "$${GH_REPO_REF}" \
+          https://github.com/potsed/truckie.git /opt/truckie/repo
+      else
+        git -C /opt/truckie/repo fetch --depth 1 origin "$${GH_REPO_REF}"
+        git -C /opt/truckie/repo checkout -B "$${GH_REPO_REF}" "FETCH_HEAD"
+      fi
+
+      # Docker Engine (official convenience script once; skip if present)
+      if ! command -v docker >/dev/null 2>&1; then
+        curl -fsSL https://get.docker.com | sh
+      fi
+      systemctl enable --now docker
+      usermod -aG docker ubuntu || true
+
+      # Compose plugin is installed by get.docker.com on modern Ubuntu
+      docker compose version >/dev/null
+
+      # Host firewall: SSH + HTTP/HTTPS only; GraphHopper binds to loopback via compose
+      ufw --force reset
+      ufw default deny incoming
+      ufw default allow outgoing
+      ufw allow OpenSSH
+      ufw allow 80/tcp
+      ufw allow 443/tcp
+      ufw --force enable
+
+      # Copy compose stack into durable path (idempotent overwrite of tracked files)
+      rsync -a --delete \
+        --exclude 'data/' --exclude 'graph-cache/' --exclude '.env' \
+        /opt/truckie/repo/infra/oci-graphhopper/compose/ /opt/truckie/compose/
+      if [[ -f /opt/truckie/repo/infra/oci-graphhopper/secrets/env.example ]]; then
+        if [[ ! -f /opt/truckie/compose/.env ]]; then
+          cp /opt/truckie/repo/infra/oci-graphhopper/secrets/env.example /opt/truckie/compose/.env
+        fi
+        sed -i "s|^GRAPHHOPPER_DOMAIN=.*|GRAPHHOPPER_DOMAIN=$${GRAPHHOPPER_DOMAIN}|" /opt/truckie/compose/.env
+        sed -i "s|^LETSENCRYPT_EMAIL=.*|LETSENCRYPT_EMAIL=$${LETSENCRYPT_EMAIL}|" /opt/truckie/compose/.env
+      fi
+
+      # Seed custom model stub from repo
+      cp -a /opt/truckie/repo/infra/oci-graphhopper/compose/graphhopper/custom-models/. \
+        /var/lib/graphhopper/custom-models/
+
+      chown -R graphhopper:graphhopper /var/lib/graphhopper
+
+      cd /opt/truckie/compose
+      docker compose pull || true
+      docker compose build || true
+      # Caddy can start early; GraphHopper needs SEQ PBF from import-au-seq.sh first
+      docker compose up -d caddy || true
+
+      # OSM import is operator-triggered (large download) — see scripts/import-au-seq.sh
+      echo "Bootstrap complete. Next: sudo -u ubuntu bash /opt/truckie/repo/infra/oci-graphhopper/scripts/import-au-seq.sh"
+
+runcmd:
+  - systemctl reload ssh || systemctl reload sshd || true
+  - /usr/local/sbin/truckie-gh-bootstrap.sh
+  - systemctl enable fail2ban || true
+  - systemctl start fail2ban || true
+
+final_message: "Truckie GraphHopper host bootstrap finished."
