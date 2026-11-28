@@ -13,6 +13,8 @@ object AddressPremiseParser {
         val unit: String?,
         val houseNumber: String?,
         val remainder: String,
+        val streetName: String? = null,
+        val locality: String? = null,
     ) {
         val hasPremise: Boolean
             get() = !unit.isNullOrBlank() || !houseNumber.isNullOrBlank()
@@ -22,6 +24,12 @@ object AddressPremiseParser {
             listOfNotNull(unit?.takeIf { it.isNotBlank() }, houseNumber?.takeIf { it.isNotBlank() })
                 .joinToString(" ")
     }
+
+    private val streetType = Regex(
+        """(?i)\b(street|st|road|rd|avenue|ave|drive|dr|court|ct|place|pl|""" +
+            """boulevard|blvd|lane|ln|way|crescent|cres|parade|pde|circuit|cct|""" +
+            """terrace|tce|close|cl|highway|hwy)\b""",
+    )
 
     private val slashUnitHouse = Regex(
         """^\s*(\d+[A-Za-z]?)\s*/\s*(\d+[A-Za-z]?(?:\s*[-–]\s*\d+[A-Za-z]?)?)\s+(.+)$""",
@@ -43,14 +51,14 @@ object AddressPremiseParser {
         }
 
         slashUnitHouse.matchEntire(trimmed)?.let { m ->
-            return Premise(
+            return withStreetLocality(
                 unit = m.groupValues[1],
                 houseNumber = normalizeRange(m.groupValues[2]),
                 remainder = m.groupValues[3].trim(),
             )
         }
         unitWordThenHouse.matchEntire(trimmed)?.let { m ->
-            return Premise(
+            return withStreetLocality(
                 unit = normalizeUnit(m.groupValues[1]),
                 houseNumber = normalizeRange(m.groupValues[2]),
                 remainder = m.groupValues[3].trim(),
@@ -58,9 +66,7 @@ object AddressPremiseParser {
         }
         unitOnlyThenStreet.matchEntire(trimmed)?.let { m ->
             val rest = m.groupValues[2].trim()
-            // Avoid treating "Unit 5 Queen…" as unit-only when a house number follows
-            // (already handled above). Street-only remainder after unit is valid.
-            return Premise(
+            return withStreetLocality(
                 unit = normalizeUnit(m.groupValues[1]),
                 houseNumber = null,
                 remainder = rest,
@@ -69,14 +75,42 @@ object AddressPremiseParser {
         houseThenStreet.matchEntire(trimmed)?.let { m ->
             val rest = m.groupValues[2].trim()
             if (looksLikeStreetRemainder(rest)) {
-                return Premise(
+                return withStreetLocality(
                     unit = null,
                     houseNumber = normalizeRange(m.groupValues[1]),
                     remainder = rest,
                 )
             }
         }
-        return Premise(unit = null, houseNumber = null, remainder = trimmed)
+        return withStreetLocality(unit = null, houseNumber = null, remainder = trimmed)
+    }
+
+    private fun withStreetLocality(
+        unit: String?,
+        houseNumber: String?,
+        remainder: String,
+    ): Premise {
+        val (street, locality) = splitStreetLocality(remainder)
+        return Premise(
+            unit = unit,
+            houseNumber = houseNumber,
+            remainder = remainder,
+            streetName = street,
+            locality = locality,
+        )
+    }
+
+    /**
+     * Splits `Elsie Street Kallangur` → street=`Elsie Street`, locality=`Kallangur`.
+     */
+    internal fun splitStreetLocality(remainder: String): Pair<String?, String?> {
+        val trimmed = remainder.trim()
+        if (trimmed.isEmpty()) return null to null
+        val match = streetType.find(trimmed) ?: return trimmed to null
+        val streetEnd = match.range.last + 1
+        val street = trimmed.substring(0, streetEnd).trim()
+        val locality = trimmed.substring(streetEnd).trim().ifBlank { null }
+        return street to locality
     }
 
     private fun normalizeUnit(raw: String): String {

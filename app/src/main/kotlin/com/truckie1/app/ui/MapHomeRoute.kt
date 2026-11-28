@@ -11,6 +11,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import com.truckie1.app.TruckieApp
+import com.truckie1.app.trips.GnafAddressCatalog
 import com.truckie1.app.trips.RouteNavigateSession
 import com.truckie1.app.trips.VerifiedAddressCatalog
 import com.truckie1.flags.FlagKeys
@@ -152,7 +153,18 @@ internal fun MapHomeRouteContent(
         canNavigatePrimary = { destination ->
             NavChromeCatalog.canNavigate(destination, app.featureFlags)
         },
-        autocomplete = VerifiedAddressCatalog.autocompleteFor(app.featureFlags),
+        autocomplete = remember(app, uiTick) {
+            val gnafIndex = if (GnafAddressCatalog.isEnabled(app.featureFlags)) {
+                runCatching {
+                    context.assets.open(GnafAddressCatalog.ASSET_PATH)
+                        .bufferedReader()
+                        .use { GnafAddressCatalog.indexFromJson(it.readText()) }
+                }.getOrNull()
+            } else {
+                null
+            }
+            VerifiedAddressCatalog.autocompleteFor(app.featureFlags, gnafIndex)
+        },
         requireVerifiedAddress = VerifiedAddressCatalog.requiresVerifiedSuggestion(app.featureFlags),
         requireStartEnd = controller.requireStartEnd(),
         showNavigateAction = controller.showNavigateAction(),

@@ -12,6 +12,9 @@ import kotlinx.coroutines.withContext
  * Default [AddressAutocomplete] using OpenStreetMap Nominatim search.
  * Biased to Australia via `countrycodes` (Nominatim usage policy: identify User-Agent).
  *
+ * Prefers housenumber / building hits over highway street centroids (ATNA-108).
+ * When free-text is street-only, retries structured and number-keeping queries.
+ *
  * [suggest] is **suspend** and hops to [ioDispatcher] before blocking HTTP
  * (ATNA-88) so Compose never owns the network call from `remember`.
  */
@@ -30,16 +33,40 @@ class NominatimAddressAutocomplete(
         return withContext(ioDispatcher) {
             try {
                 val premise = AddressPremiseParser.parse(trimmed)
-                val primary = fetchSuggestions(trimmed)
-                val raw = when {
-                    primary.isNotEmpty() -> primary
-                    premise.hasPremise && premise.remainder.isNotBlank() ->
-                        fetchSuggestions(premise.remainder)
-                    else -> emptyList()
+                var fallback: List<AddressSuggestion> = emptyList()
+                var precise: List<AddressSuggestion> = emptyList()
+                for (candidate in NominatimQueryPlanner.candidateQueries(trimmed, premise)) {
+                    val hits = fetchSuggestions(candidate)
+                    if (hits.isEmpty()) continue
+                    val ranked = NominatimHitRanker.preferPrecise(hits, premise)
+                    if (fallback.isEmpty()) fallback = ranked
+                    if (!premise.hasPremise || ranked.any { it.isPremisePrecise }) {
+                        precise = ranked
+                        break
+                    }
                 }
+                // Structured street+city when free-text variants stayed street-only.
+                val locality = premise.locality
+                if (precise.isEmpty() &&
+                    !premise.streetName.isNullOrBlank() &&
+                    !locality.isNullOrBlank()
+                ) {
+                    val streetLine = listOfNotNull(premise.houseNumber, premise.streetName)
+                        .joinToString(" ")
+                    val structured = fetchStructured(streetLine, locality)
+                    if (structured.isNotEmpty()) {
+                        val ranked = NominatimHitRanker.preferPrecise(structured, premise)
+                        if (ranked.any { it.isPremisePrecise }) {
+                            precise = ranked
+                        } else if (fallback.isEmpty()) {
+                            fallback = ranked
+                        }
+                    }
+                }
+                val chosen = precise.ifEmpty { fallback }
                 AddressSuggestionLabelEnricher.enrich(
                     premise = premise,
-                    suggestions = raw,
+                    suggestions = chosen,
                 )
             } catch (_: Exception) {
                 emptyList()
@@ -52,10 +79,27 @@ class NominatimAddressAutocomplete(
         return NominatimSearchParser.parse(body)
     }
 
+    private fun fetchStructured(street: String, city: String): List<AddressSuggestion> {
+        val body = client.get(buildStructuredSearchUrl(street, city), userAgent)
+        return NominatimSearchParser.parse(body)
+    }
+
     fun buildSearchUrl(query: String): String {
         val encoded = URLEncoder.encode(query.trim(), StandardCharsets.UTF_8.name())
         return "$baseUrl?q=$encoded&format=json&addressdetails=1" +
             "&limit=$limit&countrycodes=$countryCodes"
+    }
+
+    fun buildStructuredSearchUrl(
+        street: String,
+        city: String,
+        country: String = "Australia",
+    ): String {
+        val s = URLEncoder.encode(street.trim(), StandardCharsets.UTF_8.name())
+        val c = URLEncoder.encode(city.trim(), StandardCharsets.UTF_8.name())
+        val co = URLEncoder.encode(country.trim(), StandardCharsets.UTF_8.name())
+        return "$baseUrl?street=$s&city=$c&country=$co&format=json&addressdetails=1" +
+            "&limit=$limit"
     }
 
     companion object {
@@ -64,12 +108,81 @@ class NominatimAddressAutocomplete(
         const val DEFAULT_LIMIT = 5
         const val DEFAULT_USER_AGENT =
             "TruckieAndroid/0.8 (https://github.com/potsed/truckie; address-autocomplete)"
+        const val SOURCE_ID = "nominatim"
+    }
+}
+
+/**
+ * Builds Nominatim query variants that keep typed house numbers when possible.
+ */
+object NominatimQueryPlanner {
+    fun candidateQueries(
+        query: String,
+        premise: AddressPremiseParser.Premise,
+    ): List<String> {
+        val out = linkedSetOf<String>()
+        out += query.trim()
+        val house = premise.houseNumber
+        val street = premise.streetName
+        val locality = premise.locality
+        if (!house.isNullOrBlank() && !street.isNullOrBlank()) {
+            out += "$house $street".trim()
+            if (!locality.isNullOrBlank()) {
+                out += "$house $street $locality".trim()
+                // Number-keeping form that finds OSM complexes (e.g. Elsium Rise).
+                out += "$house, $locality"
+                out += "$house $locality"
+            }
+        } else if (!house.isNullOrBlank() && !locality.isNullOrBlank()) {
+            out += "$house, $locality"
+        }
+        if (premise.hasPremise && premise.remainder.isNotBlank()) {
+            out += premise.remainder
+        }
+        return out.toList()
+    }
+}
+
+/**
+ * Ranks Nominatim hits so housenumber / building results beat street centroids.
+ */
+object NominatimHitRanker {
+    fun preferPrecise(
+        suggestions: List<AddressSuggestion>,
+        premise: AddressPremiseParser.Premise,
+    ): List<AddressSuggestion> {
+        if (suggestions.isEmpty()) return suggestions
+        val scored = suggestions.sortedByDescending { score(it, premise) }
+        if (!premise.hasPremise) return scored
+        val precise = scored.filter {
+            it.precision == AddressPrecision.HOUSE ||
+                it.precision == AddressPrecision.BUILDING ||
+                it.precision == AddressPrecision.UNIT
+        }
+        return if (precise.isNotEmpty()) precise + scored.filter { it !in precise } else scored
+    }
+
+    private fun score(
+        suggestion: AddressSuggestion,
+        premise: AddressPremiseParser.Premise,
+    ): Int {
+        var s = when (suggestion.precision) {
+            AddressPrecision.UNIT -> 40
+            AddressPrecision.HOUSE -> 30
+            AddressPrecision.BUILDING -> 25
+            AddressPrecision.STREET -> 5
+            AddressPrecision.UNKNOWN -> 10
+        }
+        val house = premise.houseNumber
+        if (!house.isNullOrBlank() && suggestion.label.contains(house, ignoreCase = true)) {
+            s += 20
+        }
+        return s
     }
 }
 
 /**
  * Parses Nominatim search JSON into verified [AddressSuggestion]s.
- * Avoids a JSON library dependency — Nominatim fields are simple scalars.
  * Supports nested `address` objects from `addressdetails=1` via brace balancing.
  */
 object NominatimSearchParser {
@@ -88,17 +201,42 @@ object NominatimSearchParser {
             val lat = doubleField(obj, "lat")
             val lon = doubleField(obj, "lon")
             val placeId = stringField(obj, "place_id") ?: longFieldAsString(obj, "place_id")
+            val houseNumber = stringField(obj, "house_number")
+            val clazz = stringField(obj, "class")
+            val type = stringField(obj, "type")
             if (!label.isNullOrBlank() && lat != null && lon != null) {
                 results += AddressSuggestion(
                     label = label,
                     placeId = placeId,
                     latitude = lat,
                     longitude = lon,
+                    precision = inferPrecision(houseNumber, clazz, type),
+                    source = NominatimAddressAutocomplete.SOURCE_ID,
                 )
             }
             index = objEnd + 1
         }
         return results
+    }
+
+    internal fun inferPrecision(
+        houseNumber: String?,
+        clazz: String?,
+        type: String?,
+    ): AddressPrecision {
+        val hasHouse = !houseNumber.isNullOrBlank()
+        val c = clazz?.lowercase().orEmpty()
+        val t = type?.lowercase().orEmpty()
+        return when {
+            c == "highway" && !hasHouse -> AddressPrecision.STREET
+            hasHouse && (c == "building" || c == "place" || t == "house" || t == "apartments") ->
+                AddressPrecision.HOUSE
+            hasHouse && (c == "landuse" || c == "residential") -> AddressPrecision.BUILDING
+            hasHouse -> AddressPrecision.HOUSE
+            c == "building" -> AddressPrecision.BUILDING
+            c == "highway" -> AddressPrecision.STREET
+            else -> AddressPrecision.UNKNOWN
+        }
     }
 
     /** Index of the matching `}` for the `{` at [start], or -1 if unbalanced. */

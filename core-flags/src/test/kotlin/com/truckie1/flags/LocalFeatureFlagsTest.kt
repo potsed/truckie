@@ -58,6 +58,15 @@ class LocalFeatureFlagsTest {
     }
 
     @Test
+    fun gnafAddressGeocodeFlagKey() {
+        assertTrue(FlagKeys.GNAF_ADDRESS_GEOCODE == "ff_gnaf_address_geocode")
+        val flags = LocalFeatureFlags()
+        assertFalse(flags.isEnabled(FlagKeys.GNAF_ADDRESS_GEOCODE))
+        flags.setEnabled(FlagKeys.GNAF_ADDRESS_GEOCODE, true)
+        assertTrue(flags.isEnabled(FlagKeys.GNAF_ADDRESS_GEOCODE))
+    }
+
+    @Test
     fun mapLocationPuckFlagKey() {
         assertTrue(FlagKeys.MAP_LOCATION_PUCK == "ff_map_location_puck")
         val flags = LocalFeatureFlags()

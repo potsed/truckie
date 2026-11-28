@@ -20,7 +20,7 @@ android {
         minSdk = 24
         targetSdk = 35
         versionCode = 1
-        versionName = "0.8.41-address-housenumber"
+        versionName = "0.8.42-gnaf-premise-geocode"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Live GraphHopper base URL for select-user (ATNA-102). Empty → stub PathRouter.
         // Set via -Ptruckie.graphhopper.baseUrl=… or TRUCKIE_GRAPHHOPPER_BASE_URL.

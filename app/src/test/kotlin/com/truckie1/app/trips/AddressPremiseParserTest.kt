@@ -17,6 +17,8 @@ class AddressPremiseParserTest {
         assertEquals("U21", premise.unit)
         assertEquals("1-31", premise.houseNumber)
         assertEquals("Elsie Street Kallangur", premise.remainder)
+        assertEquals("Elsie Street", premise.streetName)
+        assertEquals("Kallangur", premise.locality)
         assertTrue(premise.hasPremise)
     }
 

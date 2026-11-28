@@ -33,11 +33,22 @@ object VerifiedAddressCatalog {
     /**
      * Provider for the map-home sheet: Nominatim when autocomplete **and** async
      * routing I/O are on; otherwise NoOp (never sync live HTTP).
+     *
+     * When [GnafAddressCatalog] is on and a [gnafIndex] is supplied, wraps
+     * Nominatim in [PremiseGeocodeAutocomplete] for unit/housenumber points.
      */
-    fun autocompleteFor(flags: FeatureFlags): AddressAutocomplete =
-        if (AsyncRoutingIoCatalog.allowsLiveNominatim(flags)) {
-            defaultAutocomplete()
-        } else {
-            NoOpAddressAutocomplete
+    fun autocompleteFor(
+        flags: FeatureFlags,
+        gnafIndex: GnafAddressIndex? = null,
+    ): AddressAutocomplete {
+        if (!AsyncRoutingIoCatalog.allowsLiveNominatim(flags)) {
+            return NoOpAddressAutocomplete
         }
+        val nominatim = defaultAutocomplete()
+        return if (GnafAddressCatalog.isEnabled(flags) && gnafIndex != null) {
+            PremiseGeocodeAutocomplete(nominatim = nominatim, gnaf = gnafIndex)
+        } else {
+            nominatim
+        }
+    }
 }

@@ -27,6 +27,12 @@ object FlagKeys {
     const val MAP_HOME = "ff_map_home"
     /** Verified address autocomplete (Nominatim AU default) for route stops (Phase B). */
     const val ADDRESS_AUTOCOMPLETE = "ff_address_autocomplete"
+    /**
+     * G-NAF premise geocode (ATNA-108): when autocomplete is on, resolve typed
+     * unit/housenumber to Geocoded National Address File points (local pack)
+     * instead of Nominatim street centroids. Never invents coordinates.
+     */
+    const val GNAF_ADDRESS_GEOCODE = "ff_gnaf_address_geocode"
     /** Blue my-location puck on the MapLibre map (updates with Fused Location). */
     const val MAP_LOCATION_PUCK = "ff_map_location_puck"
     /** Create route requires verified start + end (same place = round trip). */

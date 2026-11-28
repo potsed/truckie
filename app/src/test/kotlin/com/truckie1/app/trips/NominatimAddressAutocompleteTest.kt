@@ -92,36 +92,49 @@ class NominatimAddressAutocompleteTest {
 
     /**
      * Gherkin: address_autocomplete_housenumber.feature —
-     * unit+number query empty → street fallback + premise preserved on label.
+     * number-keeping query prefers housenumber/building over street centroid.
      */
     @Test
-    fun preservesTypedPremiseWhenNominatimReturnsStreetOnly() = runBlocking {
+    fun prefersHousenumberHitFromNumberKeepingQuery() = runBlocking {
         val streetJson = """
             [
               {
                 "place_id": 27935006,
                 "lat": "-27.2543388",
                 "lon": "152.9958419",
+                "class": "highway",
+                "type": "residential",
                 "display_name": "Elsie Street, Brisbane, Queensland, 4503, Australia"
+              }
+            ]
+        """.trimIndent()
+        val buildingJson = """
+            [
+              {
+                "place_id": 27624684,
+                "lat": "-27.2544437",
+                "lon": "152.9963696",
+                "class": "landuse",
+                "type": "residential",
+                "display_name": "Elsium Rise, 1-31, Kallangur, Queensland, 4503, Australia",
+                "address": { "house_number": "1-31", "road": "Elsie Street" }
               }
             ]
         """.trimIndent()
         val client = AddressHttpClient { url, _ ->
             when {
-                url.contains("U21") || url.contains("1-31") -> "[]"
+                url.contains("1-31%2C") || url.contains("1-31,") ||
+                    (url.contains("Kallangur") && !url.contains("Elsie")) -> buildingJson
                 else -> streetJson
             }
         }
         val autocomplete = NominatimAddressAutocomplete(client = client)
-
-        val suggestions = autocomplete.suggest("U21 1-31 Elsie Street Kallangur")
-        assertEquals(1, suggestions.size)
-        assertTrue(suggestions[0].label.contains("U21"))
+        val suggestions = autocomplete.suggest("1-31 Elsie Street Kallangur")
+        assertTrue(suggestions.isNotEmpty())
+        assertEquals(AddressPrecision.BUILDING, suggestions[0].precision)
+        assertEquals(-27.2544437, suggestions[0].latitude!!, 1e-7)
+        assertEquals(152.9963696, suggestions[0].longitude!!, 1e-7)
         assertTrue(suggestions[0].label.contains("1-31"))
-        assertTrue(suggestions[0].label.contains("Elsie Street"))
-        assertEquals(-27.2543388, suggestions[0].latitude!!, 1e-7)
-        assertEquals(152.9958419, suggestions[0].longitude!!, 1e-7)
-        assertTrue(suggestions[0].isVerified)
     }
 
     @Test
