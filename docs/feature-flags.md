@@ -26,9 +26,9 @@ XML screen layouts were removed; do not add new AppCompat/XML screens.
 | `ff_valhalla_live` | Live Valhalla PathRouter (ATNA-113): road-network polylines with **truck costing**. **Interim:** hosted Valhalla (Simple Routing default) via `VALHALLA_API_KEY`. **Long-term / offline:** `VALHALLA_BASE_URL` self-hosted or on-device tiles; clear API key. See `docs/valhalla-live.md`, `secrets.properties.example` | off (on in debug) |
 | `ff_path_block_detour` | Alternate around geographic path blocks via PathRouter (ATNA-102): live Valhalla truck costing / exclude polygons; never erase the tour polyline; stub only for tests / missing credentials | **on** (defaults on) |
 | `ff_tolls` | Toll preference stub / avoid-allow settings | off |
-| `ff_offline_maps` | Offline map pack manager (MapLibre) | off |
-| `ff_android_auto` | Android Auto surfaces (requires API 23+) | off |
-| `ff_nhvr_overlay` | NHVR / state restriction overlays | off |
+| `ff_offline_maps` | Offline MapLibre pack manager (ATNA-95): OfflineManager + pack download UX + offline-capable style. **Off in production and debug** until that path ships — see `features/offline_maps.feature`, `OfflineMapsCatalog` | **off** (including debug) |
+| `ff_android_auto` | Android Auto surfaces (ATNA-10 / ATNA-95): API 23+ gate via `AndroidAutoGate`; scaffold MessageTemplate today; **NavigationTemplate** + clear next destination required before production enable — see `features/android_auto.feature`, `AndroidAutoCatalog`, `docs/play-console.md` | **off** (including debug) |
+| `ff_nhvr_overlay` | NHVR / state restriction overlays (ATNA-11 / ATNA-43 / ATNA-95): National Network Map authority; cite sources; never invent geometries; roadside signs/permits override; not a substitute for bridge packs — see `features/nhvr_overlay.feature`, `NhvrOverlayCatalog` | **off** (including debug) |
 | `ff_nav_chrome` | Material3 TopAppBar + bottom NavigationBar (Home, Plan trip, Vehicles, Settings) | off (on in debug) |
 | `ff_map_home` | MapLibre map-first home + route/stop drag sheet (peek/half/full) | off (on in debug) |
 | `ff_address_autocomplete` | Verified address autocomplete (Nominatim AU default) for map-home stops | off (on in debug) |
@@ -67,11 +67,25 @@ gated by existing `ff_map_home` (and related map flags). Domain lives in
 See `features/map_home_orchestration.feature`. Live routing is Valhalla only
 (`docs/valhalla-live.md`; self-host notes in `docs/valhalla-self-host-notes.md`).
 
+## Deferred Phase G / overlay flags (ATNA-95)
+
+These keys exist so dogfood and select-user work can contract behaviour **before**
+enablement. Catalogs encode the contracts; Gherkin lives under `features/`.
+**Do not** auto-enable them in `TruckieApp` debug dogfood.
+
+| Flag | Catalog | Gherkin | Notes |
+| --- | --- | --- | --- |
+| `ff_offline_maps` | `OfflineMapsCatalog` | `features/offline_maps.feature` | Product pack surface = flag **and** engine OfflineManager available. Native engine reports unavailable until OfflineManager lands; JVM stub may register packs for tests. |
+| `ff_android_auto` | `AndroidAutoCatalog` / `AndroidAutoGate` | `features/android_auto.feature` | Flag + API ≥ 23. Keep phone screen-on while navigating; phone may blank when Auto connected. Next destination must show clearly on Auto (ATNA-83 → ATNA-10). |
+| `ff_nhvr_overlay` | `NhvrOverlayCatalog` | `features/nhvr_overlay.feature` | Overlay guidance only (not a permit). Distinct from `ff_bridge_markers` / AU low-bridges packs. |
+
 ## Rules
 
 1. UI and navigation entry points must check the flag before exposing capability.
 2. Unit tests assert gated behavior when flags flip.
-3. Android Auto additionally requires `Build.VERSION.SDK_INT >= 23`.
+3. Android Auto additionally requires `Build.VERSION.SDK_INT >= 23` (`AndroidAutoGate` /
+   `AndroidAutoCatalog`). Keep `ff_android_auto` off until NavigationTemplate + Auto
+   next-destination land (ATNA-10).
 4. Cargo fields and on-board clearance require both `ff_multi_stop` and `ff_stop_cargo`.
 5. Route optimize (`ff_route_optimize`) hard-filters by effective clearance (height + buffer) and
    on-board operating mass vs GVM / route max weight. Multi-stop tours compose PathRouter legs

@@ -11,7 +11,36 @@ class LocalFeatureFlagsTest {
         assertFalse(flags.isEnabled(FlagKeys.VEHICLE_PROFILES))
         assertFalse(flags.isEnabled(FlagKeys.MULTI_STOP))
         assertFalse(flags.isEnabled(FlagKeys.STOP_CARGO))
+        assertFalse(flags.isEnabled(FlagKeys.OFFLINE_MAPS))
         assertFalse(flags.isEnabled(FlagKeys.ANDROID_AUTO))
+        assertFalse(flags.isEnabled(FlagKeys.NHVR_OVERLAY))
+    }
+
+    @Test
+    fun offlineMapsFlagKey() {
+        assertTrue(FlagKeys.OFFLINE_MAPS == "ff_offline_maps")
+        val flags = LocalFeatureFlags()
+        assertFalse(flags.isEnabled(FlagKeys.OFFLINE_MAPS))
+        flags.setEnabled(FlagKeys.OFFLINE_MAPS, true)
+        assertTrue(flags.isEnabled(FlagKeys.OFFLINE_MAPS))
+    }
+
+    @Test
+    fun androidAutoFlagKey() {
+        assertTrue(FlagKeys.ANDROID_AUTO == "ff_android_auto")
+        val flags = LocalFeatureFlags()
+        assertFalse(flags.isEnabled(FlagKeys.ANDROID_AUTO))
+        flags.setEnabled(FlagKeys.ANDROID_AUTO, true)
+        assertTrue(flags.isEnabled(FlagKeys.ANDROID_AUTO))
+    }
+
+    @Test
+    fun nhvrOverlayFlagKey() {
+        assertTrue(FlagKeys.NHVR_OVERLAY == "ff_nhvr_overlay")
+        val flags = LocalFeatureFlags()
+        assertFalse(flags.isEnabled(FlagKeys.NHVR_OVERLAY))
+        flags.setEnabled(FlagKeys.NHVR_OVERLAY, true)
+        assertTrue(flags.isEnabled(FlagKeys.NHVR_OVERLAY))
     }
 
     @Test

@@ -18,8 +18,21 @@ object FlagKeys {
     @Deprecated("Use ROUTE_OPTIMIZE (ff_route_optimize)", ReplaceWith("ROUTE_OPTIMIZE"))
     const val OPTIMIZE_FOR_VEHICLE = ROUTE_OPTIMIZE
     const val TOLLS = "ff_tolls"
+    /**
+     * Offline MapLibre pack manager (ATNA-95 contracts). Defaults off in
+     * production **and** debug until OfflineManager + pack UX + offline style.
+     * See features/offline_maps.feature.
+     */
     const val OFFLINE_MAPS = "ff_offline_maps"
+    /**
+     * Android Auto surfaces (ATNA-10 / ATNA-95). Defaults off in production
+     * **and** debug; requires API 23+. See features/android_auto.feature.
+     */
     const val ANDROID_AUTO = "ff_android_auto"
+    /**
+     * NHVR / state restriction overlays (ATNA-11 / ATNA-43 / ATNA-95).
+     * Defaults off in production **and** debug. See features/nhvr_overlay.feature.
+     */
     const val NHVR_OVERLAY = "ff_nhvr_overlay"
     /** Material3 TopAppBar + bottom NavigationBar across primary screens. */
     const val NAV_CHROME = "ff_nav_chrome"
