@@ -13,7 +13,11 @@
     <string name="nav_plan_trip_cd">Trip — add pickups and dropoffs, optimize route</string>
     <string name="nav_back">Back</string>
     <string name="settings_buffer_value">Current buffer: %1$s m</string>
-    <string name="settings_stub_note">Toll preferences, offline maps, licenses, and disclaimer land in later milestones.</string>
+    <!-- Tolls / offline maps / licenses remain later; disclaimer ships ATNA-96. -->
+    <string name="settings_stub_note">Toll preferences, offline maps, and licenses land in later milestones.</string>
+    <!-- ATNA-96: Play / select-user safety disclaimer (ff_settings_disclaimer). -->
+    <string name="settings_disclaimer_title">Safety disclaimer</string>
+    <string name="settings_disclaimer_body">Truckie is not a permit. Physical roadside signs override digital packs. Always verify restrictions with NHVR or the road authority. On-board weight shown in Truckie is guidance only — not a hard lock.</string>
     <!-- ATNA-113: Valhalla live vs degraded stub PathRouter geometry status. -->
     <string name="settings_routing_geometry_label">Route geometry</string>
     <!-- Debug dogfood: confirm installed APK includes a given marker/font fix. -->

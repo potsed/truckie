@@ -188,6 +188,12 @@ object FlagKeys {
      * Nominatim = typeahead UI at most until G-NAF resolves the hit.
      */
     const val OWNED_ADDRESS_PACK = "ff_owned_address_pack"
+    /**
+     * Settings safety disclaimer (ATNA-96): not a permit; roadside signs
+     * override packs; NHVR / authority verify; weight is guidance only.
+     * Defaults on for Play / select-user.
+     */
+    const val SETTINGS_DISCLAIMER = "ff_settings_disclaimer"
 }
 
 /**

@@ -33,6 +33,9 @@ abstract class VehicleDatabase : RoomDatabase() {
     abstract fun activeTourDao(): ActiveTourDao
 
     companion object {
+        /** On-device Room file — excluded from cloud backup (ATNA-96 / PlayBackupPolicy). */
+        const val DATABASE_NAME: String = "truckie_vehicles.db"
+
         /** Schema version with routes/stops/cargo/active_tour_meta (ATNA-89). */
         const val VERSION: Int = 2
         /**
@@ -108,7 +111,7 @@ abstract class VehicleDatabase : RoomDatabase() {
             }
         }
 
-        fun build(context: Context, name: String = "truckie_vehicles.db"): VehicleDatabase =
+        fun build(context: Context, name: String = DATABASE_NAME): VehicleDatabase =
             Room.databaseBuilder(context.applicationContext, VehicleDatabase::class.java, name)
                 .addMigrations(MIGRATION_1_2)
                 .build()

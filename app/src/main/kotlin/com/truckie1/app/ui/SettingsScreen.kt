@@ -51,12 +51,24 @@ fun SettingsScreen(
     appVersionName: String = BuildConfig.VERSION_NAME,
     /** ATNA-113: live Valhalla vs degraded stub. Null → derive from flags. */
     routingGeometryStatus: String? = null,
+    /**
+     * ATNA-96: Play safety disclaimer (`ff_settings_disclaimer`).
+     * Null → derive from [featureFlags] via [SettingsDisclaimerCatalog.shouldShow].
+     */
+    showDisclaimer: Boolean? = null,
 ) {
     TruckieBody(text = stringResource(R.string.clearance_buffer_label))
     Spacer(modifier = Modifier.height(8.dp))
     TruckieBody(text = stringResource(R.string.settings_buffer_value, "%.2f".format(bufferM)))
     Spacer(modifier = Modifier.height(16.dp))
     TruckieBody(text = stringResource(R.string.settings_stub_note))
+    val disclaimerVisible = showDisclaimer
+        ?: featureFlags?.let { SettingsDisclaimerCatalog.shouldShow(it) }
+        ?: false
+    if (disclaimerVisible) {
+        Spacer(modifier = Modifier.height(16.dp))
+        SettingsDisclaimerSection()
+    }
     val geometryStatus = routingGeometryStatus
         ?: featureFlags?.let { ValhallaLiveCatalog.routingGeometryStatus(it) }
     if (!geometryStatus.isNullOrBlank()) {
@@ -99,6 +111,22 @@ fun SettingsScreen(
             query = navigationAppQuery,
         )
     }
+}
+
+@Composable
+private fun SettingsDisclaimerSection() {
+    Text(
+        text = stringResource(R.string.settings_disclaimer_title),
+        style = MaterialTheme.typography.titleMedium,
+        color = MaterialTheme.colorScheme.onBackground,
+    )
+    Spacer(modifier = Modifier.height(4.dp))
+    Text(
+        text = stringResource(R.string.settings_disclaimer_body),
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onBackground,
+        modifier = Modifier.testTag(SettingsDisclaimerCatalog.TEST_TAG),
+    )
 }
 
 @Composable

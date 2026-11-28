@@ -29,7 +29,15 @@ Local dogfood can still use a debug APK (`./scripts/build-apk.sh`). Play accepts
 - Complete Data safety form (what is collected, why, sharing).
 - Privacy policy URL when the app has network accounts, location, or analytics.
 - Permissions must match declared use (location for navigation, etc.).
-- In-app disclaimer: routing is not a permit — verify with NHVR / road authorities.
+- In-app disclaimer (`ff_settings_disclaimer`, defaults **on**): Truckie is **not a permit**; physical roadside signs override digital packs; verify with NHVR / road authorities; on-board weight is **guidance only** (not a hard lock). Settings copy: `settings_disclaimer_*` strings. Gherkin: `features/play_hardening_backup_disclaimer.feature`.
+
+## Backup / data extraction (vehicle PII)
+
+- `android:allowBackup="true"` with **excludes** — not an open cloud dump of the sandbox.
+- `android:dataExtractionRules` → `@xml/data_extraction_rules` (API 31+).
+- `android:fullBackupContent` → `@xml/backup_rules` (legacy).
+- Excluded from cloud backup **and** device transfer: Room DB `truckie_vehicles.db` (rego, dims, routes) and shared prefs `truckie_settings.xml`.
+- Policy object: `PlayBackupPolicy` (ATNA-96).
 
 ## Android Auto (later)
 
