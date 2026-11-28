@@ -1,12 +1,14 @@
 package com.truckie1.app.ui
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * Shared SymbolManager obtain / defaults for stop + bridge home-map markers.
- * Gherkin: features/map_stop_markers.feature, features/bridge_markers.feature.
+ * Shared overlay icon / bind facade for stop + bridge home-map markers.
+ * Gherkin: features/map_stop_markers.feature, features/bridge_markers.feature,
+ * features/map_style_overlays.feature.
  */
 class MapSymbolBindTest {
 
@@ -18,6 +20,8 @@ class MapSymbolBindTest {
         assertTrue(MapSymbolBind.iconIgnorePlacement)
         assertTrue(MapSymbolBind.textAllowOverlap)
         assertEquals(MapLibreSymbolText.textOptional, MapSymbolBind.textOptional)
+        assertTrue(MapStyleOverlayBind.sharesPathWithBridgeStopAndRoute)
+        assertFalse(MapStyleOverlayCatalog.usesAnnotationSymbolManager)
     }
 
     @Test
@@ -39,11 +43,11 @@ class MapSymbolBindTest {
 
     @Test
     fun stopAndBridgeCatalogsDeclareSharedBind() {
-        assertTrue(MapStopMarkersCatalog.usesSharedSymbolBindPath)
+        assertTrue(MapStopMarkersCatalog.usesSharedStyleOverlayBindPath)
         assertTrue(MapStopMarkersCatalog.sharesStyleLifecycleWithBridges)
         assertTrue(BridgeMarkersVisibility.loadsStyleOnce)
-        assertTrue(BridgeMarkersVisibility.recreatesManagersOnNewStyle)
-        assertTrue(BridgeMarkersVisibility.recreatesManagersWhenStyleIdentityDrifts)
-        assertTrue(BridgeMarkersVisibility.recreatesManagersWhenLayerMissing)
+        assertTrue(BridgeMarkersVisibility.recreatesOverlaysOnNewStyle)
+        assertTrue(BridgeMarkersVisibility.recreatesOverlaysWhenStyleIdentityDrifts)
+        assertTrue(BridgeMarkersVisibility.recreatesOverlaysWhenLayerMissing)
     }
 }

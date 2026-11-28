@@ -15,26 +15,34 @@ object BridgeMarkersVisibility {
     const val SEQ_RADIUS_KM: Double = 2.0
     const val MIN_SEQ_BRIDGES: Int = 3
 
-    /** MapLibreHost loads OpenFreeMap style once; recompositions only rebind annotations. */
+    /** MapLibreHost loads OpenFreeMap style once; recompositions only rebind overlays. */
     const val loadsStyleOnce: Boolean = true
 
     /** Concurrent AndroidView updates must enqueue, not start a second setStyle. */
     const val coalescesConcurrentStyleLoads: Boolean = true
 
-    /** When style is (re)created, SymbolManagers / LineManager are rebuilt for that style. */
-    const val recreatesManagersOnNewStyle: Boolean = true
+    /** When style is (re)created, GeoJSON overlay layers are rebuilt for that style. */
+    const val recreatesOverlaysOnNewStyle: Boolean = true
 
-    /** If map.style !== the Style managers were bound to, drop and recreate them. */
-    const val recreatesManagersWhenStyleIdentityDrifts: Boolean = true
+    /** If map.style !== the Style overlays were bound to, drop and recreate them. */
+    const val recreatesOverlaysWhenStyleIdentityDrifts: Boolean = true
 
-    /** If a manager's layer id is missing from the live style, recreate that manager. */
-    const val recreatesManagersWhenLayerMissing: Boolean = true
+    /** If an overlay layer id is missing from the live style, recreate that overlay. */
+    const val recreatesOverlaysWhenLayerMissing: Boolean = true
 
     /**
-     * Relative SymbolManager scale for the W5-8 PNG (~96px intrinsic).
-     * Shared with stop markers via [MapSymbolBind.IconSize.BRIDGE_W58].
+     * Annotation-era names — always false after ATNA-117 (style layers only).
+     * Prefer [recreatesOverlaysOnNewStyle] / drift / layer-missing flags.
      */
-    val iconSize: Float = MapSymbolBind.IconSize.BRIDGE_W58
+    const val recreatesManagersOnNewStyle: Boolean = false
+    const val recreatesManagersWhenStyleIdentityDrifts: Boolean = false
+    const val recreatesManagersWhenLayerMissing: Boolean = false
+
+    /**
+     * Relative symbol-layer scale for the W5-8 PNG (~96px intrinsic).
+     * Shared with stop markers via [MapStyleOverlayCatalog.IconSize.BRIDGE_W58].
+     */
+    val iconSize: Float = MapStyleOverlayCatalog.IconSize.BRIDGE_W58
 
     const val usesAuRoadSignW58: Boolean = true
 

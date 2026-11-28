@@ -1,23 +1,23 @@
 package com.truckie1.app.ui
 
 /**
- * Text stacks for MapLibre Annotation [org.maplibre.android.plugins.annotation.SymbolManager]
+ * Text stacks for MapLibre style [org.maplibre.android.style.layers.SymbolLayer]
  * labels on the OpenFreeMap Liberty basemap.
  *
  * MapLibre’s default `text-font` is `Open Sans Regular, Arial Unicode MS Regular`.
  * OpenFreeMap only hosts **Noto Sans** under
  * `https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf`. A 404 for the
  * default stack prevents the **entire** symbol (icon + text) from painting —
- * which made W5-8 bridge markers invisible after Jump even when SymbolManagers
- * were bound to the live style.
+ * which made W5-8 bridge markers invisible even when overlays were bound to
+ * the live style.
  *
- * Gherkin: features/bridge_markers.feature
+ * Gherkin: features/bridge_markers.feature, features/map_style_overlays.feature
  */
 object MapLibreSymbolText {
     /** Exact fontstack directory name on OpenFreeMap’s glyph host. */
     const val OPENFREEMAP_REGULAR: String = "Noto Sans Regular"
 
-    /** Pass to [org.maplibre.android.plugins.annotation.SymbolOptions.withTextFont]. */
+    /** Pass to SymbolLayer [org.maplibre.android.style.layers.PropertyFactory.textFont]. */
     val openFreeMapTextFont: Array<String> = arrayOf(OPENFREEMAP_REGULAR)
 
     /**

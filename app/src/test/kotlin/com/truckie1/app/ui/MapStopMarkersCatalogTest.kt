@@ -52,10 +52,11 @@ class MapStopMarkersCatalogTest {
     }
 
     @Test
-    fun usesSymbolManagerNotDeprecatedMarkerApi() {
-        assertTrue(MapStopMarkersCatalog.usesSymbolManager)
+    fun usesStyleSymbolLayerNotAnnotationOrDeprecatedMarkerApi() {
+        assertTrue(MapStopMarkersCatalog.usesStyleSymbolLayer)
+        assertFalse(MapStopMarkersCatalog.usesSymbolManager)
         assertFalse(MapStopMarkersCatalog.usesDeprecatedMarkerApi)
-        assertTrue(MapStopMarkersCatalog.usesSharedSymbolBindPath)
+        assertTrue(MapStopMarkersCatalog.usesSharedStyleOverlayBindPath)
         assertTrue(MapStopMarkersCatalog.sharesStyleLifecycleWithBridges)
         assertTrue(MapSymbolBind.sharesPathWithBridgeAndStopMarkers)
         assertTrue(MapStopMarkersCatalog.requiresOpenFreeMapCompatibleTextFont)

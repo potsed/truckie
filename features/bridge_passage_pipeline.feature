@@ -5,7 +5,7 @@ Feature: Single bridge passage policy and visibility pipeline
 
   # Consolidation (ATNA-73 / audit P1): delete twin BridgePassageFilter vs
   # BridgePassageConstraint semantics; one BridgePassagePolicy in core-routing;
-  # one BridgeVisibilityPipeline for Compose + SymbolManager bind.
+  # one BridgeVisibilityPipeline for Compose + style-layer bind.
   # Flags preserved: ff_bridge_passage, ff_w5_8_low_only, ff_vehicle_height_bridge_filter,
   # plus Qld open-data gates. Prefer wire passage in JSON; never invent heights.
 
@@ -25,7 +25,7 @@ Feature: Single bridge passage policy and visibility pipeline
       | w5_8_low        |
       | passage_under   |
       | vehicle_height  |
-    And MapLibre SymbolManager bind receives the pre-filtered list
+    And MapLibre style-layer bind receives the pre-filtered list
     And bindBridges does not re-apply LowBridgeW58 / passage / vehicle-height filters
 
   Scenario: Feature flags still gate each stage

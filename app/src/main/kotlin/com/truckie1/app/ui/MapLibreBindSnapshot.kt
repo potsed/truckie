@@ -9,9 +9,9 @@ import com.truckie1.trips.RouteStop
  * One immutable bind payload for [MapLibreHost] (ATNA-90 / P1-5).
  *
  * Compose / [MapHomeController] precomputes bridge clearance labels so the host
- * never looks up [TruckieApp] feature flags during SymbolManager bind.
+ * never looks up [TruckieApp] feature flags during style-layer bind.
  *
- * Gherkin: features/map_home_orchestration.feature
+ * Gherkin: features/map_home_orchestration.feature, features/map_style_overlays.feature
  */
 data class BridgeSymbolSpec(
     val bridge: BridgePoint,
@@ -35,7 +35,7 @@ data class MapLibreBindSnapshot(
             bridges: List<BridgePoint>,
             flags: FeatureFlags,
         ): List<BridgeSymbolSpec> =
-            BridgeVisibilityPipeline.forSymbolBind(bridges).map { bridge ->
+            BridgeVisibilityPipeline.forStyleBind(bridges).map { bridge ->
                 BridgeSymbolSpec(
                     bridge = bridge,
                     clearanceLabel = BridgeMarkersCatalog.clearanceLabel(bridge, flags),

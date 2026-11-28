@@ -41,10 +41,10 @@ XML screen layouts were removed; do not add new AppCompat/XML screens.
 | `ff_async_routing_io` | Async Valhalla + Nominatim I/O (ATNA-88 / P1-3): live PathRouter + Nominatim are suspend and hop off Compose main; sync-on-main live HTTP deleted. Does **not** enable `ff_valhalla_live` | **on** (defaults on) |
 | `ff_room_route_persist` | Room-persist active route + stops (ATNA-89 / P1-4): Real AppDataSource ActiveTour read/write through Room; demo stays isolated read-only in-memory; `exportSchema` + Migration 1→2; no main-thread Room allow | **on** (defaults on) |
 | `ff_active_tour` | Single ActiveTourSession SoT (ATNA-86): map-home Route + Plan Trip / Optimise + demo; TripStop is a projection | **on** (defaults on) |
-| `ff_bridge_markers` | Low-bridge markers on MapLibre home (Australia-first sample JSON asset; SymbolManager + optional clearance label) | off (on in debug) |
-| `ff_stop_markers` | Route stop markers on MapLibre home (ATNA-81): pickup vs drop-off SymbolManager icons from active AppDataSource route; shares bridge SymbolManager / style lifecycle bind path | off (on in debug) |
-| `ff_map_route_polyline` | Active route polyline on MapLibre home (ATNA-82): PathRouter / MultiStopTourComposer constrained geometry via shared LineManager with Navigate; Fastest + Cost Effective checkboxes both on by default (AND); stub geometry only when stub PathRouter is active | off (on in debug) |
-| `ff_next_destination_display` | While navigating, show upcoming stop / end address (ATNA-83): compact optional phone chip; **must** show clearly on Android Auto when ATNA-10 lands. Human-driver first-class destination (not turn-only). No LineManager changes | off (on in debug) |
+| `ff_bridge_markers` | Low-bridge markers on MapLibre home (Australia-first sample JSON asset; GeoJSON symbol layer + optional clearance label) | off (on in debug) |
+| `ff_stop_markers` | Route stop markers on MapLibre home (ATNA-81 / ATNA-117): pickup vs drop-off style-layer icons from active AppDataSource route; shares bridge GeoJSON / style lifecycle bind path | off (on in debug) |
+| `ff_map_route_polyline` | Active route polyline on MapLibre home (ATNA-82 / ATNA-117): PathRouter / MultiStopTourComposer constrained geometry via shared style line layer with Navigate; Fastest + Cost Effective checkboxes both on by default (AND); stub geometry only when stub PathRouter is active | off (on in debug) |
+| `ff_next_destination_display` | While navigating, show upcoming stop / end address (ATNA-83): compact optional phone chip; **must** show clearly on Android Auto when ATNA-10 lands. Human-driver first-class destination (not turn-only). No route overlay changes | off (on in debug) |
 | `ff_verified_cbd_clearances` | Verified CBD sample clearances (ATNA-42): labels only for published road heights; unknown / not_applicable omit invented mocks | off (on in debug) |
 | `ff_queensland_rail_clearances` | Queensland Rail SEQ road-under-rail clearances (ATNA-44): show published QR railbridges pack entries; off keeps BCC CBD samples only | off (on in debug) |
 | `ff_w5_8_low_only` | W5-8 only for low / restricted clearances (ATNA-45): AU W5-8 diamond only when verified ≤ 4.6 m or QR published underbridge | off (on in debug) |
@@ -143,8 +143,9 @@ enablement. Catalogs encode the contracts; Gherkin lives under `features/`.
     MapLibre map. Settings key `navigation_app_package` defaults to `com.truckie1.in_app`;
     an installed nav app is optional **post-route** handoff only.
 12. Bridge markers (`ff_bridge_markers`) draw Australia-first bridges on the map-first home
-    via an Annotation **SymbolManager** obtained through shared [MapSymbolBind] (same path
-    as stop markers). Long-term source is a **downloadable updatable pack**
+    via a MapLibre **GeoJSONSource** + style **symbol** layer through shared
+    [MapStyleOverlayBind] (same path as stop markers / route — ATNA-117; Annotation
+    SymbolManager deleted). Long-term source is a **downloadable updatable pack**
     (`BridgePackRepository`: versioned cache + refresh). The baked-in
     `assets/bridges/au_sample_bridges.json` only **seeds** an empty cache (**local-first**:
     `loadActive` never networks; refresh downloads only when the remote version is newer).
@@ -152,11 +153,11 @@ enablement. Catalogs encode the contracts; Gherkin lives under `features/`.
     when `clearanceHeightM` is present (text-font **Noto Sans Regular** for OpenFreeMap
     Liberty — default Open Sans stack 404s and hides icons). Requires map home to be the
     active surface; does not change create-route or vehicle UI.
-12b. Stop markers (`ff_stop_markers`, ATNA-81) plot active-route pickup/drop-off stops on the
-    same MapLibre home via the **same** [MapSymbolBind] / [MapLibreStyleLifecycle] path as
-    bridges (distinct SymbolManager instance, shared obtain/defaults — not a parallel stack).
-    Stops come from [AppDataSource] (demo or real). Distinct icons for pickup/load vs
-    drop-off/unload. Satellite peek is out of scope.
+12b. Stop markers (`ff_stop_markers`, ATNA-81 / ATNA-117) plot active-route pickup/drop-off
+    stops on the same MapLibre home via the **same** [MapStyleOverlayBind] /
+    [MapLibreStyleLifecycle] path as bridges (shared GeoJSON / style-layer path — not a
+    parallel stack). Stops come from [AppDataSource] (demo or real). Distinct icons for
+    pickup/load vs drop-off/unload. Satellite peek is out of scope.
 13. Verified CBD clearances (`ff_verified_cbd_clearances`, ATNA-42) replace mock demo heights
     with BCC/QR/TMR-sourced road clearances (or omit height as unknown / not_applicable).
     When on, map labels show only `clearanceStatus=verified` heights. Pack meta cites sources
@@ -214,9 +215,9 @@ enablement. Catalogs encode the contracts; Gherkin lives under `features/`.
     `highway-name-major` / `highway-name-minor` are visible, lower minor-road name
     minzoom to 14, and hide `poi_transit` (bus stops) plus ranked POI label layers
     (`poi_r1` / `poi_r7` / `poi_r20`). No custom hosted style; OSS free-for-commercial.
-23. Map route polyline (`ff_map_route_polyline`, ATNA-82) draws the constrained active
-    route on MapLibre home via shared LineManager (`MapLineBind` /
-    `MapRoutePathAnnotations`) with Navigate. Geometry from PathRouter /
+23. Map route polyline (`ff_map_route_polyline`, ATNA-82 / ATNA-117) draws the constrained
+    active route on MapLibre home via shared GeoJSON LineString + style line layer
+    (`MapStyleOverlayBind` / `MapRoutePathStyle`) with Navigate. Geometry from PathRouter /
     MultiStopTourComposer only (optimised tour when cached; else AND tour select with
     Fastest + Cost Effective checkboxes both on). Same under-passage / weight / soft
     residential / over-deck OK / toll-when-flagged constraints as Optimize/Navigate.
@@ -228,4 +229,4 @@ enablement. Catalogs encode the contracts; Gherkin lives under `features/`.
     (avoid clutter). **Android Auto (ATNA-10):** when Auto navigation lands, the next
     destination **must** show clearly on the car UI — document/contract in
     `NextDestinationDisplayCatalog` + `docs/play-console.md`. Does not touch
-    LineManager / MapRoutePathAnnotations.
+    style route overlays / MapRoutePathStyle.

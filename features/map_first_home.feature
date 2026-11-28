@@ -54,7 +54,7 @@ Feature: Map-first home with route stop drag sheet
     Given MapLibre map home is shown
     Then the style URL is OpenFreeMap Liberty street tiles
     And demotiles is not used as the default style
-    And stop markers use SymbolManager not deprecated MarkerOptions
+    And stop markers use a GeoJSONSource symbol layer not deprecated MarkerOptions
 
   Scenario: Drag sheet supports peek half and full
     Given ff_map_home is enabled

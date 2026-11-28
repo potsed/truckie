@@ -20,12 +20,13 @@ import java.util.Locale
  * Low-bridge markers for MapLibre map home (`ff_bridge_markers`).
  *
  * Icon: Australian road sign **W5-8** (low level bridge) — Wikimedia Commons
- * public-domain SVG rasterised for SymbolManager (`au_road_sign_w5_8`).
+ * public-domain SVG rasterised for a style symbol layer (`au_road_sign_w5_8`).
  *
  * Long-term data source is a **downloadable, updatable** [BridgePackRepository]
- * (versioned cache → SymbolManager). The baked-in sample asset is **bootstrap
- * only** when the cache is empty. Gherkin: features/bridge_markers.feature,
- * features/bridge_pack.feature, features/verified_cbd_clearances.feature.
+ * (versioned cache → GeoJSONSource + symbol layer). The baked-in sample asset
+ * is **bootstrap only** when the cache is empty. Gherkin:
+ * features/bridge_markers.feature, features/bridge_pack.feature,
+ * features/map_style_overlays.feature, features/verified_cbd_clearances.feature.
  */
 data class BridgePoint(
     val id: String,
@@ -67,8 +68,9 @@ object BridgeMarkersCatalog {
     const val W5_8_SVG_ASSET: String = "bridges/AU_road_sign_W5-8.svg"
     const val REGION: String = "AU"
 
-    /** Catalog: Studio must not see deprecated MarkerOptions / addMarker. */
-    const val usesSymbolManager: Boolean = true
+    /** Catalog: style symbol layer — not Annotation SymbolManager / MarkerOptions. */
+    const val usesStyleSymbolLayer: Boolean = true
+    const val usesSymbolManager: Boolean = false
     const val usesDeprecatedMarkerApi: Boolean = false
     const val usesAuRoadSignW58: Boolean = true
 

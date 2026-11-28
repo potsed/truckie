@@ -58,14 +58,14 @@ object FlagKeys {
     /** Low-bridge markers on MapLibre home (Australia-first sample/fixture asset). */
     const val BRIDGE_MARKERS = "ff_bridge_markers"
     /**
-     * Route stop markers on MapLibre home (ATNA-81): pickup vs drop-off
-     * SymbolManager icons from the active AppDataSource route. Shares the
-     * bridge SymbolManager / style lifecycle bind path.
+     * Route stop markers on MapLibre home (ATNA-81 / ATNA-117): pickup vs
+     * drop-off style-layer icons from the active AppDataSource route. Shares
+     * the bridge GeoJSON / style lifecycle bind path.
      */
     const val STOP_MARKERS = "ff_stop_markers"
     /**
-     * Active route polyline on MapLibre home (ATNA-82): PathRouter /
-     * MultiStopTourComposer constrained geometry via shared LineManager
+     * Active route polyline on MapLibre home (ATNA-82 / ATNA-117): PathRouter /
+     * MultiStopTourComposer constrained geometry via shared style line layer
      * with Navigate. Stub geometry only when stub PathRouter is active.
      */
     const val MAP_ROUTE_POLYLINE = "ff_map_route_polyline"
@@ -139,7 +139,7 @@ object FlagKeys {
     /**
      * While navigating, always show the next destination address (upcoming stop)
      * on map-home (ATNA-83) — not turn-only chrome. Drivers may know a better way.
-     * Does not touch LineManager / MapRoutePathAnnotations.
+     * Does not touch style route overlays / MapRoutePathStyle.
      */
     const val NEXT_DESTINATION_DISPLAY = "ff_next_destination_display"
     /**

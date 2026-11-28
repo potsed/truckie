@@ -7,11 +7,10 @@ import org.junit.Test
 
 /**
  * Style-load gate for MapLibreHost: concurrent AndroidView updates must not
- * call setStyle repeatedly, and SymbolManagers must be recreated when the live
- * style identity drifts (orphaned managers → invisible bridge markers).
+ * call setStyle repeatedly, and style overlays must be recreated when the live
+ * style identity drifts (orphaned layers → invisible bridge markers).
  *
- * Gherkin: features/bridge_markers.feature — Markers stay visible across
- * recompositions / after Demo jump.
+ * Gherkin: features/bridge_markers.feature, features/map_style_overlays.feature
  */
 class MapLibreStyleLifecycleTest {
 
@@ -24,7 +23,7 @@ class MapLibreStyleLifecycleTest {
             boundStyleMatchesExisting = false,
         )
         assertEquals(StyleEnsureAction.START_LOAD, decision.action)
-        assertFalse(decision.recreateManagers)
+        assertFalse(decision.recreateOverlays)
     }
 
     @Test
@@ -37,7 +36,7 @@ class MapLibreStyleLifecycleTest {
         )
         assertEquals(StyleEnsureAction.ENQUEUE_WHILE_LOADING, decision.action)
         assertFalse(
-            "Must not start a second setStyle — that orphans SymbolManagers",
+            "Must not start a second setStyle — that orphans overlays",
             decision.action == StyleEnsureAction.START_LOAD,
         )
     }
@@ -51,11 +50,11 @@ class MapLibreStyleLifecycleTest {
             boundStyleMatchesExisting = true,
         )
         assertEquals(StyleEnsureAction.REUSE_EXISTING, decision.action)
-        assertFalse(decision.recreateManagers)
+        assertFalse(decision.recreateOverlays)
     }
 
     @Test
-    fun styleIdentityMismatchRecreatesManagersOnReuse() {
+    fun styleIdentityMismatchRecreatesOverlaysOnReuse() {
         val decision = MapLibreStyleLifecycle.decide(
             styleReady = true,
             styleLoading = false,
@@ -64,29 +63,29 @@ class MapLibreStyleLifecycleTest {
         )
         assertEquals(StyleEnsureAction.REUSE_EXISTING, decision.action)
         assertTrue(
-            "Orphaned SymbolManager must be dropped when map.style !== boundStyle",
-            decision.recreateManagers,
+            "Orphaned overlays must be dropped when map.style !== boundStyle",
+            decision.recreateOverlays,
         )
     }
 
     @Test
-    fun managerLayerMissingMeansRecreate() {
+    fun overlayLayerMissingMeansRecreate() {
         assertTrue(
-            MapLibreStyleLifecycle.mustRecreateAnnotationManager(
-                hasManager = true,
-                styleContainsManagerLayer = false,
+            MapLibreStyleLifecycle.mustRecreateOverlay(
+                hasBoundOverlay = true,
+                styleContainsLayer = false,
             ),
         )
         assertFalse(
-            MapLibreStyleLifecycle.mustRecreateAnnotationManager(
-                hasManager = true,
-                styleContainsManagerLayer = true,
+            MapLibreStyleLifecycle.mustRecreateOverlay(
+                hasBoundOverlay = true,
+                styleContainsLayer = true,
             ),
         )
         assertFalse(
-            MapLibreStyleLifecycle.mustRecreateAnnotationManager(
-                hasManager = false,
-                styleContainsManagerLayer = false,
+            MapLibreStyleLifecycle.mustRecreateOverlay(
+                hasBoundOverlay = false,
+                styleContainsLayer = false,
             ),
         )
     }
@@ -94,8 +93,8 @@ class MapLibreStyleLifecycleTest {
     @Test
     fun coalescingContractFlagsDocumented() {
         assertTrue(BridgeMarkersVisibility.coalescesConcurrentStyleLoads)
-        assertTrue(BridgeMarkersVisibility.recreatesManagersWhenStyleIdentityDrifts)
-        assertTrue(BridgeMarkersVisibility.recreatesManagersWhenLayerMissing)
+        assertTrue(BridgeMarkersVisibility.recreatesOverlaysWhenStyleIdentityDrifts)
+        assertTrue(BridgeMarkersVisibility.recreatesOverlaysWhenLayerMissing)
         assertTrue(BridgeMarkersVisibility.loadsStyleOnce)
     }
 }

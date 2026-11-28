@@ -18,27 +18,21 @@ import org.maplibre.android.maps.MapLibreMap
 import org.maplibre.android.maps.MapView
 import org.maplibre.android.maps.Style
 import org.maplibre.android.maps.MapLibreMap.CancelableCallback
-import org.maplibre.android.plugins.annotation.LineManager
-import org.maplibre.android.plugins.annotation.LineOptions
-import org.maplibre.android.plugins.annotation.SymbolManager
-import org.maplibre.android.plugins.annotation.SymbolOptions
 
 /**
- * Thin MapLibre command executor (ATNA-69 / ATNA-90).
+ * Thin MapLibre command executor (ATNA-69 / ATNA-90 / ATNA-117).
  *
- * Owns Symbol/Line managers, LocationComponent, and [executeFollowCommands].
+ * Owns GeoJSON style overlays, LocationComponent, and [executeFollowCommands].
  * Compose feeds a [MapLibreBindSnapshot]; this type does **not** look up
  * [TruckieApp] feature flags during bind.
  *
- * Gherkin: features/map_home_orchestration.feature, features/map_blue_dot_single_path.feature
+ * Gherkin: features/map_home_orchestration.feature,
+ * features/map_blue_dot_single_path.feature, features/map_style_overlays.feature
  */
 internal class MapLibreHost(
     val mapView: MapView,
     private val context: android.content.Context,
 ) {
-    private var stopSymbolManager: SymbolManager? = null
-    private var lineManager: LineManager? = null
-    private var bridgeSymbolManager: SymbolManager? = null
     private var mapRef: MapLibreMap? = null
     /** Course-up while following (`ff_map_heading_up`). */
     var headingUpEnabled: Boolean = false
@@ -48,7 +42,7 @@ internal class MapLibreHost(
     private var styleReady: Boolean = false
     private var styleLoading: Boolean = false
     private val pendingStyleReady = mutableListOf<(Style) -> Unit>()
-    /** Style instance managers were last created against (identity check). */
+    /** Style instance overlays were last bound against (identity check). */
     private var boundStyle: Style? = null
     /** Street-label tweaks applied for the current [boundStyle] (`ff_map_street_labels`). */
     private var streetLabelPriorityApplied: Boolean = false
@@ -58,9 +52,9 @@ internal class MapLibreHost(
 
     /**
      * Loads the basemap style once. Concurrent AndroidView updates coalesce into
-     * a single setStyle; recompositions rebind annotations on the live style.
-     * Recreates managers when style identity drifts (orphaned SymbolManagers were
-     * the root cause of invisible W5-8 markers after Jump to sample bridges).
+     * a single setStyle; recompositions rebind GeoJSON overlays on the live style.
+     * Rebinds when style identity drifts (orphaned overlay layers were the root
+     * cause of invisible W5-8 markers after style reload races).
      */
     fun ensureStyle(map: MapLibreMap, onReady: (Style) -> Unit) {
         mapRef = map
@@ -77,8 +71,8 @@ internal class MapLibreHost(
         when (decision.action) {
             StyleEnsureAction.REUSE_EXISTING -> {
                 val style = existing ?: return
-                if (decision.recreateManagers) {
-                    resetAnnotationManagers()
+                if (decision.recreateOverlays) {
+                    resetOverlays()
                     boundStyle = style
                 }
                 onReady(style)
@@ -90,7 +84,7 @@ internal class MapLibreHost(
                 pendingStyleReady.add(onReady)
                 styleLoading = true
                 map.setStyle(Style.Builder().fromUri(MapCameraDefaults.STYLE_URI)) { style ->
-                    resetAnnotationManagers()
+                    resetOverlays()
                     boundStyle = style
                     streetLabelPriorityApplied = false
                     styleReady = true
@@ -114,13 +108,12 @@ internal class MapLibreHost(
         streetLabelPriorityApplied = true
     }
 
-    private fun resetAnnotationManagers() {
-        runCatching { stopSymbolManager?.onDestroy() }
-        stopSymbolManager = null
-        runCatching { lineManager?.onDestroy() }
-        lineManager = null
-        runCatching { bridgeSymbolManager?.onDestroy() }
-        bridgeSymbolManager = null
+    /**
+     * Style layers die with the Style instance; clear LocationComponent so the
+     * next bind reactivates against the live style. Overlay GeoJSON is rewritten
+     * on every [applyAnnotations] / bind call (idempotent ensure + setGeoJson).
+     */
+    private fun resetOverlays() {
         if (locationActivated) {
             runCatching {
                 mapRef?.locationComponent?.isLocationComponentEnabled = false
@@ -139,36 +132,7 @@ internal class MapLibreHost(
     ) {
         mapRef = map
         MapStopMarkersCatalog.ensureStopMarkerImages(style)
-        val manager = MapSymbolBind.obtain(
-            current = stopSymbolManager,
-            mapView = mapView,
-            map = map,
-            style = style,
-            clear = { stopSymbolManager = null },
-            assign = { stopSymbolManager = it },
-        )
-        manager.deleteAll()
-        val mappable = MapStopMarkersCatalog.mappableStops(stops)
-        val options = mappable.mapIndexed { index, stop ->
-            val lat = stop.latitude!!
-            val lng = stop.longitude!!
-            SymbolOptions()
-                .withLatLng(LatLng(lat, lng))
-                .withIconImage(MapStopMarkersCatalog.iconIdFor(stop.kind))
-                .withIconSize(MapStopMarkersCatalog.ICON_SIZE)
-                .withIconAnchor("center")
-                .withTextField("${index + 1}")
-                // OpenFreeMap hosts Noto Sans only — default Open Sans stack 404s.
-                .withTextFont(MapStopMarkersCatalog.symbolTextFont)
-                .withTextSize(12f)
-                .withTextColor("#FFFFFF")
-                .withTextHaloColor("#0B1F33")
-                .withTextHaloWidth(1.0f)
-                .withTextOffset(arrayOf(0f, 0.05f))
-        }
-        if (options.isNotEmpty()) {
-            manager.create(options)
-        }
+        MapStyleOverlayBind.bindStops(style, stops)
     }
 
     fun bindRoutePath(
@@ -178,23 +142,7 @@ internal class MapLibreHost(
         points: List<LatLngPoint>,
     ) {
         mapRef = map
-        val manager = MapLineBind.obtain(
-            current = lineManager,
-            mapView = mapView,
-            map = map,
-            style = style,
-            clear = { lineManager = null },
-            assign = { lineManager = it },
-        )
-        manager.deleteAll()
-        if (points.size < 2) return
-        val latLngs = points.map { LatLng(it.latitude, it.longitude) }
-        manager.create(
-            LineOptions()
-                .withLatLngs(latLngs)
-                .withLineColor(MapRoutePathAnnotations.LINE_COLOR_HEX)
-                .withLineWidth(MapRoutePathAnnotations.LINE_WIDTH),
-        )
+        MapStyleOverlayBind.bindRoute(style, points)
     }
 
     fun bindBridges(
@@ -205,54 +153,15 @@ internal class MapLibreHost(
     ) {
         mapRef = map
         BridgeMarkersCatalog.ensureBridgeMarkerImage(style, context)
-        val manager = MapSymbolBind.obtain(
-            current = bridgeSymbolManager,
-            mapView = mapView,
-            map = map,
-            style = style,
-            clear = { bridgeSymbolManager = null },
-            assign = { bridgeSymbolManager = it },
-            configure = { created ->
-                // Keep icons visible even if the basemap has dense symbol collision.
-                created.iconOptional = false
-            },
-        )
-        manager.deleteAll()
-        if (bridges.isEmpty()) return
-        // ATNA-73 / ATNA-90: Compose already filtered + pre-labelled bridges —
+        // ATNA-73 / ATNA-90 / ATNA-117: Compose already filtered + pre-labelled —
         // host does not look up TruckieApp flags or re-filter.
-        val options = bridges.map { spec ->
-            val bridge = spec.bridge
-            val label = spec.clearanceLabel
-            // W5-8 is a diamond road sign — centre on the bridge point (not a pin tip).
-            val base = SymbolOptions()
-                .withLatLng(LatLng(bridge.latitude, bridge.longitude))
-                .withIconImage(BridgeMarkersCatalog.ICON_ID)
-                .withIconSize(BridgeMarkersVisibility.iconSize)
-                .withIconAnchor("center")
-            if (label == null) {
-                base
-            } else {
-                base
-                    .withTextField(label)
-                    // OpenFreeMap Liberty glyphs: Noto Sans Regular only.
-                    .withTextFont(BridgeMarkersVisibility.symbolTextFont)
-                    .withTextSize(12f)
-                    .withTextColor("#0B1F33")
-                    .withTextHaloColor("#FFFFFF")
-                    .withTextHaloWidth(1.4f)
-                    .withTextOffset(arrayOf(0f, -1.6f))
-                    .withTextAnchor("bottom")
-            }
-        }
-        if (options.isNotEmpty()) {
-            manager.create(options)
-        }
+        MapStyleOverlayBind.bindBridges(style, bridges)
     }
 
     /**
-     * Apply one [MapLibreBindSnapshot]: street labels, stops, path, then bridges
+     * Apply one [MapLibreBindSnapshot]: street labels, route, stops, then bridges
      * (bridges last so W5-8 sits above puck layers when LocationComponent binds).
+     * Route line is added first so symbol layers paint above the polyline.
      */
     fun applyAnnotations(
         mapView: MapView,
@@ -261,17 +170,17 @@ internal class MapLibreHost(
         snapshot: MapLibreBindSnapshot,
     ) {
         applyStreetLabelPriority(style, enabled = snapshot.prioritiseStreetLabels)
-        bindStops(
-            mapView = mapView,
-            map = map,
-            style = style,
-            stops = snapshot.stops,
-        )
         bindRoutePath(
             mapView = mapView,
             map = map,
             style = style,
             points = snapshot.routePathPoints,
+        )
+        bindStops(
+            mapView = mapView,
+            map = map,
+            style = style,
+            stops = snapshot.stops,
         )
         bindBridges(
             mapView = mapView,
@@ -551,7 +460,7 @@ internal class MapLibreHost(
     }
 
     fun dispose() {
-        resetAnnotationManagers()
+        resetOverlays()
         styleReady = false
         styleLoading = false
         pendingStyleReady.clear()

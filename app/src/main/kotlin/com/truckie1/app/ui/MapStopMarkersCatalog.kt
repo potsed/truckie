@@ -14,11 +14,12 @@ import org.maplibre.android.maps.Style
 /**
  * Route stop markers for MapLibre map home (`ff_stop_markers`).
  *
- * Pickup/load vs drop-off/unload use distinct SymbolManager icons. Stops come
+ * Pickup/load vs drop-off/unload use distinct style-layer icons. Stops come
  * from the active [AppDataSource] route (demo or real — same [RouteStop] schema).
- * Rendering reuses [MapSymbolBind] + [MapLibreStyleLifecycle] with bridges.
+ * Rendering reuses [MapStyleOverlayBind] + [MapLibreStyleLifecycle] with bridges.
  *
- * Out of scope: satellite peek. Gherkin: features/map_stop_markers.feature.
+ * Out of scope: satellite peek. Gherkin: features/map_stop_markers.feature,
+ * features/map_style_overlays.feature.
  */
 object MapStopMarkersCatalog {
     const val FLAG_KEY: String = FlagKeys.STOP_MARKERS
@@ -29,11 +30,14 @@ object MapStopMarkersCatalog {
     /** @deprecated Prefer [ICON_PICKUP] / [ICON_DROPOFF]; kept for legacy tests. */
     const val ICON_ID: String = ICON_PICKUP
 
-    /** Catalog: Studio must not see deprecated MarkerOptions / addMarker. */
-    const val usesSymbolManager: Boolean = true
+    /** Catalog: style symbol layer — not Annotation SymbolManager / MarkerOptions. */
+    const val usesStyleSymbolLayer: Boolean = true
+    const val usesSymbolManager: Boolean = false
     const val usesDeprecatedMarkerApi: Boolean = false
 
-    /** One obtain/rebind path with bridge markers — not a parallel stack. */
+    /** One GeoJSON / style-layer rebind path with bridge markers — not a parallel stack. */
+    const val usesSharedStyleOverlayBindPath: Boolean = true
+    /** @deprecated Use [usesSharedStyleOverlayBindPath]. */
     const val usesSharedSymbolBindPath: Boolean = true
     const val sharesStyleLifecycleWithBridges: Boolean = true
 
@@ -42,7 +46,7 @@ object MapStopMarkersCatalog {
 
     /**
      * Stop index labels need the same OpenFreeMap Noto stack as bridge clearance
-     * text — otherwise SymbolManager icons vanish after textField is set.
+     * text — otherwise symbol-layer icons vanish after text-field is set.
      */
     const val requiresOpenFreeMapCompatibleTextFont: Boolean =
         MapLibreSymbolText.requiresOpenFreeMapCompatibleTextFont
@@ -57,8 +61,8 @@ object MapStopMarkersCatalog {
 
     const val DEFAULT_ICON_PX: Int = 64
 
-    /** Shared home-map scale — see [MapSymbolBind.IconSize.STOP]. */
-    val ICON_SIZE: Float = MapSymbolBind.IconSize.STOP
+    /** Shared home-map scale — see [MapStyleOverlayCatalog.IconSize.STOP]. */
+    val ICON_SIZE: Float = MapStyleOverlayCatalog.IconSize.STOP
 
     fun isEnabled(flags: FeatureFlags): Boolean = flags.isEnabled(FlagKeys.STOP_MARKERS)
 
@@ -75,7 +79,7 @@ object MapStopMarkersCatalog {
         StopKind.DROP_OFF_UNLOAD -> DROPOFF_COLOR_HEX
     }
 
-    /** Stops with verified coordinates eligible for SymbolManager bind. */
+    /** Stops with verified coordinates eligible for style-layer bind. */
     fun mappableStops(stops: List<RouteStop>): List<RouteStop> =
         stops.filter { it.latitude != null && it.longitude != null }
 
