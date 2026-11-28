@@ -179,15 +179,33 @@ object FlagKeys {
 
 /**
  * Local in-memory flags. Production defaults are off.
+ *
+ * Optional [onOverrideChanged] is the single write-through hook for durable
+ * prefs (ATNA-93): [setEnabled] notifies; [seedIfAbsent] does not (dogfood /
+ * structural defaults stay out of the store until explicitly toggled).
  */
 class LocalFeatureFlags(
     initial: Map<String, Boolean> = emptyMap(),
+    private val onOverrideChanged: ((key: String, enabled: Boolean) -> Unit)? = null,
 ) : FeatureFlags {
     private val overrides = initial.toMutableMap()
 
     override fun isEnabled(key: String): Boolean = overrides[key] == true
 
+    /** True when [key] was hydrated or [setEnabled] / [seedIfAbsent] wrote it. */
+    fun hasOverride(key: String): Boolean = overrides.containsKey(key)
+
     fun setEnabled(key: String, enabled: Boolean) {
+        overrides[key] = enabled
+        onOverrideChanged?.invoke(key, enabled)
+    }
+
+    /**
+     * In-memory only. Skips when [key] already has an override (including
+     * persisted `false`). Does **not** notify [onOverrideChanged].
+     */
+    fun seedIfAbsent(key: String, enabled: Boolean) {
+        if (overrides.containsKey(key)) return
         overrides[key] = enabled
     }
 }

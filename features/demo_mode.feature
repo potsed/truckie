@@ -29,6 +29,13 @@ Feature: Demo mode
     When the switch is turned on
     Then ff_demo_mode is on
 
+  # Durable prefs (ATNA-93): see feature_flag_persist.feature for the store contract.
+  Scenario: Demo mode survives process death via FeatureFlagStore
+    Given Demo mode is turned on via Settings
+    When the process is killed and LocalFeatureFlags hydrates from the same FeatureFlagStore
+    Then ff_demo_mode is still on
+    And the DEMO MODE pill is shown again
+
   Scenario: Demo dataset has depot, six stops, and a 3.5 m vehicle
     Given Demo mode is enabled
     Then the active vehicle is 3.5 m high

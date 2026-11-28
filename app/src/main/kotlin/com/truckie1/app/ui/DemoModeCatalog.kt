@@ -12,7 +12,9 @@ import com.truckie1.flags.LocalFeatureFlags
  * Demo stores are read-only.
  *
  * Off by default in production **and** debug — opt-in via Settings only.
- * Gherkin: features/demo_mode.feature
+ * Survives process death via [com.truckie1.app.settings.FeatureFlagStore]
+ * (ATNA-93) — same path as other flag overrides.
+ * Gherkin: features/demo_mode.feature, features/feature_flag_persist.feature
  */
 object DemoModeCatalog {
     const val FLAG_KEY: String = FlagKeys.DEMO_MODE

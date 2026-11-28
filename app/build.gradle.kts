@@ -20,7 +20,7 @@ android {
         minSdk = 24
         targetSdk = 35
         versionCode = 1
-        versionName = "0.8.45-remove-graphhopper"
+        versionName = "0.8.46-feature-flag-persist"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Live Valhalla credentials (ATNA-113). Empty → stub PathRouter.
         // Interim: API key (defaults base to Simple Routing hosted Valhalla).
@@ -142,6 +142,10 @@ dependencies {
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
+
+    // Durable feature-flag overrides (ATNA-93) — Preferences DataStore.
+    implementation(libs.androidx.datastore.preferences)
+    implementation(libs.kotlinx.coroutines.core)
 
     testImplementation(libs.junit)
     testImplementation(libs.androidx.junit)
