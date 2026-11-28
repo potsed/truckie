@@ -167,6 +167,13 @@ object FlagKeys {
      * Defaults on.
      */
     const val PATH_BLOCK_DETOUR = "ff_path_block_detour"
+    /**
+     * Owned AU address pack (ATNA-109): versioned local-first **G-NAF-only**
+     * JSON pack as stop-geocode SoT (one pack/search path; no multi-dataset
+     * merges). Nominatim = typeahead UI at most until G-NAF resolves the hit.
+     * Off until pack wired.
+     */
+    const val OWNED_ADDRESS_PACK = "ff_owned_address_pack"
 }
 
 /**

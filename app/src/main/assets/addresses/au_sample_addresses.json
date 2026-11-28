@@ -1,0 +1,16 @@
+{
+  "manifest": {
+    "region": "AU",
+    "version": "0.0.0-sample",
+    "generatedAt": "2026-11-28",
+    "schemaVersion": 1,
+    "recordCount": 0,
+    "source": {
+      "name": "Geoscape G-NAF (scaffold — empty pack)",
+      "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+      "licence": "CC-BY 4.0 (G-NAF EULA — no bulk mail sending)",
+      "retrievedAt": "2026-11-28"
+    }
+  },
+  "addresses": []
+}

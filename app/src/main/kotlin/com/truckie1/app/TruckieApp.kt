@@ -213,6 +213,8 @@ class TruckieApp : Application() {
             featureFlags.setEnabled(FlagKeys.BRIDGE_PASSAGE, true)
             // OSS AU low-bridges pack refresh (ATNA-50) — local-first when newer.
             featureFlags.setEnabled(FlagKeys.AU_LOW_BRIDGES_PACK, true)
+            // Owned AU address pack SoT scaffold (ATNA-109) — empty schema until ETL.
+            featureFlags.setEnabled(FlagKeys.OWNED_ADDRESS_PACK, true)
             // Active tour SoT (ATNA-86) — already DEFAULT_ENABLED above.
             // Navigate multi-stop (ATNA-87) — already DEFAULT_ENABLED above.
             // Route path from location (ATNA-99) — already DEFAULT_ENABLED above.

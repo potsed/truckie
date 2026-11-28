@@ -281,4 +281,13 @@ class LocalFeatureFlagsTest {
         flags.setEnabled(FlagKeys.PATH_BLOCK_DETOUR, true)
         assertTrue(flags.isEnabled(FlagKeys.PATH_BLOCK_DETOUR))
     }
+
+    @Test
+    fun ownedAddressPackFlagKey() {
+        assertTrue(FlagKeys.OWNED_ADDRESS_PACK == "ff_owned_address_pack")
+        val flags = LocalFeatureFlags()
+        assertFalse(flags.isEnabled(FlagKeys.OWNED_ADDRESS_PACK))
+        flags.setEnabled(FlagKeys.OWNED_ADDRESS_PACK, true)
+        assertTrue(flags.isEnabled(FlagKeys.OWNED_ADDRESS_PACK))
+    }
 }
