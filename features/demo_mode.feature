@@ -87,3 +87,5 @@ Feature: Demo mode
     And the active vehicle is 3.5 m high
     And at least one stop is near a verified low bridge
     And map markers height filter Optimize and Navigate can run without writes
+    And with ff_map_route_polyline the home LineManager still draws PathRouter geometry
+      (stop-near-bridge does not empty the route polyline — see map_route_polyline.feature)

@@ -188,6 +188,7 @@ class MultiStopTourComposer(
                             bridges = bridges,
                             vehicleHeightM = vehicleHeightM,
                             bufferM = bufferM,
+                            allowedNearPoints = stopPoints(ordered),
                         )
                     ) {
                         return TourCompose.Blocked(
@@ -246,6 +247,7 @@ class MultiStopTourComposer(
                 bridges = bridges,
                 vehicleHeightM = vehicleHeightM,
                 bufferM = bufferM,
+                allowedNearPoints = stopPoints(ordered),
             )
         ) {
             return TourCompose.Blocked(
@@ -276,6 +278,14 @@ class MultiStopTourComposer(
 
     private fun estimateCostCents(durationSeconds: Long): Long =
         (durationSeconds / 10L).coerceAtLeast(1L)
+
+    /** Intentional stop coords — delivery near a structure is not through under-passage. */
+    private fun stopPoints(ordered: List<TripStop>): List<LatLngPoint> =
+        ordered.mapNotNull { stop ->
+            val lat = stop.latitude ?: return@mapNotNull null
+            val lng = stop.longitude ?: return@mapNotNull null
+            LatLngPoint(lat, lng)
+        }
 
     private fun candidateOrders(stops: List<TripStop>): List<List<TripStop>> {
         if (stops.size <= 1) return listOf(stops)

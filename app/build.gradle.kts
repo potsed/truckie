@@ -20,7 +20,7 @@ android {
         minSdk = 24
         targetSdk = 35
         versionCode = 1
-        versionName = "0.8.38-room-route-persist"
+        versionName = "0.8.39-route-polyline-visibility"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 

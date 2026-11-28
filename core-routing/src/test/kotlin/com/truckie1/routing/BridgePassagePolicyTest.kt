@@ -153,6 +153,61 @@ class BridgePassagePolicyTest {
     }
 
     @Test
+    fun intentionalStopNearUnderBridgeDoesNotConflict() {
+        // Demo Wynnum delivery sits ~32 m from Colina St — must remain deliverable.
+        val stop = LatLngPoint(-27.44395, 153.16905)
+        val points = listOf(
+            LatLngPoint(-27.4502, 153.1295),
+            stop,
+        )
+        assertFalse(
+            BridgePassagePolicy.pathConflictsWithUnderBridges(
+                points = points,
+                bridges = listOf(underLow),
+                vehicleHeightM = 3.5,
+                bufferM = 0.15,
+                allowedNearPoints = listOf(stop),
+            ),
+        )
+        // Without the stop allow-list, the same points still conflict.
+        assertTrue(
+            BridgePassagePolicy.pathConflictsWithUnderBridges(
+                points = points,
+                bridges = listOf(underLow),
+                vehicleHeightM = 3.5,
+                bufferM = 0.15,
+            ),
+        )
+    }
+
+    @Test
+    fun midPathUnderBridgeStillConflictsWhenStopsAreAllowed() {
+        val depot = LatLngPoint(-27.42, 153.10)
+        val near = LatLngPoint(-27.43, 153.11)
+        val midUnder = RoutingBridgeConstraint(
+            id = "mid-under",
+            latitude = -27.425,
+            longitude = 153.105,
+            clearanceHeightM = 1.9,
+            passage = BridgePassageRelation.UNDER,
+        )
+        val points = listOf(
+            depot,
+            LatLngPoint(-27.425, 153.105),
+            near,
+        )
+        assertTrue(
+            BridgePassagePolicy.pathConflictsWithUnderBridges(
+                points = points,
+                bridges = listOf(midUnder),
+                vehicleHeightM = 3.5,
+                bufferM = 0.15,
+                allowedNearPoints = listOf(depot, near),
+            ),
+        )
+    }
+
+    @Test
     fun pathNearOverOnlyBridgeRemainsSafe() {
         val points = listOf(
             LatLngPoint(-27.476, 153.029),

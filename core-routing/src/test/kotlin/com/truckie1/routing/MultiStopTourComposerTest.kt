@@ -119,6 +119,48 @@ class MultiStopTourComposerTest {
     }
 
     @Test
+    fun deliveryStopBesideUnderBridgeStillComposesOrderedPath() = runBlocking {
+        // Demo Wynnum residential stop ~32 m from Colina St (1.9 m) — stop markers
+        // show, so PathRouter geometry must still resolve for LineManager.
+        val wynnum = TripStop(
+            id = "wynnum",
+            addressLabel = "8 Colina Street, Wynnum QLD 4178",
+            latitude = -27.44395,
+            longitude = 153.16905,
+        )
+        val hemmant = TripStop(
+            id = "hemmant",
+            addressLabel = "Hemmant",
+            latitude = -27.4502,
+            longitude = 153.1295,
+        )
+        val colina = RoutingBridgeConstraint(
+            id = "qld-qr-wynnum-colina-street-berrima-street",
+            latitude = -27.443741,
+            longitude = 153.168832,
+            clearanceHeightM = 1.9,
+            passage = RoutingBridgePassage.UNDER,
+        )
+        val composer = MultiStopTourComposer(
+            pathRouter = StubGraphHopperPathRouter(),
+            bridges = listOf(colina),
+            bridgePassageEnabled = true,
+        )
+        val result = composer.composeOrdered(
+            stops = listOf(hemmant, wynnum, depot),
+            vehicle = vehicle,
+            bufferM = 0.15,
+        )
+        assertTrue(
+            "Expected Ready path when only stop proximity hits Colina; got $result",
+            result is OptimizeResult.Ok,
+        )
+        val path = (result as OptimizeResult.Ok).path
+        assertNotNull(path)
+        assertTrue(path!!.points.size >= 2)
+    }
+
+    @Test
     fun blocksWhenOnBoardMassExceedsGvm() = runBlocking {
         val heavyPick = near.copy(
             cargo = listOf(Cargo("steel", 2.0, 2.0, 4.0, 20.0, CargoAction.PICK_UP)),
