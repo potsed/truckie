@@ -99,7 +99,7 @@ class PrimaryNavigationTest {
     }
 
     @Test
-    fun chromeHostGateIncludesMapHome() {
+    fun chromeHostGateIsAlwaysOnAfterActivityRetirement() {
         val mapOnly = LocalFeatureFlags(
             mapOf(
                 FlagKeys.NAV_CHROME to false,
@@ -122,7 +122,7 @@ class PrimaryNavigationTest {
                 FlagKeys.MAP_HOME to false,
             ),
         )
-        assertFalse(PrimaryNavigation.shouldUseChromeHost(neither))
+        assertTrue(PrimaryNavigation.shouldUseChromeHost(neither))
     }
 
     @Test

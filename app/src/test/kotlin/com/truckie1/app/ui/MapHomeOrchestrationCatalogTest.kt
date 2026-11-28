@@ -24,7 +24,7 @@ class MapHomeOrchestrationCatalogTest {
         assertTrue(MapHomeOrchestrationCatalog.hostDoesNotLookupAppFlags)
         assertTrue(MapHomeOrchestrationCatalog.routeSheetModulesExtracted)
         assertTrue(MapHomeOrchestrationCatalog.rootNavDestinationsSplit)
-        assertFalse(MapHomeOrchestrationCatalog.deletesLegacyActivities)
+        assertTrue(MapHomeOrchestrationCatalog.deletesLegacyActivities)
     }
 
     @Test

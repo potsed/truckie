@@ -71,49 +71,6 @@ class NavChromeCatalogTest {
     }
 
     @Test
-    fun activityMapsToSelectedPrimaryDestination() {
-        assertEquals(
-            TruckiePrimaryDestination.HOME,
-            NavChromeCatalog.selectedForActivity("MainActivity"),
-        )
-        assertEquals(
-            TruckiePrimaryDestination.PLAN_TRIP,
-            NavChromeCatalog.selectedForActivity("TripStopsActivity"),
-        )
-        assertEquals(
-            TruckiePrimaryDestination.PLAN_TRIP,
-            NavChromeCatalog.selectedForActivity("AddStopActivity"),
-        )
-        assertEquals(
-            TruckiePrimaryDestination.PLAN_TRIP,
-            NavChromeCatalog.selectedForActivity("BlockedRouteActivity"),
-        )
-        assertEquals(
-            TruckiePrimaryDestination.VEHICLES,
-            NavChromeCatalog.selectedForActivity("VehicleListActivity"),
-        )
-        assertEquals(
-            TruckiePrimaryDestination.VEHICLES,
-            NavChromeCatalog.selectedForActivity("VehicleEditActivity"),
-        )
-        assertEquals(
-            TruckiePrimaryDestination.SETTINGS,
-            NavChromeCatalog.selectedForActivity("SettingsActivity"),
-        )
-    }
-
-    @Test
-    fun primaryScreensShowBottomBarSecondaryDoNot() {
-        assertTrue(NavChromeCatalog.showBottomBarForActivity("MainActivity"))
-        assertTrue(NavChromeCatalog.showBottomBarForActivity("TripStopsActivity"))
-        assertTrue(NavChromeCatalog.showBottomBarForActivity("VehicleListActivity"))
-        assertTrue(NavChromeCatalog.showBottomBarForActivity("SettingsActivity"))
-        assertFalse(NavChromeCatalog.showBottomBarForActivity("VehicleEditActivity"))
-        assertFalse(NavChromeCatalog.showBottomBarForActivity("AddStopActivity"))
-        assertFalse(NavChromeCatalog.showBottomBarForActivity("BlockedRouteActivity"))
-    }
-
-    @Test
     fun chromeUsesStatusAndNavBarInsets() {
         assertTrue(NavChromeCatalog.topBarUsesStatusBarInsets)
         assertTrue(NavChromeCatalog.bottomBarUsesNavigationBarInsets)

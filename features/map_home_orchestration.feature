@@ -5,7 +5,7 @@ Feature: Map home orchestration split
 
   # Architecture (P1-5 / ATNA-90): refactor only — no product behaviour change.
   # Gated by existing ff_map_home (and related map flags). No dual orchestration path.
-  # Out of scope: delete legacy Activities (ATNA-74).
+  # Legacy Activities deleted separately in ATNA-74 (see legacy_activity_retirement.feature).
 
   Scenario: Map-home domain lives in MapHomeController
     Given ff_map_home is enabled
@@ -32,4 +32,4 @@ Feature: Map home orchestration split
     Given the single-activity NavHost shell
     Then TripStops, Vehicle list/edit, and AddStop route controllers live in dedicated files
     And TruckieRootApp keeps Scaffold + NavHost wiring only
-    And legacy Activities are not deleted in this change
+    And legacy redirect Activities are deleted (ATNA-74)

@@ -38,17 +38,12 @@ object TruckieColorScheme {
 }
 
 /**
- * Catalog of Compose-hosted screen Activities and obsolete XML layouts removed in the migration.
+ * Catalog of Compose-hosted screen Activities and obsolete XML layouts removed
+ * in the migration. NavHost-only (ATNA-74): [MainActivity] is the sole host.
  */
 object ComposeScreenCatalog {
     val activitySimpleNames: List<String> = listOf(
         "MainActivity",
-        "VehicleListActivity",
-        "VehicleEditActivity",
-        "TripStopsActivity",
-        "AddStopActivity",
-        "BlockedRouteActivity",
-        "SettingsActivity",
     )
 
     val deletedLayoutResourceNames: List<String> = listOf(

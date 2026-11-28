@@ -86,6 +86,7 @@ class PullUpDrawerScrollComposeTest {
                 }
             }
         }
-        composeRule.onNodeWithTag(JumpToSampleBridges.TEST_TAG).assertDoesNotExist()
+        // Jump residual deleted (ATNA-92) — no floating control tag on map home.
+        composeRule.onNodeWithTag("map_jump_to_sample_bridges").assertDoesNotExist()
     }
 }

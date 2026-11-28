@@ -130,28 +130,6 @@ object NavChromeCatalog {
 
     fun showTopBarForRoute(route: String?, mapHomeEnabled: Boolean): Boolean =
         showGlobalChromeForRoute(route, mapHomeEnabled)
-
-    fun selectedForActivity(activitySimpleName: String): TruckiePrimaryDestination? = when (activitySimpleName) {
-        "MainActivity" -> TruckiePrimaryDestination.HOME
-        "TripStopsActivity",
-        "AddStopActivity",
-        "BlockedRouteActivity",
-        -> TruckiePrimaryDestination.PLAN_TRIP
-        "VehicleListActivity",
-        "VehicleEditActivity",
-        -> TruckiePrimaryDestination.VEHICLES
-        "SettingsActivity" -> TruckiePrimaryDestination.SETTINGS
-        else -> null
-    }
-
-    fun showBottomBarForActivity(activitySimpleName: String): Boolean = when (activitySimpleName) {
-        "MainActivity",
-        "TripStopsActivity",
-        "VehicleListActivity",
-        "SettingsActivity",
-        -> true
-        else -> false
-    }
 }
 
 /** NavHost route ids for the single-activity chrome shell (`ff_nav_chrome`). */

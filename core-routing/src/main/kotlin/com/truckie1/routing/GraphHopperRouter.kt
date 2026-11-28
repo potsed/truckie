@@ -2,11 +2,11 @@ package com.truckie1.routing
 
 /**
  * Shared GraphHopper routing value types used by [MultiStopTourComposer] and
- * [SafeRouteSelector] (legacy candidate filter for `ff_bridge_safe_routing`).
+ * [TourPathSelector].
  *
  * Path geometry goes through [PathRouter] / [GraphHopperPathRouterFactory].
- * The old [Router] / StubGraphHopperRouter / VehicleTripOptimizer path was
- * removed in ATNA-71 — do not reintroduce a parallel optimiser.
+ * Clearance / mass hard-blocks live on the composer + PathRouter Custom Model
+ * path — the legacy SafeRouteSelector candidate filter was deleted (ATNA-92).
  */
 
 enum class TollPreference {
@@ -22,8 +22,3 @@ data class RouteCandidate(
     val maxHeightM: Double,
     val maxWeightT: Double,
 )
-
-sealed class RouteResult {
-    data class Ok(val selected: RouteCandidate, val alternatives: List<RouteCandidate> = emptyList()) : RouteResult()
-    data class Blocked(val reason: String) : RouteResult()
-}

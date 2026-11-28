@@ -7,11 +7,12 @@ Feature: Settings Home returns to map home
   # Bug: bottom-nav saveState/restoreState + Activity redirect spaghetti left chrome
   # hidden for map home while the MapLibre destination did not remount cleanly.
   # Fix: one PrimaryNavigation path; Home remounts fresh when map home is on.
+  # ATNA-74: legacy redirect Activities deleted — MainActivity NavHost is the only host.
 
   Scenario: Primary navigation is a single path
     Given nav chrome hosts primary tabs in one MainActivity NavHost
     Then Home Trip Vehicles and Settings share one PrimaryNavigation policy
-    And legacy Activity redirects use the same chrome-host gate as MainActivity
+    And MainActivity always hosts the NavHost regardless of flag combinations
 
   Scenario: Home from Settings remounts map home
     Given ff_map_home is enabled
@@ -28,7 +29,7 @@ Feature: Settings Home returns to map home
     Then those tabs may save and restore state
     And returning to Home still remounts map home fresh
 
-  Scenario: Chrome host gate includes map home
+  Scenario: Chrome host gate is always the NavHost
     Given ff_map_home is enabled and ff_nav_chrome is off
     Then MainActivity still hosts the single-activity NavHost
-    And legacy SettingsActivity redirects into that host
+    And Settings lives as a NavHost destination not a separate Activity

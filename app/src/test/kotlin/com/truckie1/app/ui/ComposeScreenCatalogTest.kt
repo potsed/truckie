@@ -6,24 +6,20 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * Gherkin: compose_ui.feature — every screen Activity is Compose-hosted; XML layouts gone.
+ * Gherkin: compose_ui.feature — every screen is Compose-hosted; XML layouts gone.
+ * ATNA-74: sole host is MainActivity NavHost.
  */
 class ComposeScreenCatalogTest {
 
     @Test
-    fun allScreenActivitiesAreCatalogued() {
+    fun soleScreenActivityIsMainActivity() {
         assertEquals(
-            setOf(
-                "MainActivity",
-                "VehicleListActivity",
-                "VehicleEditActivity",
-                "TripStopsActivity",
-                "AddStopActivity",
-                "BlockedRouteActivity",
-                "SettingsActivity",
-            ),
+            setOf("MainActivity"),
             ComposeScreenCatalog.activitySimpleNames.toSet(),
         )
+        LegacyActivityRetirementCatalog.deletedActivitySimpleNames.forEach { name ->
+            assertFalse(ComposeScreenCatalog.activitySimpleNames.contains(name))
+        }
     }
 
     @Test

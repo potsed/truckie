@@ -12,7 +12,7 @@ XML screen layouts were removed; do not add new AppCompat/XML screens.
 | `ff_vehicle_profiles` | Vehicle profile list/edit (Room by rego), Home active summary | off (on in debug) |
 | `ff_multi_stop` | Trip stops list (reorder / add / delete), Home Plan trip entry | off (on in debug) |
 | `ff_stop_cargo` | Cargo H/W/L/mass pick-up/drop-off on stops; on-board clearance | off (on in debug) |
-| `ff_bridge_safe_routing` | Height/weight-aware GraphHopper Custom Model routing | off |
+| `ff_bridge_safe_routing` | Height/weight-aware GraphHopper Custom Model routing (future). Legacy `SafeRouteSelector` deleted (ATNA-92) — production clearance/mass path is MultiStopTourComposer + PathRouter | off |
 | `ff_route_optimize` | Optimize for this vehicle — Fastest / Cheapest among safe GraphHopper tours (multi-stop stop-order; Trip stops UI) | off (on in debug) |
 | `ff_graphhopper_live` | Live GraphHopper HTTP PathRouter (ATNA-9/68/102); requires base URL + AU graph — else stub. **Select-user / debug dogfood enables the flag**; URL via `GRAPHHOPPER_BASE_URL` / `truckie.graphhopper.baseUrl` / `TRUCKIE_GRAPHHOPPER_BASE_URL` (see `docs/graphhopper-live.md`). Self-host on OCI Free Tier: `infra/oci-graphhopper/`, `docs/oci-graphhopper-runbook.md` | off (on in debug) |
 | `ff_path_block_detour` | Alternate around geographic path blocks via PathRouter (ATNA-102): live GH Custom Model / blocked edges; never erase the tour polyline; stub only for tests / missing URL | **on** (defaults on) |
@@ -42,7 +42,7 @@ XML screen layouts were removed; do not add new AppCompat/XML screens.
 | `ff_bcc_road_height_restrictions` | BCC Road Height Restrictions GIS (ATNA-46): show Brisbane Open Data under-4.6 m local pack entries; off keeps curated CBD samples | off (on in debug) |
 | `ff_vehicle_height_bridge_filter` | Home-map W5-8 conflicts only (ATNA-47): show low bridges where clearance &lt; vehicle height + system buffer; no usable height → show all low | off (on in debug) |
 | `ff_bridge_passage` | Bridge over vs under (ATNA-48 / ATNA-73): model under/over/both/unknown; shared `BridgePassagePolicy` blocks under-paths only (OK to drive over deck); intentional stop proximity to a low structure is allowed (delivery — demo Wynnum/Colina); mid-path conflicts retry via `ff_path_block_detour` / PathRouter (never blank polyline); home-map uses `BridgeVisibilityPipeline` | off (on in debug) |
-| `ff_demo_mode` | Demo mode (ATNA-56 / ATNA-75) — Settings toggle selects the demo `AppDataSource` (same Vehicle/Route/TripStop schema; read-only sample SEQ run). Real data stays in the real store. Floating **DEMO MODE** pill is the only in-app demo label; dataset copy is neutral. Jump FAB removed (ATNA-67) | **off** (including debug — Settings opt-in only) |
+| `ff_demo_mode` | Demo mode (ATNA-56 / ATNA-75) — Settings toggle selects the demo `AppDataSource` (same Vehicle/Route/TripStop schema; read-only sample SEQ run). Real data stays in the real store. Floating **DEMO MODE** pill is the only in-app demo label; dataset copy is neutral. Jump FAB + residual helpers removed (ATNA-67 / ATNA-92) | **off** (including debug — Settings opt-in only) |
 | `ff_map_heading_up` | Orient map to driving direction — map-chrome lock control (like Recenter); while following, MapLibre `TRACKING_GPS` course-up (off = north-up `TRACKING`) | off (on in debug) |
 | `ff_map_street_labels` | Prefer street/road name labels over POI clutter on OpenFreeMap Liberty (ATNA-78): runtime visibility + minzoom tweaks; same OSS style URL | off (on in debug) |
 | `ff_au_low_bridges_pack` | Consume public AU low-bridges JSON pack (ATNA-50) local-first from GitHub Release when newer | off (on in debug) |
@@ -87,10 +87,11 @@ is self-hosted OSS GraphHopper only (`docs/graphhopper-live.md`).
 6. Nav chrome (`ff_nav_chrome`) hosts Material3 `CenterAlignedTopAppBar` + bottom
    `NavigationBar` **once** on `MainActivity` around a Compose NavHost (global fixed
    chrome; content scrolls in between). Plan trip / Vehicles tabs still require
-   `ff_multi_stop` / `ff_vehicle_profiles`.
+   `ff_multi_stop` / `ff_vehicle_profiles`. ATNA-74: NavHost-only — legacy redirect
+   Activities deleted; `MainActivity` always hosts the shell.
 7. Map home (`ff_map_home`) replaces list-first Home with MapLibre + route drag sheet
-   inside the same NavHost. Enabling map home also forces the single-activity chrome
-   host.
+   inside the same NavHost. When off, list-first Home remains a NavHost destination
+   only (no parallel Activity host).
 8. Address autocomplete (`ff_address_autocomplete`) requires a verified suggestion
    (formatted label + lat/lng) when adding stops on the map-home sheet. Default
    provider is Nominatim with Australia `countrycodes=au` bias. Free-text-only
@@ -155,7 +156,7 @@ is self-hosted OSS GraphHopper only (`docs/graphhopper-live.md`).
     and an active vehicle has a usable height, home-map W5-8 symbols show only
     conflicts (`clearance < vehicleHeight + ClearanceBuffer`). Keeps W5-8 low-only
     rules; never invents heights. No active vehicle / no usable height → show all
-    low-pack markers (`show_all_low`) so Demo Jump still works.
+    low-pack markers (`show_all_low`) so CBD samples remain visible without an active vehicle.
 19. Bridge passage (`ff_bridge_passage`, ATNA-48): pack models under/over/both/unknown.
     Height conflicts (and future routing) block driving **under** a restricted
     structure — OK to drive **over** the deck. Bootstrap `0.7.0-sample`. Never
@@ -167,9 +168,9 @@ is self-hosted OSS GraphHopper only (`docs/graphhopper-live.md`).
     neutral (e.g. "Airport run", "Rigid 3.5"); the only in-app demo label is the
     floating **DEMO MODE** pill. Sample content: DHL Boronia Rd depot, **6 stops**
     (2 pickup / 4 delivery; industrial + one residential beside QR Colina St /
-    Berrima St Wynnum 1.9 m underbridge), **3.5 m** vehicle. Jump FAB removed
-    (ATNA-67). Defaults **off** in production **and** debug — Settings opt-in only
-    (`DemoModeCatalog.ENABLED_BY_DEFAULT_IN_DEBUG = false`).
+    Berrima St Wynnum 1.9 m underbridge), **3.5 m** vehicle. Jump FAB + residual
+    helpers removed (ATNA-67 / ATNA-92). Defaults **off** in production **and**
+    debug — Settings opt-in only (`DemoModeCatalog.ENABLED_BY_DEFAULT_IN_DEBUG = false`).
 21. Map heading-up (`ff_map_heading_up`) is a **map-chrome orientation lock** (same overlay
     pattern as Recenter — not a Settings switch). Requires `ff_map_home` +
     `ff_map_location_puck` follow. Locked → course-up (`TRACKING_GPS` + GPS puck);

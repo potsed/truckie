@@ -61,7 +61,7 @@ import com.truckie1.trips.TripStop
  * never remount when switching Home / Trip / Vehicles / Settings.
  *
  * Destination controllers: [RootNavDestinations] / [MapHomeRouteContent] (ATNA-90).
- * Legacy Activities are not deleted here (ATNA-74).
+ * Sole host for all primary screens — legacy Activities deleted (ATNA-74).
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
