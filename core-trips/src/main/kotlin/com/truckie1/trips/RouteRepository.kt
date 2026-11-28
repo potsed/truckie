@@ -5,7 +5,7 @@ import java.time.LocalDate
 /**
  * Active [Route] store for the map-first home drag sheet.
  * Real and demo modes share this contract — only the backing dataset differs.
- * Implemented by [ActiveTourSession] (ATNA-86).
+ * Implemented by [ActiveTourFacade] / [ActiveTourSession] (ATNA-86 / ATNA-89).
  */
 interface RouteRepository {
     fun activeRoute(): Route?

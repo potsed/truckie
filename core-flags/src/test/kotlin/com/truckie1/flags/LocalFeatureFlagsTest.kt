@@ -254,4 +254,13 @@ class LocalFeatureFlagsTest {
         flags.setEnabled(FlagKeys.ASYNC_ROUTING_IO, true)
         assertTrue(flags.isEnabled(FlagKeys.ASYNC_ROUTING_IO))
     }
+
+    @Test
+    fun roomRoutePersistFlagKey() {
+        assertTrue(FlagKeys.ROOM_ROUTE_PERSIST == "ff_room_route_persist")
+        val flags = LocalFeatureFlags()
+        assertFalse(flags.isEnabled(FlagKeys.ROOM_ROUTE_PERSIST))
+        flags.setEnabled(FlagKeys.ROOM_ROUTE_PERSIST, true)
+        assertTrue(flags.isEnabled(FlagKeys.ROOM_ROUTE_PERSIST))
+    }
 }

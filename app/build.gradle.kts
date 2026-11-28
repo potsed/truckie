@@ -20,7 +20,7 @@ android {
         minSdk = 24
         targetSdk = 35
         versionCode = 1
-        versionName = "0.8.37-async-routing-io"
+        versionName = "0.8.38-room-route-persist"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -58,6 +58,11 @@ android {
 // Built-in Kotlin (AGP 9): jvmTarget defaults to compileOptions.targetCompatibility.
 kotlin {
     jvmToolchain(21)
+}
+
+// Room schema export for Migration / exportSchema = true (ATNA-89).
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
 }
 
 dependencies {

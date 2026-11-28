@@ -8,13 +8,14 @@ import com.truckie1.flags.LocalFeatureFlags
  * Active tour single SoT (`ff_active_tour`, ATNA-86 / P1-1).
  *
  * Map-home create-route, Plan Trip, Optimise, and demo share one
- * [com.truckie1.trips.ActiveTourSession] (or read-only [ReadOnlyActiveTour]
+ * [com.truckie1.trips.ActiveTourFacade] (Room-backed [com.truckie1.app.profiles.RoomActiveTour]
+ * in real mode when `ff_room_route_persist` is on; read-only [ReadOnlyActiveTour]
  * in demo). [com.truckie1.trips.TripStop] is a projection of
  * [com.truckie1.trips.RouteStop] — there is no parallel Trip stop list.
  *
  * Defaults **on**. The legacy dual RouteSession + TripSession path is deleted.
  *
- * Gherkin: features/active_tour.feature
+ * Gherkin: features/active_tour.feature, features/room_route_persist.feature
  */
 object ActiveTourCatalog {
     const val FLAG_KEY: String = FlagKeys.ACTIVE_TOUR
