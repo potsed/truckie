@@ -11,7 +11,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import com.truckie1.app.TruckieApp
+import com.truckie1.app.trips.AddressPackIndex
+import com.truckie1.app.trips.CachedAddressPackRepository
 import com.truckie1.app.trips.GnafAddressCatalog
+import com.truckie1.app.trips.OwnedAddressPack
 import com.truckie1.app.trips.RouteNavigateSession
 import com.truckie1.app.trips.VerifiedAddressCatalog
 import com.truckie1.flags.FlagKeys
@@ -154,7 +157,22 @@ internal fun MapHomeRouteContent(
             NavChromeCatalog.canNavigate(destination, app.featureFlags)
         },
         autocomplete = remember(app, uiTick) {
-            val gnafIndex = if (GnafAddressCatalog.isEnabled(app.featureFlags)) {
+            val addressPackIndex = if (OwnedAddressPack.shouldConsultPack(app.featureFlags)) {
+                runCatching {
+                    AddressPackIndex.fromPack(
+                        CachedAddressPackRepository(
+                            context = context,
+                            downloader = OwnedAddressPack.downloaderFor(app.featureFlags),
+                        ).loadActive(),
+                    )
+                }.getOrNull()
+            } else {
+                null
+            }
+            val gnafIndex = if (
+                addressPackIndex == null &&
+                GnafAddressCatalog.isEnabled(app.featureFlags)
+            ) {
                 runCatching {
                     context.assets.open(GnafAddressCatalog.ASSET_PATH)
                         .bufferedReader()
@@ -163,7 +181,11 @@ internal fun MapHomeRouteContent(
             } else {
                 null
             }
-            VerifiedAddressCatalog.autocompleteFor(app.featureFlags, gnafIndex)
+            VerifiedAddressCatalog.autocompleteFor(
+                flags = app.featureFlags,
+                gnafIndex = gnafIndex,
+                addressPackIndex = addressPackIndex,
+            )
         },
         requireVerifiedAddress = VerifiedAddressCatalog.requiresVerifiedSuggestion(app.featureFlags),
         requireStartEnd = controller.requireStartEnd(),

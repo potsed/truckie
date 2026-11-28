@@ -1,0 +1,48 @@
+{
+  "region": "QLD",
+  "version": "fixture",
+  "addresses": [
+    {
+      "gnafPid": "GAQLD163067541",
+      "houseNumber": "1-31",
+      "street": "Elsie Street",
+      "unit": "UNIT 21",
+      "longitude": 152.99620218,
+      "latitude": -27.25532783,
+      "locality": "Kallangur",
+      "postcode": "4503",
+      "state": "QLD",
+      "accuracy": 2,
+      "source": "G-NAF via data.gov.au",
+      "retrievedAt": "2026-11-28"
+    },
+    {
+      "gnafPid": "GAQLD000000002",
+      "houseNumber": "10",
+      "street": "Example Road",
+      "unit": null,
+      "longitude": 153.0,
+      "latitude": -27.5,
+      "locality": "Brisbane",
+      "postcode": "4000",
+      "state": "QLD",
+      "accuracy": 1,
+      "source": "G-NAF via data.gov.au",
+      "retrievedAt": "2026-11-28"
+    },
+    {
+      "gnafPid": "GANSW000000001",
+      "houseNumber": "1",
+      "street": "George Street",
+      "unit": null,
+      "longitude": 151.2,
+      "latitude": -33.8,
+      "locality": "Sydney",
+      "postcode": "2000",
+      "state": "NSW",
+      "accuracy": 1,
+      "source": "G-NAF via data.gov.au",
+      "retrievedAt": "2026-11-28"
+    }
+  ]
+}
