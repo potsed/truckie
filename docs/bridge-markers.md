@@ -15,7 +15,7 @@ Feature flags: **`ff_bridge_markers`** (on in debug), **`ff_verified_cbd_clearan
 | **Label** | Short clearance text (e.g. `3.8 m`) only for **verified** published road heights when `ff_verified_cbd_clearances` is on. Unknown / not_applicable / high open spans get **no W5-8** (and no invented height). **Must** set `text-font` to **Noto Sans Regular** (OpenFreeMap glyph host); MapLibre’s default Open Sans stack 404s and hides the whole symbol. `textOptional=true` keeps icons if glyphs fail. |
 | **Build check** | Debug `versionName` (Android App info / Settings) — demo-mode-off-default builds are `0.8.15-demo-mode-off-default` or newer. Prior: `0.8.14-au-low-bridges-pack`, `0.8.13-bridge-passage`. |
 | **Where to look** | Demo samples snap onto real **Brisbane CBD crossings** (Story, Victoria, Captain Cook / M3, Goodwill, William Jolly, Go Between, Kurilpa) within ~2 km of the fallback camera. With **`ff_queensland_rail_clearances`**, SEQ **road-under-rail** markers from the QR railbridges page also appear. With **`ff_tmr_structure_clearances`** / **`ff_bcc_road_height_restrictions`**, statewide TMR Structure Clearances and Brisbane local under-4.6 m GIS rows appear. **Demo mode** (`ff_demo_mode`, Settings) swaps to a read-only sample SEQ dataset; floating Jump FAB removed (ATNA-67); **DEMO MODE** pill is the only in-app demo label. |
-| **Out of scope** | Live CDN hosting, full NHVR national / other-state pack ingest (ATNA-43 / remaining ATNA-11), GraphHopper Custom Model, Phase C vehicle UI, create-route changes, global chrome |
+| **Out of scope** | Live CDN hosting, full NHVR national / other-state pack ingest (ATNA-43 / remaining ATNA-11), truck routing model, Phase C vehicle UI, create-route changes, global chrome |
 
 Sample points are labelled fixtures for dogfood — not a permit or live restriction feed. **Physical roadside signs override digital packs.** Legal disclaimer still applies (`docs/play-console.md`).
 
@@ -69,7 +69,7 @@ Flag **`ff_bridge_passage`**. Pack field `passage`: `under` | `over` | `both` | 
 | **both** | Deck is driveable over **and** a published under-path clearance exists (Story, Victoria) |
 | **unknown** | Not classified without inventing data |
 
-**Routing rule (Daniel):** OK to drive **over** a low bridge deck; **not OK to drive under** when clearance conflicts with vehicle height + buffer. Home-map and GraphHopper share **`BridgePassagePolicy`** in `:core-routing` (ATNA-73) — map `BridgePassageFilter` and routing `BridgePassageConstraint` are thin facades. Never invent clearances.
+**Routing rule (Daniel):** OK to drive **over** a low bridge deck; **not OK to drive under** when clearance conflicts with vehicle height + buffer. Home-map and PathRouter share **`BridgePassagePolicy`** in `:core-routing` (ATNA-73) — map `BridgePassageFilter` and routing `BridgePassageConstraint` are thin facades. Never invent clearances.
 
 ## Single visibility pipeline (ATNA-73)
 

@@ -9,7 +9,7 @@ import com.truckie1.profiles.Vehicle
 import com.truckie1.routing.LatLngPoint
 import com.truckie1.routing.MultiStopTourComposer
 import com.truckie1.routing.OptimizeResult
-import com.truckie1.routing.StubGraphHopperPathRouter
+import com.truckie1.routing.StubPathRouter
 import com.truckie1.trips.Route
 import com.truckie1.trips.RouteEndpoint
 import com.truckie1.trips.RouteStatus
@@ -107,7 +107,7 @@ class ActiveTourPathApproachTest {
 
     @Test
     fun composePathStartsAtCurrentThenVisitsStartStopsEnd() = runBlocking {
-        val router = StubGraphHopperPathRouter()
+        val router = StubPathRouter()
         val composer = MultiStopTourComposer(pathRouter = router)
         val result = ActiveTourPath.compose(
             route = route(),
@@ -127,7 +127,7 @@ class ActiveTourPathApproachTest {
 
     @Test
     fun composeWithoutCurrentDoesNotMatchPathThatIncludesApproach() = runBlocking {
-        val router = StubGraphHopperPathRouter()
+        val router = StubPathRouter()
         val composer = MultiStopTourComposer(pathRouter = router)
         val withApproach = ActiveTourPath.compose(
             route = route(),
@@ -152,7 +152,7 @@ class ActiveTourPathApproachTest {
 
     @Test
     fun navigateAndPolylineShareApproachGeometry() = runBlocking {
-        val router = StubGraphHopperPathRouter()
+        val router = StubPathRouter()
         val composer = MultiStopTourComposer(pathRouter = router)
         val flags = flagsOn()
         val session = RouteNavigateSession(composerProvider = { composer })
@@ -187,7 +187,7 @@ class ActiveTourPathApproachTest {
 
     @Test
     fun cachedOptimisedTourStillGetsApproachLegPrepended() = runBlocking {
-        val router = StubGraphHopperPathRouter()
+        val router = StubPathRouter()
         val composer = MultiStopTourComposer(pathRouter = router)
         val tourOnly = when (
             val composed = composer.composeOrdered(

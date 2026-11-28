@@ -9,7 +9,7 @@ import com.truckie1.trips.TourOptimizeGoals
 import com.truckie1.trips.TripStop
 
 /**
- * Multi-stop GraphHopper tour optimiser (ATNA-68 / ATNA-82 / ATNA-102).
+ * Multi-stop PathRouter tour optimiser (ATNA-68 / ATNA-82 / ATNA-102).
  *
  * Origin (first stop) stays fixed; remaining stops are permuted. Each order is
  * scored by composing [PathRouter] legs with a truck Custom Model. Under-passage
@@ -56,7 +56,7 @@ class MultiStopTourComposer(
         }
         if (stops.any { it.latitude == null || it.longitude == null }) {
             return OptimizeResult.Blocked(
-                reason = "All stops need verified coordinates before GraphHopper optimisation",
+                reason = "All stops need verified coordinates before PathRouter optimisation",
             )
         }
 
@@ -80,7 +80,7 @@ class MultiStopTourComposer(
                 tollPreference = tollPreference,
                 optimizeMode = legacyMode,
             )
-            val model = GraphHopperCustomModelStub.from(
+            val model = TruckRoutingModel.from(
                 vehicle = vehicle,
                 requiredClearanceHeightM = requiredClearance,
                 requiredMassT = requiredMass,
@@ -110,7 +110,7 @@ class MultiStopTourComposer(
 
         return best ?: OptimizeResult.Blocked(
             reason = blockers.firstOrNull()
-                ?: "No safe GraphHopper tour for the active vehicle",
+                ?: "No safe PathRouter tour for the active vehicle",
         )
     }
 
@@ -130,7 +130,7 @@ class MultiStopTourComposer(
         }
         if (stops.any { it.latitude == null || it.longitude == null }) {
             return OptimizeResult.Blocked(
-                reason = "All stops need verified coordinates before GraphHopper composition",
+                reason = "All stops need verified coordinates before PathRouter composition",
             )
         }
         if (OnBoardMass.exceedsGvm(tareT = vehicle.tareT, gvmT = vehicle.gvmT, stops = stops)) {
@@ -150,7 +150,7 @@ class MultiStopTourComposer(
             tollPreference = tollPreference,
             optimizeMode = legacyMode,
         )
-        val model = GraphHopperCustomModelStub.from(
+        val model = TruckRoutingModel.from(
             vehicle = vehicle,
             requiredClearanceHeightM = requiredClearance,
             requiredMassT = requiredMass,
@@ -171,7 +171,7 @@ class MultiStopTourComposer(
 
     private suspend fun composeTour(
         ordered: List<TripStop>,
-        model: GraphHopperCustomModelStub,
+        model: TruckRoutingModel,
         vehicleHeightM: Double,
         bufferM: Double,
     ): TourCompose {
@@ -261,7 +261,7 @@ class MultiStopTourComposer(
     private suspend fun resolveLeg(
         start: com.truckie1.trips.RouteEndpoint,
         end: com.truckie1.trips.RouteEndpoint,
-        model: GraphHopperCustomModelStub,
+        model: TruckRoutingModel,
         vehicleHeightM: Double,
         bufferM: Double,
         allowedNearPoints: List<LatLngPoint>,

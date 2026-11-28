@@ -16,9 +16,9 @@ import com.truckie1.trips.RouteEndpoint
 /**
  * Catalog for home Navigate (`ff_navigate`).
  *
- * Path finding is **always** in-app GraphHopper (stub until live HTTP) so vehicle
+ * Path finding is **always** in-app PathRouter (stub until live HTTP) so vehicle
  * constraints can apply. Settings may select an installed nav app for **optional
- * post-route handoff** only — never as a substitute for GraphHopper.
+ * post-route handoff** only — never as a substitute for PathRouter.
  *
  * With `ff_navigate_multi_stop` (defaults on), geometry comes from
  * [ActiveTourPath] / [MultiStopTourComposer] — same ordered PathRouter legs as
@@ -45,7 +45,7 @@ object RouteNavigateCatalog {
 }
 
 /**
- * Starts Navigate: always computes a constrained GraphHopper tour in-app,
+ * Starts Navigate: always computes a constrained PathRouter tour in-app,
  * draws it on MapLibre, then optionally offers external handoff when Settings
  * selects an installed app.
  *
@@ -84,7 +84,7 @@ class RouteNavigateSession(
         val label: String,
         /** Destination from the calculated path (route end). */
         val destination: RouteEndpoint,
-        /** Waypoints from the GraphHopper path for optional handoff. */
+        /** Waypoints from the PathRouter path for optional handoff. */
         val waypoints: List<RouteEndpoint>,
     )
 

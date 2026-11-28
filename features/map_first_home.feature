@@ -5,7 +5,7 @@ Feature: Map-first home with route stop drag sheet
 
   # Product toggle: ff_map_home
   # Compose Material3 only; single-activity NavHost primary path.
-  # Out of scope: live GraphHopper, tolls, load optimisation, real address provider.
+  # Out of scope: live Valhalla, tolls, load optimisation, real address provider.
 
   Scenario: Map home is feature-flagged
     Given the feature flag ff_map_home is off

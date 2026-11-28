@@ -49,7 +49,7 @@ fun ColumnScope.TripStopsScreen(
      */
     optimizeMode: OptimizeMode = optimizeGoals.asLegacyMode() ?: OptimizeMode.FASTEST,
     onModeChange: (OptimizeMode) -> Unit = {},
-    /** Optional GraphHopper-optimised order / source line (ATNA-68). Default null keeps RootNav call sites unchanged. */
+    /** Optional PathRouter-optimised order / source line (ATNA-68). Default null keeps RootNav call sites unchanged. */
     optimizeOrderSummary: String? = null,
 ) {
     TruckieBody(text = clearanceSummary)

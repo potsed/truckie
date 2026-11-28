@@ -220,15 +220,6 @@ class LocalFeatureFlagsTest {
     }
 
     @Test
-    fun graphhopperLiveFlagKey() {
-        assertTrue(FlagKeys.GRAPHHOPPER_LIVE == "ff_graphhopper_live")
-        val flags = LocalFeatureFlags()
-        assertFalse(flags.isEnabled(FlagKeys.GRAPHHOPPER_LIVE))
-        flags.setEnabled(FlagKeys.GRAPHHOPPER_LIVE, true)
-        assertTrue(flags.isEnabled(FlagKeys.GRAPHHOPPER_LIVE))
-    }
-
-    @Test
     fun valhallaLiveFlagKey() {
         assertTrue(FlagKeys.VALHALLA_LIVE == "ff_valhalla_live")
         val flags = LocalFeatureFlags()

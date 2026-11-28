@@ -5,7 +5,7 @@ Feature: Jump to sample bridges residual deleted
 
   # Product toggle: ff_demo_mode (Settings → Demo mode)
   # ATNA-67: floating Jump FAB removed. ATNA-92: JumpToSampleBridges residual deleted.
-  # Out of scope: pack ingest, GraphHopper routing, Phase C vehicle UI.
+  # Out of scope: pack ingest, PathRouter routing, Phase C vehicle UI.
 
   Scenario: Jump residual is deleted from map chrome and helpers
     Given ff_map_home and ff_bridge_markers are enabled

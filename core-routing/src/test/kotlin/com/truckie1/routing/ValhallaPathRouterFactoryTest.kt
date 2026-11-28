@@ -13,7 +13,7 @@ class ValhallaPathRouterFactoryTest {
             baseUrl = "https://api.simplerouting.io/valhalla",
             apiKey = "k",
         )
-        assertTrue(router is StubGraphHopperPathRouter)
+        assertTrue(router is StubPathRouter)
     }
 
     @Test
@@ -23,7 +23,7 @@ class ValhallaPathRouterFactoryTest {
             baseUrl = "  ",
             apiKey = "k",
         )
-        assertTrue(router is StubGraphHopperPathRouter)
+        assertTrue(router is StubPathRouter)
     }
 
     @Test

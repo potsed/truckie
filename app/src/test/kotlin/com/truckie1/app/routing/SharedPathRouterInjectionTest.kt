@@ -4,7 +4,7 @@ import com.truckie1.app.trips.RouteNavigateSession
 import com.truckie1.flags.FlagKeys
 import com.truckie1.flags.LocalFeatureFlags
 import com.truckie1.profiles.Vehicle
-import com.truckie1.routing.GraphHopperPathRouterFactory
+import com.truckie1.routing.ValhallaPathRouterFactory
 import com.truckie1.routing.LatLngPoint
 import com.truckie1.routing.MultiStopTourComposer
 import com.truckie1.routing.PathResult
@@ -20,7 +20,7 @@ import org.junit.Test
 import kotlinx.coroutines.runBlocking
 
 /**
- * Gherkin: features/route_optimisation_graphhopper.feature —
+ * Gherkin: features/route_optimisation.feature —
  * Navigate + Optimise share one factory-resolved PathRouter (ATNA-71/87).
  */
 class SharedPathRouterInjectionTest {
@@ -73,7 +73,7 @@ class SharedPathRouterInjectionTest {
 
     @Test
     fun factoryRouterInstanceIsPassedToBothNavigateAndComposer() {
-        val pathRouter = GraphHopperPathRouterFactory.create(
+        val pathRouter = ValhallaPathRouterFactory.create(
             liveEnabled = false,
             baseUrl = null,
         )
@@ -82,7 +82,7 @@ class SharedPathRouterInjectionTest {
         assertSame(pathRouter, pathRouter)
         assertTrue(composer.javaClass.simpleName == "MultiStopTourComposer")
         assertTrue(session.javaClass.simpleName == "RouteNavigateSession")
-        val again = GraphHopperPathRouterFactory.create(liveEnabled = false, baseUrl = null)
+        val again = ValhallaPathRouterFactory.create(liveEnabled = false, baseUrl = null)
         assertTrue(again::class == pathRouter::class)
     }
 
@@ -94,7 +94,7 @@ class SharedPathRouterInjectionTest {
             start: RouteEndpoint,
             end: RouteEndpoint,
             preferences: TruckRoutingPreferences,
-            customModel: com.truckie1.routing.GraphHopperCustomModelStub?,
+            customModel: com.truckie1.routing.TruckRoutingModel?,
             avoidUnderBridges: List<com.truckie1.routing.RoutingBridgeConstraint>,
         ): PathResult {
             calls++

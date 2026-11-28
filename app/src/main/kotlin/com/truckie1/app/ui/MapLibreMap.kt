@@ -101,7 +101,7 @@ fun MapLibreMap(
      */
     onLocationFixChange: (LocationFix?) -> Unit = {},
     recenterToken: Int = 0,
-    /** GraphHopper path points drawn on this same map (Navigate). */
+    /** PathRouter path points drawn on this same map (Navigate). */
     routePathPoints: List<LatLngPoint> = emptyList(),
     bridges: List<BridgePoint> = emptyList(),
     showBridgeMarkers: Boolean = false,

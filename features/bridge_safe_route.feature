@@ -12,6 +12,6 @@ Feature: Bridge-safe route
   Scenario: Unsafe clearance is rejected on the composer PathRouter path
     Given feature flag "ff_bridge_safe_routing" is enabled
     And the effective clearance height is 3.65 m
-    When GraphHopper / PathRouter returns a tour that under-passes a 3.4 m structure
+    When PathRouter returns a tour that under-passes a 3.4 m structure
     Then MultiStopTourComposer rejects or detours the unsafe under-path
     And SafeRouteSelector is not part of the production routing story

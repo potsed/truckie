@@ -9,7 +9,7 @@ Feature flags:
 | `ff_map_heading_up` | Map-chrome orientation lock (like Recenter): course-up while following; off = north-up | off (on in debug) |
 | `ff_address_autocomplete` | Verified stops | off (on in debug) |
 | `ff_route_start_end` | Create route requires verified **start** + **end** (same place = round trip) | off (on in debug) |
-| `ff_navigate` | Navigate: in-app GraphHopper path on MapLibre; optional post-route external handoff | off (on in debug) |
+| `ff_navigate` | Navigate: in-app PathRouter path on MapLibre; optional post-route external handoff | off (on in debug) |
 | `ff_bridge_markers` | AU bridge markers on MapLibre home (downloadable pack + sample bootstrap) | off (on in debug) |
 
 Gherkin: [`features/map_first_home.feature`](../features/map_first_home.feature), [`features/map_center_lock_follow.feature`](../features/map_center_lock_follow.feature), [`features/map_blue_dot_single_path.feature`](../features/map_blue_dot_single_path.feature), [`features/map_heading_up.feature`](../features/map_heading_up.feature), [`features/create_route_start_end.feature`](../features/create_route_start_end.feature), [`features/bridge_markers.feature`](../features/bridge_markers.feature).
@@ -21,7 +21,7 @@ Gherkin: [`features/map_first_home.feature`](../features/map_first_home.feature)
 | **Map home** | Full-bleed MapLibre map — **OpenFreeMap Liberty** street basemap; camera = **current location** via Fused Location; Brisbane AU fallback; stop markers via SymbolManager; amber **bridge markers** (`ff_bridge_markers`) from versioned pack cache (sample asset seeds empty cache) via a separate SymbolManager (optional clearance label); **Demo mode** (`ff_demo_mode`, ATNA-75) swaps to a read-only sample SEQ dataset via `AppDataSource` (same schema; DEMO MODE pill only — Jump FAB removed ATNA-67); pull-up sheet sized to **visible height** with scrollable stops + nav/IME insets; blue **my-location puck** + follow/Recenter when flagged; **orientation lock** (`ff_map_heading_up`) — Recenter and lock share one primary-circle FAB treatment (`MapChromeIconControls`; glyph only differs) |
 | **Route drag sheet** | Peek / half / full — Material3 elevated surface, large top radius, drag handle |
 | **Create route** | Headline; optional name; **Start** + **End** verified autocomplete when `ff_route_start_end` is on; round-trip checkbox (same place OK); Today / Tomorrow / Pick a date |
-| **Navigate** | When `ff_navigate` is on and the active route has start+end: **Navigate** computes a GraphHopper path **in-app** (stub until live HTTP) and draws it on the **same** MapLibre map. Optional Settings handoff app runs **after** that constrained path — never replaces GraphHopper |
+| **Navigate** | When `ff_navigate` is on and the active route has start+end: **Navigate** computes a PathRouter path **in-app** (stub until live Valhalla) and draws it on the **same** MapLibre map. Optional Settings handoff app runs **after** that constrained path — never replaces PathRouter |
 | **Add/find stops** | Search + pickup/load \| drop-off/unload chips; verified autocomplete when flagged |
 | **Stop list + summary strip** | Numbered timeline; summary includes start→end or round trip when set |
 
@@ -31,10 +31,10 @@ Hosted in **MainActivity** Compose **NavHost** only. Map home suppresses global 
 
 `Route` → verified `start` + `end` (same place = round trip) → `RouteStop[]` with `StopKind.PICKUP_LOAD` \| `DROP_OFF_UNLOAD` (`:core-trips` `RouteSession`).
 
-## Truck routing preferences (Navigate / GraphHopper)
+## Truck routing preferences (Navigate / PathRouter)
 
 Aligned with architecture-plan §3 Navigate + Phase A/D. Custom Model / path request
-shape is recorded by the stub; **live** GraphHopper + bridge/weight packs = Phase D.
+shape is recorded by the stub; **live** Valhalla + bridge/weight packs = Phase D.
 
 - **Route calculation always in-app** on this MapLibre map (never replace with an external nav app)
 - Hard constraints: low bridges (`max_height`), weight limits (`max_weight`), toll preference
@@ -50,7 +50,7 @@ Preference key: `navigation_app_package` (SharedPreferences `truckie_settings`).
 
 | Value | Meaning |
 | --- | --- |
-| `com.truckie1.in_app` (default) | Stay on Truckie MapLibre after GraphHopper calculates |
+| `com.truckie1.in_app` (default) | Stay on Truckie MapLibre after PathRouter calculates |
 | `<installed package>` | Optional **post-route** handoff to that app (destination/waypoints from the calculated path) |
 
 ## Related
@@ -59,4 +59,4 @@ Verified addresses: [verified-address-autocomplete.md](./verified-address-autoco
 
 ## Out of scope (later phases)
 
-Live GraphHopper HTTP + full bridge/weight packs (Phase D), toll UX (Phase E), load optimisation, vehicle depth (Phase C), Android Auto.
+Full bridge/weight packs depth (Phase D), toll UX (Phase E), load optimisation, vehicle depth (Phase C), Android Auto. Live PathRouter is Valhalla (`docs/valhalla-live.md`).

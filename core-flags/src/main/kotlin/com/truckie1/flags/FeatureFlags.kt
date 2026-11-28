@@ -38,8 +38,8 @@ object FlagKeys {
     /** Create route requires verified start + end (same place = round trip). */
     const val ROUTE_START_END = "ff_route_start_end"
     /**
-     * Home Navigate: GraphHopper path drawn on the same MapLibre map
-     * (stub path until live GraphHopper HTTP). No external maps intents.
+     * Home Navigate: PathRouter path drawn on the same MapLibre map
+     * (stub until live Valhalla HTTP). No external maps intents.
      */
     const val NAVIGATE = "ff_navigate"
     /** Low-bridge markers on MapLibre home (Australia-first sample/fixture asset). */
@@ -117,16 +117,10 @@ object FlagKeys {
      */
     const val MAP_STREET_LABELS = "ff_map_street_labels"
     /**
-     * Live GraphHopper HTTP PathRouter (ATNA-9 / ATNA-68). When on **and** a
-     * base URL is configured, Navigate / multi-stop optimisation use live GH;
-     * otherwise stub (`graphhopper-stub`).
-     */
-    const val GRAPHHOPPER_LIVE = "ff_graphhopper_live"
-    /**
      * Live Valhalla PathRouter (ATNA-113): hosted Valhalla interim (e.g. Simple
      * Routing) or self-hosted / offline tiles. When on **and** credentials
      * resolve a base URL, Navigate / Optimise use Valhalla truck costing;
-     * otherwise stub. Preferred over [GRAPHHOPPER_LIVE] for select-user.
+     * otherwise stub (`path-stub`). Sole live routing engine.
      */
     const val VALHALLA_LIVE = "ff_valhalla_live"
     /**
@@ -156,9 +150,9 @@ object FlagKeys {
      */
     const val ROUTE_PATH_FROM_LOCATION = "ff_route_path_from_location"
     /**
-     * Async GraphHopper + Nominatim I/O (ATNA-88 / P1-3): live PathRouter and
+     * Async Valhalla + Nominatim I/O (ATNA-88 / P1-3): live PathRouter and
      * Nominatim are suspend and hop off the Compose main thread. Sync-on-main
-     * live HTTP is deleted. Defaults on. Does not enable [GRAPHHOPPER_LIVE].
+     * live HTTP is deleted. Defaults on. Does not enable [VALHALLA_LIVE].
      */
     const val ASYNC_ROUTING_IO = "ff_async_routing_io"
     /**
@@ -169,8 +163,8 @@ object FlagKeys {
     const val ROOM_ROUTE_PERSIST = "ff_room_route_persist"
     /**
      * Alternate around geographic path blocks via PathRouter (ATNA-102):
-     * live GraphHopper Custom Model / blocked edges — never erase the tour
-     * polyline. Stub PathRouter only for tests / when live URL is unset.
+     * live Valhalla truck costing / exclude polygons — never erase the tour
+     * polyline. Stub PathRouter only for tests / when live credentials unset.
      * Defaults on.
      */
     const val PATH_BLOCK_DETOUR = "ff_path_block_detour"

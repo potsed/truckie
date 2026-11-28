@@ -4,14 +4,14 @@ Feature: Create route with start and end
   So that I can plan a trip including round trips from the same place
 
   # Product toggle: ff_route_start_end
-  # Navigate sibling: ff_navigate — GraphHopper ALWAYS calculates the constrained path
+  # Navigate sibling: ff_navigate — PathRouter ALWAYS calculates the constrained path
   # in-app on MapLibre. Preferences/Custom Model shape: low bridges, weight limits,
   # tolls, soft prefer non-residential through-routes; when residential is needed for
   # a delivery, minimise penetration (access only — not a through-route; never
   # hard-block), then Fastest/Cheapest among safe tours. Stub path until live
-  # GraphHopper HTTP; full packs remain Phase D. Settings may pick an installed
+  # Valhalla HTTP; full packs remain Phase D. Settings may pick an installed
   # nav app for OPTIONAL post-route handoff only — external apps never replace
-  # in-app GraphHopper.
+  # in-app PathRouter.
   # Addresses: verified autocomplete only (ff_address_autocomplete / Nominatim AU).
   # Compose Material3 map-home drag sheet only — no global header/footer.
   # Out of scope: intermediate stops beyond start/end, vehicle depth, bridges, tolls, load opt.
@@ -43,16 +43,16 @@ Feature: Create route with start and end
     And Confirm stays disabled until both endpoints are verified
     And Confirm creates the route with start and end
 
-  Scenario: Navigate always calculates GraphHopper path in-app
+  Scenario: Navigate always calculates PathRouter path in-app
     Given ff_navigate is enabled
     And an active route with verified start and end
     Then the map-home sheet shows a Navigate action
     When the driver taps Navigate
-    Then Truckie always requests a GraphHopper multi-stop tour path in-app
+    Then Truckie always requests a PathRouter multi-stop tour path in-app
     And the path is drawn on the current MapLibre map by default
     And the same map chrome and drag sheet remain
     And round-trip routes with the same start and end remain valid
-    And external navigation apps never replace GraphHopper for path finding
+    And external navigation apps never replace PathRouter for path finding
     # See navigate_multi_stop_path.feature (ATNA-87) — not start→end-only.
 
   Scenario: Settings nav app is optional post-route handoff only
@@ -60,7 +60,7 @@ Feature: Create route with start and end
     And Settings preference navigation_app_package defaults to Truckie in-app
     When the driver selects an installed navigation app in Settings
     And taps Navigate on a route with start and end
-    Then GraphHopper still calculates the constrained path in-app first
+    Then PathRouter still calculates the constrained path in-app first
     And the path is available on the MapLibre map
     And Truckie may then hand off destination or waypoints from that calculated path
     And the external app is not used as the route calculator

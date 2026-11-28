@@ -12,11 +12,10 @@ XML screen layouts were removed; do not add new AppCompat/XML screens.
 | `ff_vehicle_profiles` | Vehicle profile list/edit (Room by rego), Home active summary | off (on in debug) |
 | `ff_multi_stop` | Trip stops list (reorder / add / delete), Home Plan trip entry | off (on in debug) |
 | `ff_stop_cargo` | Cargo H/W/L/mass pick-up/drop-off on stops; on-board clearance | off (on in debug) |
-| `ff_bridge_safe_routing` | Height/weight-aware GraphHopper Custom Model routing (future). Legacy `SafeRouteSelector` deleted (ATNA-92) — production clearance/mass path is MultiStopTourComposer + PathRouter | off |
-| `ff_route_optimize` | Optimize for this vehicle — Fastest / Cheapest among safe GraphHopper tours (multi-stop stop-order; Trip stops UI) | off (on in debug) |
+| `ff_bridge_safe_routing` | Height/weight-aware truck routing model routing (future). Legacy `SafeRouteSelector` deleted (ATNA-92) — production clearance/mass path is MultiStopTourComposer + PathRouter | off |
+| `ff_route_optimize` | Optimize for this vehicle — Fastest / Cheapest among safe PathRouter tours (multi-stop stop-order; Trip stops UI) | off (on in debug) |
 | `ff_valhalla_live` | Live Valhalla PathRouter (ATNA-113): road-network polylines with **truck costing**. **Interim:** hosted Valhalla (Simple Routing default) via `VALHALLA_API_KEY`. **Long-term / offline:** `VALHALLA_BASE_URL` self-hosted or on-device tiles; clear API key. See `docs/valhalla-live.md`, `secrets.properties.example` | off (on in debug) |
-| `ff_graphhopper_live` | Legacy live GraphHopper HTTP PathRouter (ATNA-9/68/102); secondary when Valhalla credentials missing. URL via `GRAPHHOPPER_BASE_URL`. GraphHopper Cloud abandoned. See `docs/graphhopper-live.md` | off (on in debug) |
-| `ff_path_block_detour` | Alternate around geographic path blocks via PathRouter (ATNA-102): live GH Custom Model / blocked edges; never erase the tour polyline; stub only for tests / missing URL | **on** (defaults on) |
+| `ff_path_block_detour` | Alternate around geographic path blocks via PathRouter (ATNA-102): live Valhalla truck costing / exclude polygons; never erase the tour polyline; stub only for tests / missing credentials | **on** (defaults on) |
 | `ff_tolls` | Toll preference stub / avoid-allow settings | off |
 | `ff_offline_maps` | Offline map pack manager (MapLibre) | off |
 | `ff_android_auto` | Android Auto surfaces (requires API 23+) | off |
@@ -27,10 +26,10 @@ XML screen layouts were removed; do not add new AppCompat/XML screens.
 | `ff_gnaf_address_geocode` | G-NAF premise geocode (ATNA-108): unit/housenumber points from local G-NAF pack when OSM/Nominatim lacks them; never invents coords | off (on in debug) |
 | `ff_map_location_puck` | Blue my-location puck on MapLibre (same Fused fix as camera; subtle LocationComponent pulse; follow mode + Recenter when panned) | off (on in debug) |
 | `ff_route_start_end` | Create route requires verified start + end (same place = round trip) on the map-home sheet | off (on in debug) |
-| `ff_navigate` | Navigate: GraphHopper path always in-app on MapLibre; Settings may pick installed app for post-route handoff only | off (on in debug) |
+| `ff_navigate` | Navigate: PathRouter path always in-app on MapLibre; Settings may pick installed app for post-route handoff only | off (on in debug) |
 | `ff_navigate_multi_stop` | Navigate multi-stop tour (ATNA-87): same ordered PathRouter / MultiStopTourComposer geometry as Optimise + map polyline via ActiveTourPath; start→end-only Navigate deleted | **on** (defaults on) |
 | `ff_route_path_from_location` | Route path approach (ATNA-99): ActiveTourPath prepends PathRouter leg from fused current location → route start → ordered stops → end; without a fix falls back to start→stops→end | **on** (defaults on) |
-| `ff_async_routing_io` | Async GraphHopper + Nominatim I/O (ATNA-88 / P1-3): live PathRouter + Nominatim are suspend and hop off Compose main; sync-on-main live HTTP deleted. Does **not** enable `ff_graphhopper_live` | **on** (defaults on) |
+| `ff_async_routing_io` | Async Valhalla + Nominatim I/O (ATNA-88 / P1-3): live PathRouter + Nominatim are suspend and hop off Compose main; sync-on-main live HTTP deleted. Does **not** enable `ff_valhalla_live` | **on** (defaults on) |
 | `ff_room_route_persist` | Room-persist active route + stops (ATNA-89 / P1-4): Real AppDataSource ActiveTour read/write through Room; demo stays isolated read-only in-memory; `exportSchema` + Migration 1→2; no main-thread Room allow | **on** (defaults on) |
 | `ff_active_tour` | Single ActiveTourSession SoT (ATNA-86): map-home Route + Plan Trip / Optimise + demo; TripStop is a projection | **on** (defaults on) |
 | `ff_bridge_markers` | Low-bridge markers on MapLibre home (Australia-first sample JSON asset; SymbolManager + optional clearance label) | off (on in debug) |
@@ -56,8 +55,8 @@ Map-home / RootNav / MapLibre orchestration (ATNA-90 / P1-5) is a structural spl
 gated by existing `ff_map_home` (and related map flags). Domain lives in
 `MapHomeController`; `MapLibreHost` is a thin command executor with
 `MapLibreBindSnapshot`; route sheet + RootNav destinations are modular files.
-See `features/map_home_orchestration.feature`. No GraphHopper Cloud — live routing
-is self-hosted OSS GraphHopper only (`docs/graphhopper-live.md`).
+See `features/map_home_orchestration.feature`. Live routing is Valhalla only
+(`docs/valhalla-live.md`; self-host notes in `docs/valhalla-self-host-notes.md`).
 
 ## Rules
 
@@ -66,21 +65,21 @@ is self-hosted OSS GraphHopper only (`docs/graphhopper-live.md`).
 3. Android Auto additionally requires `Build.VERSION.SDK_INT >= 23`.
 4. Cargo fields and on-board clearance require both `ff_multi_stop` and `ff_stop_cargo`.
 5. Route optimize (`ff_route_optimize`) hard-filters by effective clearance (height + buffer) and
-   on-board operating mass vs GVM / route max weight. Multi-stop tours compose GraphHopper legs
+   on-board operating mass vs GVM / route max weight. Multi-stop tours compose PathRouter legs
    (`MultiStopTourComposer`); under-passage low bridges hard-block when `ff_bridge_passage` is on
    (over deck OK). **Navigate and Optimise share one app-owned `PathRouter`** from
-   `GraphHopperPathRouterFactory` (`TruckieApp.pathRouter()`). With `ff_navigate_multi_stop`
+   `ValhallaPathRouterFactory` (`TruckieApp.pathRouter()`). With `ff_navigate_multi_stop`
    (defaults on, ATNA-87), Navigate uses `ActiveTourPath` + ordered composer legs — the same
    geometry as Optimise + map polyline; start→end-only Navigate is deleted. With
    `ff_route_path_from_location` (defaults on, ATNA-99), that geometry prepends a PathRouter
    approach from the fused current location to route start (then stops → end); without a fix
    it falls back to start→stops→end.    Pack bridges map into the composer when
    `ff_bridge_passage` is on. With `ff_path_block_detour` (defaults on, ATNA-102),
-   geographic blocks retry via the same PathRouter (live GH Custom Model / blocked
-   edges preferred) — never erase the tour line. Live HTTP when `ff_async_routing_io`
-   (defaults on) **and** `ff_graphhopper_live` + base URL; otherwise stub (degraded /
-   tests). Live PathRouter / Nominatim are suspend and never called from Compose
-   `remember` (ATNA-88). See `docs/graphhopper-live.md`. With `ff_room_route_persist`
+   geographic blocks retry via the same PathRouter (live Valhalla truck costing /
+   exclude polygons preferred) — never erase the tour line. Live HTTP when
+   `ff_async_routing_io` (defaults on) **and** `ff_valhalla_live` + credentials;
+   otherwise stub (degraded / tests). Live PathRouter / Nominatim are suspend and
+   never called from Compose `remember` (ATNA-88). See `docs/valhalla-live.md`. With `ff_room_route_persist`
    (defaults on, ATNA-89), Real ActiveTour persists routes/stops via Room (`RoomActiveTour`);
    demo stays read-only in-memory; Migration 1→2 + `exportSchema`; production Room builder
    does not `allowMainThreadQueries`. Toll preference stays stubbed as allow-all passthrough
@@ -113,7 +112,7 @@ is self-hosted OSS GraphHopper only (`docs/graphhopper-live.md`).
    TRACKING enter paths).
 10. Route start/end (`ff_route_start_end`) requires verified autocomplete suggestions for
     Create route start and end. Same place (or round-trip checkbox) is a valid round trip.
-11. Navigate (`ff_navigate`) always calculates a GraphHopper path in-app (stub until live)
+11. Navigate (`ff_navigate`) always calculates a PathRouter path in-app (stub until live Valhalla)
     with truck preferences (bridges, weight, tolls, soft non-residential through-routes with
     minimised residential penetration, Fastest/Cheapest among safe). Draws on the same
     MapLibre map. Settings key `navigation_app_package` defaults to `com.truckie1.in_app`;

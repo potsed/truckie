@@ -1,7 +1,7 @@
 package com.truckie1.routing
 
 /**
- * Minimal bridge constraint for GraphHopper tour filtering (no app/UI types).
+ * Minimal bridge constraint for PathRouter tour filtering (no app/UI types).
  *
  * Passage semantics live on [BridgePassagePolicy] — this type is the routing
  * wire shape only (ATNA-73).
@@ -21,7 +21,7 @@ data class RoutingBridgeConstraint(
  * [MultiStopTourComposer] calls through here; map filters use the same policy.
  *
  * Gherkin: features/bridge_passage_pipeline.feature,
- * features/route_optimisation_graphhopper.feature
+ * features/route_optimisation.feature
  */
 object BridgePassageConstraint {
     /** Metres — treat a path vertex within this radius as "near" the structure. */

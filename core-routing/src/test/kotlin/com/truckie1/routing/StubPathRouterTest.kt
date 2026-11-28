@@ -7,11 +7,11 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * Gherkin: create_route_start_end.feature — GraphHopper stub path for Navigate.
+ * Gherkin: create_route_start_end.feature — stub PathRouter path for Navigate.
  */
-class StubGraphHopperPathRouterTest {
+class StubPathRouterTest {
 
-    private val router = StubGraphHopperPathRouter()
+    private val router = StubPathRouter()
 
     @Test
     fun oneWayPathIncludesStartAndEnd() = runBlocking {

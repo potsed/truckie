@@ -69,7 +69,7 @@ Road-following Navigate / Optimise use **Valhalla truck costing** (`ff_valhalla_
 - Later self-hosted / on-device AU tiles: same client, set `VALHALLA_BASE_URL`, clear API key
 - Secrets template: [`secrets.properties.example`](secrets.properties.example)
 
-Legacy GraphHopper OCI scaffold remains under [`infra/oci-graphhopper/`](infra/oci-graphhopper/) / [`docs/graphhopper-live.md`](docs/graphhopper-live.md) (secondary).
+Self-host notes (docs only): [`docs/valhalla-self-host-notes.md`](docs/valhalla-self-host-notes.md).
 
 Bridge/weight packs stay on GitHub Releases. No Firebase.
 

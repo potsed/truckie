@@ -3,7 +3,7 @@ package com.truckie1.routing
 /**
  * Decodes encoded polyline strings (Google algorithm).
  *
- * Valhalla uses **precision 6**; Google / some GraphHopper responses use 5.
+ * Valhalla uses **precision 6**; Google / some engines use precision 5.
  */
 object EncodedPolylineDecoder {
 

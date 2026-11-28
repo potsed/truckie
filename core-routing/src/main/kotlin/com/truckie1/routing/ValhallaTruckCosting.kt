@@ -10,7 +10,7 @@ object ValhallaTruckCosting {
 
     const val COSTING: String = "truck"
 
-    fun optionsJson(model: GraphHopperCustomModelStub): String {
+    fun optionsJson(model: TruckRoutingModel): String {
         val prefs = model.preferences
         val useTolls = when (prefs.tollPreference) {
             TollPreference.AVOID_ALL -> 0.0

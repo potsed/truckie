@@ -8,7 +8,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * Gherkin: features/route_optimisation_graphhopper.feature —
+ * Gherkin: features/route_optimisation.feature —
  * pack bridges → RoutingBridgeConstraint for MultiStopTourComposer (ATNA-71).
  * Does not edit BridgePassage UI twins (sibling worker).
  */

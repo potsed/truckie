@@ -5,13 +5,13 @@ import com.truckie1.flags.FlagKeys
 import com.truckie1.flags.LocalFeatureFlags
 
 /**
- * Async GraphHopper + Nominatim I/O (`ff_async_routing_io`, ATNA-88 / P1-3).
+ * Async Valhalla + Nominatim I/O (`ff_async_routing_io`, ATNA-88 / P1-3).
  *
  * Live PathRouter and Nominatim are **suspend** and hop to an IO dispatcher.
  * Compose never calls live HTTP from `remember` or a blocking main-thread click.
  * Stub PathRouter may stay instantaneous. Sync-on-main live path is deleted.
  *
- * Defaults **on**. Does **not** enable [FlagKeys.GRAPHHOPPER_LIVE].
+ * Defaults **on**. Does **not** enable [FlagKeys.VALHALLA_LIVE].
  *
  * Gherkin: features/async_routing_io.feature
  */
@@ -23,8 +23,8 @@ object AsyncRoutingIoCatalog {
 
     const val ENABLED_BY_DEFAULT_IN_DEBUG: Boolean = true
 
-    /** Live GraphHopper stays off until explicitly enabled + base URL. */
-    const val enablesGraphHopperLiveByDefault: Boolean = false
+    /** Live Valhalla stays off until explicitly enabled + credentials. */
+    const val enablesValhallaLiveByDefault: Boolean = false
 
     const val livePathRouterIsSuspend: Boolean = true
     const val nominatimSuggestIsSuspend: Boolean = true
@@ -42,13 +42,6 @@ object AsyncRoutingIoCatalog {
     fun setEnabled(flags: LocalFeatureFlags, enabled: Boolean) {
         flags.setEnabled(FlagKeys.ASYNC_ROUTING_IO, enabled)
     }
-
-    /**
-     * Live HTTP GraphHopper is allowed only when async I/O is on **and**
-     * [FlagKeys.GRAPHHOPPER_LIVE] is on (base URL still required by factory).
-     */
-    fun allowsLiveGraphHopper(flags: FeatureFlags): Boolean =
-        isEnabled(flags) && flags.isEnabled(FlagKeys.GRAPHHOPPER_LIVE)
 
     /**
      * Live Valhalla is allowed only when async I/O is on **and**

@@ -1,7 +1,7 @@
 Feature: Single bridge passage policy and visibility pipeline
   As a single-owner-operator driver
   I want one shared over/under passage policy and one ordered marker filter pipeline
-  So that home-map W5-8 symbols and GraphHopper tour hard-blocks never disagree
+  So that home-map W5-8 symbols and PathRouter tour hard-blocks never disagree
 
   # Consolidation (ATNA-73 / audit P1): delete twin BridgePassageFilter vs
   # BridgePassageConstraint semantics; one BridgePassagePolicy in core-routing;

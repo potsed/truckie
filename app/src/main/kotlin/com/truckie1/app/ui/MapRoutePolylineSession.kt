@@ -26,7 +26,7 @@ class MapRoutePolylineSession {
         vehicle: Vehicle?,
         bufferM: Double,
         bridgePassage: Boolean,
-        graphHopperLive: Boolean,
+        valhallaLive: Boolean,
         currentLocation: LatLngPoint? = null,
         routePathFromLocation: Boolean = false,
     ): String {
@@ -47,7 +47,7 @@ class MapRoutePolylineSession {
             vehicle?.rego.orEmpty(),
             bufferM.toString(),
             bridgePassage.toString(),
-            graphHopperLive.toString(),
+            valhallaLive.toString(),
             routePathFromLocation.toString(),
             approach,
         ).joinToString("#")

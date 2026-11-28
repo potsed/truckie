@@ -9,7 +9,7 @@ Feature: Navigate uses multi-stop tour path
   # Navigate path is deleted. Same ActiveTourSession SoT as ATNA-86.
   # With ff_route_path_from_location (ATNA-99): current → start → stops → end.
   # Out of scope: Room persist (P1-4), god-file splits (P1-5).
-  # Async GraphHopper / Nominatim: see features/async_routing_io.feature (ATNA-88 / P1-3).
+  # Async Valhalla / Nominatim: see features/async_routing_io.feature (ATNA-88 / P1-3).
 
   Scenario: Navigate multi-stop path is feature-flagged and defaults on
     Given a fresh app start

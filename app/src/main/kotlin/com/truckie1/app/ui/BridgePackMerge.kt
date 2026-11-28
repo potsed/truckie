@@ -56,7 +56,7 @@ sealed class BridgePackApplyAction {
  * (remote overlays; curated-only ids kept). Same published-family channel may
  * full-replace. Curated sample never overwrites a published cache.
  *
- * Out of scope: GraphHopper injection, BridgePassage / visibility pipeline.
+ * Out of scope: PathRouter injection, BridgePassage / visibility pipeline.
  * Gherkin: features/bridge_pack.feature
  */
 object BridgePackMerge {

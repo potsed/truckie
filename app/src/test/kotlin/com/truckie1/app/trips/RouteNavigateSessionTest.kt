@@ -9,7 +9,7 @@ import com.truckie1.routing.MultiStopTourComposer
 import com.truckie1.routing.PathResult
 import com.truckie1.routing.PathRouter
 import com.truckie1.routing.RoutePath
-import com.truckie1.routing.StubGraphHopperPathRouter
+import com.truckie1.routing.StubPathRouter
 import com.truckie1.trips.Route
 import com.truckie1.trips.RouteEndpoint
 import com.truckie1.trips.RouteStatus
@@ -23,7 +23,7 @@ import kotlinx.coroutines.runBlocking
 
 /**
  * Gherkin: create_route_start_end.feature + navigate_multi_stop_path.feature —
- * in-app GraphHopper Navigate via ActiveTourPath + optional handoff.
+ * in-app PathRouter Navigate via ActiveTourPath + optional handoff.
  */
 class RouteNavigateSessionTest {
 
@@ -56,7 +56,7 @@ class RouteNavigateSessionTest {
     )
 
     private fun session(
-        router: PathRouter = StubGraphHopperPathRouter(),
+        router: PathRouter = StubPathRouter(),
     ): RouteNavigateSession = RouteNavigateSession(
         composerProvider = { MultiStopTourComposer(pathRouter = router) },
     )
@@ -97,7 +97,7 @@ class RouteNavigateSessionTest {
     }
 
     @Test
-    fun startAlwaysComputesInAppGraphHopperPath() = runBlocking {
+    fun startAlwaysComputesInAppPathRouterPath() = runBlocking {
         val flags = flagsNavigateOn()
         val navigateSession = session()
         val route = Route(
@@ -244,7 +244,7 @@ class RouteNavigateSessionTest {
                 start: RouteEndpoint,
                 end: RouteEndpoint,
                 preferences: com.truckie1.routing.TruckRoutingPreferences,
-                customModel: com.truckie1.routing.GraphHopperCustomModelStub?,
+                customModel: com.truckie1.routing.TruckRoutingModel?,
                 avoidUnderBridges: List<com.truckie1.routing.RoutingBridgeConstraint>,
             ): PathResult = PathResult.Blocked("no path")
         }

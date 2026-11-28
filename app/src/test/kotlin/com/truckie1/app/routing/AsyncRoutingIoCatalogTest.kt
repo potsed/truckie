@@ -18,7 +18,7 @@ class AsyncRoutingIoCatalogTest {
         assertEquals(FlagKeys.ASYNC_ROUTING_IO, AsyncRoutingIoCatalog.FLAG_KEY)
         assertTrue(AsyncRoutingIoCatalog.DEFAULT_ENABLED)
         assertTrue(AsyncRoutingIoCatalog.ENABLED_BY_DEFAULT_IN_DEBUG)
-        assertFalse(AsyncRoutingIoCatalog.enablesGraphHopperLiveByDefault)
+        assertFalse(AsyncRoutingIoCatalog.enablesValhallaLiveByDefault)
         assertTrue(AsyncRoutingIoCatalog.livePathRouterIsSuspend)
         assertTrue(AsyncRoutingIoCatalog.nominatimSuggestIsSuspend)
         assertTrue(AsyncRoutingIoCatalog.neverBlocksComposeRemember)
@@ -36,18 +36,6 @@ class AsyncRoutingIoCatalogTest {
         assertTrue(AsyncRoutingIoCatalog.isEnabled(flags))
         AsyncRoutingIoCatalog.setEnabled(flags, false)
         assertFalse(AsyncRoutingIoCatalog.isEnabled(flags))
-    }
-
-    @Test
-    fun liveGraphHopperRequiresAsyncAndLiveFlags() {
-        val flags = LocalFeatureFlags()
-        assertFalse(AsyncRoutingIoCatalog.allowsLiveGraphHopper(flags))
-        flags.setEnabled(FlagKeys.GRAPHHOPPER_LIVE, true)
-        assertFalse(AsyncRoutingIoCatalog.allowsLiveGraphHopper(flags))
-        flags.setEnabled(FlagKeys.ASYNC_ROUTING_IO, true)
-        assertTrue(AsyncRoutingIoCatalog.allowsLiveGraphHopper(flags))
-        flags.setEnabled(FlagKeys.ASYNC_ROUTING_IO, false)
-        assertFalse(AsyncRoutingIoCatalog.allowsLiveGraphHopper(flags))
     }
 
     @Test
