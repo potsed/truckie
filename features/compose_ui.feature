@@ -11,11 +11,11 @@ Feature: Jetpack Compose UI
     Then primary container "navy" and on-primary "white" meet WCAG AA contrast
     And body text "navy" on background "sky" meets WCAG AA contrast
 
-  Scenario: Activities use Compose setContent without ActionBar chrome
-    Given every screen Activity hosts Compose content
+  Scenario: MainActivity uses Compose setContent without ActionBar chrome
+    Given MainActivity is the sole screen Activity hosting Compose NavHost content
     Then the app theme uses NoActionBar
     And screens pad with WindowInsets instead of a DarkActionBar strip
 
   Scenario: Obsolete XML screen layouts are removed
-    Given Home, vehicle list/edit, trip stops, add stop, and blocked route are Compose
+    Given Home, vehicle list/edit, trip stops, add stop, and blocked route are Compose NavHost destinations
     Then activity and item row layout XML for those screens are deleted

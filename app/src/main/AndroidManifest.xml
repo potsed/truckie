@@ -36,36 +36,6 @@
             </intent-filter>
         </activity>
 
-        <activity
-            android:name=".profiles.VehicleListActivity"
-            android:exported="false"
-            android:parentActivityName=".MainActivity" />
-
-        <activity
-            android:name=".profiles.VehicleEditActivity"
-            android:exported="false"
-            android:parentActivityName=".profiles.VehicleListActivity" />
-
-        <activity
-            android:name=".trips.TripStopsActivity"
-            android:exported="false"
-            android:parentActivityName=".MainActivity" />
-
-        <activity
-            android:name=".trips.AddStopActivity"
-            android:exported="false"
-            android:parentActivityName=".trips.TripStopsActivity" />
-
-        <activity
-            android:name=".trips.BlockedRouteActivity"
-            android:exported="false"
-            android:parentActivityName=".trips.TripStopsActivity" />
-
-        <activity
-            android:name=".settings.SettingsActivity"
-            android:exported="false"
-            android:parentActivityName=".MainActivity" />
-
         <!-- Android Auto service: declared for Phase 1+; gated in code to API 23+ -->
         <service
             android:name=".auto.TruckieCarAppService"

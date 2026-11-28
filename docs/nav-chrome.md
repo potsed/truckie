@@ -14,8 +14,10 @@ Bottom nav is **trip-first**: Trip sits right after Home; Settings stays last (s
 **Compose only** — Material3 `Scaffold` / `CenterAlignedTopAppBar` / `NavigationBar` +
 Compose `NavHost`. No XML layouts, AppCompat ActionBar, or view-based chrome.
 
-With `ff_nav_chrome` **or** `ff_map_home` enabled, header + footer are a **global
-fixed** shell on **`MainActivity`** (map home forces the same single-activity host):
+**NavHost-only (ATNA-74):** `MainActivity` is the sole screen Activity and always hosts
+`TruckieRootApp`. Legacy redirect Activities (`TripStopsActivity`, `VehicleListActivity`,
+`SettingsActivity`, …), `ChromeHostRedirect`, and Activity
+`navigateToPrimaryDestination` are deleted.
 
 - One Material3 `Scaffold` at the root
 - Compose **NavHost** in the content slot (Home / Trip / Vehicles / Settings + secondary routes)
@@ -25,12 +27,10 @@ fixed** shell on **`MainActivity`** (map home forces the same single-activity ho
 - **One path:** `PrimaryNavigation` owns primary-tab NavOptions (Settings → Home
   remounts map home fresh — no `restoreState` — so MapLibre is not left dead under
   hidden chrome)
+- `ff_nav_chrome` / `ff_map_home` still gate chrome bars and map-home content **inside**
+  the NavHost; they no longer switch between Activity hosts
 
-Legacy Activities (`TripStopsActivity`, `VehicleListActivity`, …) redirect into
-`MainActivity` with `EXTRA_ROUTE` when the chrome host gate is on. When both flags
-are off, those Activities remain the multi-Activity path without chrome.
-
-See also: `features/settings_home_nav.feature`.
+See also: `features/settings_home_nav.feature`, `features/legacy_activity_retirement.feature`.
 
 ## Destinations
 
@@ -44,6 +44,9 @@ See also: `features/settings_home_nav.feature`.
 Secondary routes (no bottom bar; TopAppBar back): `add_stop`, `vehicle_edit`, `blocked_route/...`.
 
 Header titles: Truckie · Trip stops · Vehicle profiles · Settings.
+
+When `ff_map_home` is off, Home is the list-first summary **inside** the same NavHost
+(not a parallel Activity host).
 
 ## Address autocomplete (queued)
 

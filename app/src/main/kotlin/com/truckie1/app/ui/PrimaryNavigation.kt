@@ -3,7 +3,6 @@ package com.truckie1.app.ui
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import com.truckie1.flags.FeatureFlags
-import com.truckie1.flags.FlagKeys
 
 /**
  * Immutable NavHost options for one primary-tab change.
@@ -25,11 +24,13 @@ data class PrimaryNavCommand(
 /**
  * Single primary-tab navigation policy for Truckie (`ff_nav_chrome` / `ff_map_home`).
  *
- * Replaces the previous spaghetti of NavHost `navigatePrimary`, Activity
- * `navigateToPrimaryDestination`, `ChromeHostRedirect`, and inconsistent
- * MainActivity chrome gates.
+ * NavHost-only (ATNA-74): [MainActivity] always hosts [TruckieRootApp]. Legacy
+ * Activity redirects / `ChromeHostRedirect` / `navigateToPrimaryDestination` are
+ * deleted. Product flags still gate chrome bars and map-home content inside the
+ * NavHost.
  *
- * Gherkin: features/settings_home_nav.feature
+ * Gherkin: features/settings_home_nav.feature,
+ * features/legacy_activity_retirement.feature
  */
 object PrimaryNavigation {
     const val singlePath: Boolean = true
@@ -37,11 +38,12 @@ object PrimaryNavigation {
     const val chromeHostActivitySimpleName: String = "MainActivity"
 
     /**
-     * Host the Compose NavHost when either global chrome or map-first home is on.
-     * Map home requires the single-activity shell even if `ff_nav_chrome` is off.
+     * Always true — sole host is [MainActivity] NavHost (ATNA-74).
+     * [flags] retained so call sites stay stable; chrome / map content still
+     * respect product flags inside [TruckieRootApp].
      */
-    fun shouldUseChromeHost(flags: FeatureFlags): Boolean =
-        flags.isEnabled(FlagKeys.NAV_CHROME) || flags.isEnabled(FlagKeys.MAP_HOME)
+    @Suppress("UNUSED_PARAMETER")
+    fun shouldUseChromeHost(flags: FeatureFlags): Boolean = true
 
     fun resolveStartRoute(extraRoute: String?): String {
         val trimmed = extraRoute?.trim().orEmpty()

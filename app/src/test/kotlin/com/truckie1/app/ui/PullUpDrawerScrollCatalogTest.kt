@@ -40,6 +40,6 @@ class PullUpDrawerScrollCatalogTest {
     @Test
     fun jumpToSampleBridgesFabIsRemovedFromMapChrome() {
         assertFalse(MapHomeCatalog.showsJumpToSampleBridgesFab)
-        assertFalse(JumpToSampleBridges.showsFloatingMapControl)
+        assertTrue(LegacyActivityRetirementCatalog.deletesJumpToSampleBridges)
     }
 }

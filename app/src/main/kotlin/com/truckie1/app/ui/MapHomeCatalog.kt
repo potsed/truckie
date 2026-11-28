@@ -48,8 +48,8 @@ object MapHomeCatalog {
     const val appliesImeInsetsToSheetContent: Boolean = true
 
     /**
-     * Floating Jump-to-sample-bridges FAB is removed from map chrome.
-     * Demo mode stays in Settings; camera helpers may remain for tests.
+     * Jump-to-sample-bridges FAB and residual helpers deleted (ATNA-67 / ATNA-92).
+     * Demo mode stays in Settings only.
      */
     const val showsJumpToSampleBridgesFab: Boolean = false
 

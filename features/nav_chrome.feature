@@ -4,7 +4,7 @@ Feature: Compose header and footer navigation
   So that pickups, dropoffs, and route optimize stay one tap away without expensive nav chrome clutter
 
   # Product toggle: ff_nav_chrome. Existing product flags still gate Trip / Vehicles entry.
-  # Shared Scaffold (not single-activity NavHost) to avoid rewriting domain Activities.
+  # ATNA-74: single-activity NavHost only — legacy redirect Activities deleted.
   # Audience: owner-operators — emphasize Trip (pickups/dropoffs + optimize) over Settings.
 
   Scenario: Primary destinations are trip-first for drivers

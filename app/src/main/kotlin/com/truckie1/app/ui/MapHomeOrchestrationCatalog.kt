@@ -44,8 +44,8 @@ object MapHomeOrchestrationCatalog {
     /** RootNav destination controllers live in dedicated files. */
     const val rootNavDestinationsSplit: Boolean = true
 
-    /** Legacy Activities stay until ATNA-74 — compile touchpoints only. */
-    const val deletesLegacyActivities: Boolean = false
+    /** Legacy redirect Activities deleted (ATNA-74) — NavHost-only. */
+    const val deletesLegacyActivities: Boolean = true
 
     fun isEnabled(flags: FeatureFlags): Boolean =
         flags.isEnabled(FlagKeys.MAP_HOME)
