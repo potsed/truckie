@@ -148,6 +148,12 @@ object FlagKeys {
      * live HTTP is deleted. Defaults on. Does not enable [GRAPHHOPPER_LIVE].
      */
     const val ASYNC_ROUTING_IO = "ff_async_routing_io"
+    /**
+     * Room-persist active route + stops (ATNA-89 / P1-4): Real AppDataSource
+     * ActiveTour reads/writes through Room. Demo stays isolated read-only
+     * in-memory. Defaults on. No Firebase.
+     */
+    const val ROOM_ROUTE_PERSIST = "ff_room_route_persist"
 }
 
 /**

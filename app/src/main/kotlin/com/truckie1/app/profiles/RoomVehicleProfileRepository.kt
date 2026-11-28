@@ -2,37 +2,54 @@ package com.truckie1.app.profiles
 
 import com.truckie1.profiles.Vehicle
 import com.truckie1.profiles.VehicleProfileRepository
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
 
 /**
  * Room-backed vehicle profiles keyed by normalized rego.
+ * DAO calls hop off the caller thread via [io] (no allowMainThreadQueries).
  */
 class RoomVehicleProfileRepository(
     private val dao: VehicleDao,
+    private val io: CoroutineDispatcher = Dispatchers.IO,
 ) : VehicleProfileRepository {
+    private fun <T> db(block: suspend () -> T): T = runBlocking(io) { block() }
+
     override var activeRego: String?
-        get() = dao.activeRego()
+        get() = db { dao.activeRego() }
         set(value) {
-            if (value == null) {
-                dao.clearActive()
-            } else {
-                setActive(value)
+            db {
+                if (value == null) {
+                    dao.clearActive()
+                } else {
+                    val key = Vehicle.normalizeRego(value)
+                    if (dao.findByRego(key) != null) {
+                        dao.setActiveRow(ActiveVehicleEntity(rego = key))
+                    }
+                }
             }
         }
 
     override fun save(vehicle: Vehicle) {
         val entity = vehicle.toEntity()
-        dao.saveAndMaybeActivate(entity, activateIfNone = true)
+        db { dao.saveAndMaybeActivate(entity, activateIfNone = true) }
     }
 
     override fun findByRego(rego: String): Vehicle? =
-        dao.findByRego(Vehicle.normalizeRego(rego))?.toDomain()
+        db { dao.findByRego(Vehicle.normalizeRego(rego))?.toDomain() }
 
-    override fun all(): List<Vehicle> = dao.all().map { it.toDomain() }
+    override fun all(): List<Vehicle> = db { dao.all().map { it.toDomain() } }
 
     override fun setActive(rego: String): Boolean {
         val key = Vehicle.normalizeRego(rego)
-        if (dao.findByRego(key) == null) return false
-        dao.setActiveRow(ActiveVehicleEntity(rego = key))
-        return true
+        return db {
+            if (dao.findByRego(key) == null) {
+                false
+            } else {
+                dao.setActiveRow(ActiveVehicleEntity(rego = key))
+                true
+            }
+        }
     }
 }

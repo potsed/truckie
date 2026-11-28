@@ -8,7 +8,8 @@ Feature: Async GraphHopper and Nominatim routing I/O
   # may stay instantaneous. Compose never calls live HTTP from remember or a
   # main-thread click path. Sync-on-main live path is deleted.
   # Do not enable ff_graphhopper_live in production defaults.
-  # Out of scope: Room persist (P1-4), god-file splits (P1-5).
+  # Out of scope: god-file splits (P1-5 / ATNA-90).
+  # Room persist (P1-4 / ATNA-89): see room_route_persist.feature.
 
   Scenario: Async routing I/O is feature-flagged and defaults on
     Given a fresh app start

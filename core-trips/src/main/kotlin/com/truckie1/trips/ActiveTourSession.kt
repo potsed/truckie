@@ -13,7 +13,7 @@ import java.util.UUID
  *
  * Gherkin: features/active_tour.feature
  */
-class ActiveTourSession : RouteRepository, TripRepository {
+class ActiveTourSession : ActiveTourFacade {
     private var active: Route? = null
 
     override var lastOptimizeMode: OptimizeMode? = null

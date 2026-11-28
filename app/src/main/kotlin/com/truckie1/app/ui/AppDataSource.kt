@@ -4,6 +4,7 @@ import com.truckie1.flags.FeatureFlags
 import com.truckie1.profiles.InMemoryVehicleProfileRepository
 import com.truckie1.profiles.Vehicle
 import com.truckie1.profiles.VehicleProfileRepository
+import com.truckie1.trips.ActiveTourFacade
 import com.truckie1.trips.ActiveTourSession
 import com.truckie1.trips.OptimizeMode
 import com.truckie1.trips.Route
@@ -16,15 +17,18 @@ import com.truckie1.trips.TripStop
 import java.time.LocalDate
 
 /**
- * One abstraction for vehicles / routes / stops (ATNA-75 + ATNA-86).
+ * One abstraction for vehicles / routes / stops (ATNA-75 + ATNA-86 + ATNA-89).
  *
  * Real and Demo share [Vehicle], [Route], and projected [TripStop] — selecting
  * demo only swaps the backing [AppDataSource], not UI or routing paths.
  *
- * [routes] and [trips] are always the same [ActiveTourSession] (single SoT).
- * [TripStop] is a projection via [com.truckie1.trips.TripStopProjection].
+ * [routes] and [trips] are always the same [ActiveTourFacade] (single SoT).
+ * Real mode uses Room-backed [com.truckie1.app.profiles.RoomActiveTour] when
+ * `ff_room_route_persist` defaults on. [TripStop] is a projection via
+ * [com.truckie1.trips.TripStopProjection].
  *
- * Gherkin: features/demo_mode.feature, features/active_tour.feature
+ * Gherkin: features/demo_mode.feature, features/active_tour.feature,
+ * features/room_route_persist.feature
  */
 interface AppDataSource {
     val vehicles: VehicleProfileRepository
@@ -33,12 +37,12 @@ interface AppDataSource {
 }
 
 /**
- * Real driver stores: Room vehicles + one in-memory [ActiveTourSession] for
- * map-home Route and Plan Trip / Optimise projections.
+ * Real driver stores: Room vehicles + Room-backed (or in-memory test)
+ * [ActiveTourFacade] for map-home Route and Plan Trip / Optimise projections.
  */
 class RealAppDataSource(
     override val vehicles: VehicleProfileRepository,
-    val tour: ActiveTourSession = ActiveTourSession(),
+    val tour: ActiveTourFacade = ActiveTourSession(),
 ) : AppDataSource {
     override val routes: RouteRepository get() = tour
     override val trips: TripRepository get() = tour
@@ -48,6 +52,7 @@ class RealAppDataSource(
  * Pre-seeded demo dataset wrapped as read-only stores.
  * One [ActiveTourSession] seeds Route (+ cargo); TripStop is projected.
  * [ReadOnlyActiveTour] is a single facade instance for both [routes] and [trips].
+ * Demo never writes Room — isolation from the real persisted tour.
  */
 object DemoAppDataSource {
     fun create(today: LocalDate = LocalDate.now()): AppDataSource {
@@ -118,12 +123,12 @@ class ReadOnlyVehicleProfileRepository(
 }
 
 /**
- * Read-only active-tour facade for demo: implements both [RouteRepository] and
- * [TripRepository] so [AppDataSource.routes] === [AppDataSource.trips].
+ * Read-only active-tour facade for demo: implements [ActiveTourFacade] so
+ * [AppDataSource.routes] === [AppDataSource.trips].
  */
 class ReadOnlyActiveTour(
     private val inner: ActiveTourSession,
-) : RouteRepository, TripRepository {
+) : ActiveTourFacade {
     override fun activeRoute(): Route? = inner.activeRoute()
 
     override fun createRoute(

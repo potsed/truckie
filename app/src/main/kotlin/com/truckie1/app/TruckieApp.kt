@@ -1,6 +1,7 @@
 package com.truckie1.app
 
 import android.app.Application
+import com.truckie1.app.profiles.RoomActiveTour
 import com.truckie1.app.profiles.RoomVehicleProfileRepository
 import com.truckie1.app.profiles.VehicleDatabase
 import com.truckie1.app.settings.NavigationAppStore
@@ -19,6 +20,7 @@ import com.truckie1.app.ui.DualModeAppDataSource
 import com.truckie1.app.ui.MapRoutePolylineSession
 import com.truckie1.app.ui.NavigateMultiStopCatalog
 import com.truckie1.app.ui.RealAppDataSource
+import com.truckie1.app.ui.RoomRoutePersistCatalog
 import com.truckie1.app.ui.RoutePathFromLocationCatalog
 import com.truckie1.flags.FlagKeys
 import com.truckie1.flags.LocalFeatureFlags
@@ -27,6 +29,7 @@ import com.truckie1.profiles.VehicleProfileRepository
 import com.truckie1.routing.GraphHopperPathRouterFactory
 import com.truckie1.routing.MultiStopTourComposer
 import com.truckie1.routing.PathRouter
+import com.truckie1.trips.ActiveTourFacade
 import com.truckie1.trips.ActiveTourSession
 import com.truckie1.trips.ClearanceBuffer
 import com.truckie1.trips.RouteRepository
@@ -48,8 +51,8 @@ class TruckieApp : Application() {
     /**
      * Active vehicle/route/trip stores — swap with [dataSource] when
      * `ff_demo_mode` flips. Same repository contracts for Real and Demo
-     * (ATNA-75). Route + TripStop projection share one [ActiveTourSession]
-     * (ATNA-86).
+     * (ATNA-75). Route + TripStop projection share one [ActiveTourFacade]
+     * (ATNA-86); real mode persists via Room (ATNA-89).
      */
     val vehicleProfiles: VehicleProfileRepository
         get() = if (::dataSource.isInitialized) dataSource.vehicles else error("TruckieApp not initialised")
@@ -58,8 +61,8 @@ class TruckieApp : Application() {
     val routeSession: RouteRepository
         get() = if (::dataSource.isInitialized) dataSource.routes else bootstrapTour
 
-    /** Single active-tour SoT held until [onCreate] wires Room + dual mode. */
-    private val bootstrapTour = ActiveTourSession()
+    /** Placeholder until [onCreate] wires Room-backed ActiveTour + dual mode. */
+    private val bootstrapTour: ActiveTourFacade = ActiveTourSession()
 
     /**
      * Navigate session shares the app [routeOptimizer] / PathRouter (ATNA-71/87)
@@ -135,11 +138,17 @@ class TruckieApp : Application() {
             FlagKeys.ASYNC_ROUTING_IO,
             AsyncRoutingIoCatalog.DEFAULT_ENABLED,
         )
-        // ATNA-75: Real (Room + tour) vs Demo (read-only seed). Demo flag swaps store.
+        // ATNA-89: Room-persist routes/stops — defaults on; in-memory-only real tour deleted.
+        featureFlags.setEnabled(
+            FlagKeys.ROOM_ROUTE_PERSIST,
+            RoomRoutePersistCatalog.DEFAULT_ENABLED,
+        )
+        val realTour: ActiveTourFacade = RoomActiveTour(db.activeTourDao())
+        // ATNA-75: Real (Room vehicles + Room tour) vs Demo (read-only seed).
         dataSource = DualModeAppDataSource(
             real = RealAppDataSource(
                 vehicles = RoomVehicleProfileRepository(db.vehicleDao()),
-                tour = bootstrapTour,
+                tour = realTour,
             ),
             demo = DemoAppDataSource.create(),
             flags = featureFlags,

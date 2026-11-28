@@ -1,0 +1,402 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 2,
+    "identityHash": "e2f161427e1ace74a5309942191b32e6",
+    "entities": [
+      {
+        "tableName": "vehicles",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`rego` TEXT NOT NULL, `nickname` TEXT NOT NULL, `vehicleType` TEXT NOT NULL, `make` TEXT NOT NULL, `model` TEXT NOT NULL, `year` INTEGER NOT NULL, `heightM` REAL NOT NULL, `widthM` REAL NOT NULL, `lengthM` REAL NOT NULL, `massT` REAL NOT NULL, `tareT` REAL NOT NULL, `gvmT` REAL NOT NULL, `gcmT` REAL NOT NULL, `axleCount` INTEGER NOT NULL, `networkClass` TEXT, `notes` TEXT, PRIMARY KEY(`rego`))",
+        "fields": [
+          {
+            "fieldPath": "rego",
+            "columnName": "rego",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nickname",
+            "columnName": "nickname",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "vehicleType",
+            "columnName": "vehicleType",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "make",
+            "columnName": "make",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "model",
+            "columnName": "model",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "year",
+            "columnName": "year",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "heightM",
+            "columnName": "heightM",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "widthM",
+            "columnName": "widthM",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lengthM",
+            "columnName": "lengthM",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "massT",
+            "columnName": "massT",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "tareT",
+            "columnName": "tareT",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "gvmT",
+            "columnName": "gvmT",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "gcmT",
+            "columnName": "gcmT",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "axleCount",
+            "columnName": "axleCount",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "networkClass",
+            "columnName": "networkClass",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "notes",
+            "columnName": "notes",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "rego"
+          ]
+        }
+      },
+      {
+        "tableName": "active_vehicle",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `rego` TEXT NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "rego",
+            "columnName": "rego",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "routes",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `name` TEXT, `dateEpochDay` INTEGER NOT NULL, `status` TEXT NOT NULL, `startAddress` TEXT, `startLatitude` REAL, `startLongitude` REAL, `endAddress` TEXT, `endLatitude` REAL, `endLongitude` REAL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "dateEpochDay",
+            "columnName": "dateEpochDay",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "status",
+            "columnName": "status",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "startAddress",
+            "columnName": "startAddress",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "startLatitude",
+            "columnName": "startLatitude",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "startLongitude",
+            "columnName": "startLongitude",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "endAddress",
+            "columnName": "endAddress",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "endLatitude",
+            "columnName": "endLatitude",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "endLongitude",
+            "columnName": "endLongitude",
+            "affinity": "REAL"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "route_stops",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `routeId` TEXT NOT NULL, `addressLabel` TEXT NOT NULL, `latitude` REAL, `longitude` REAL, `kind` TEXT NOT NULL, `stopOrder` INTEGER NOT NULL, PRIMARY KEY(`id`), FOREIGN KEY(`routeId`) REFERENCES `routes`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "routeId",
+            "columnName": "routeId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "addressLabel",
+            "columnName": "addressLabel",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "latitude",
+            "columnName": "latitude",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "longitude",
+            "columnName": "longitude",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "kind",
+            "columnName": "kind",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "stopOrder",
+            "columnName": "stopOrder",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_route_stops_routeId",
+            "unique": false,
+            "columnNames": [
+              "routeId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_route_stops_routeId` ON `${TABLE_NAME}` (`routeId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "routes",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "routeId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "route_cargo",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `stopId` TEXT NOT NULL, `description` TEXT NOT NULL, `heightM` REAL NOT NULL, `widthM` REAL NOT NULL, `lengthM` REAL NOT NULL, `massT` REAL NOT NULL, `action` TEXT NOT NULL, `cargoOrder` INTEGER NOT NULL, FOREIGN KEY(`stopId`) REFERENCES `route_stops`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "stopId",
+            "columnName": "stopId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "description",
+            "columnName": "description",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "heightM",
+            "columnName": "heightM",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "widthM",
+            "columnName": "widthM",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lengthM",
+            "columnName": "lengthM",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "massT",
+            "columnName": "massT",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "action",
+            "columnName": "action",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "cargoOrder",
+            "columnName": "cargoOrder",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_route_cargo_stopId",
+            "unique": false,
+            "columnNames": [
+              "stopId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_route_cargo_stopId` ON `${TABLE_NAME}` (`stopId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "route_stops",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "stopId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "active_tour_meta",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `activeRouteId` TEXT, `lastOptimizeMode` TEXT, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "activeRouteId",
+            "columnName": "activeRouteId",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "lastOptimizeMode",
+            "columnName": "lastOptimizeMode",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'e2f161427e1ace74a5309942191b32e6')"
+    ]
+  }
+}

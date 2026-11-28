@@ -28,6 +28,7 @@ XML screen layouts were removed; do not add new AppCompat/XML screens.
 | `ff_navigate_multi_stop` | Navigate multi-stop tour (ATNA-87): same ordered PathRouter / MultiStopTourComposer geometry as Optimise + map polyline via ActiveTourPath; start→end-only Navigate deleted | **on** (defaults on) |
 | `ff_route_path_from_location` | Route path approach (ATNA-99): ActiveTourPath prepends PathRouter leg from fused current location → route start → ordered stops → end; without a fix falls back to start→stops→end | **on** (defaults on) |
 | `ff_async_routing_io` | Async GraphHopper + Nominatim I/O (ATNA-88 / P1-3): live PathRouter + Nominatim are suspend and hop off Compose main; sync-on-main live HTTP deleted. Does **not** enable `ff_graphhopper_live` | **on** (defaults on) |
+| `ff_room_route_persist` | Room-persist active route + stops (ATNA-89 / P1-4): Real AppDataSource ActiveTour read/write through Room; demo stays isolated read-only in-memory; `exportSchema` + Migration 1→2; no main-thread Room allow | **on** (defaults on) |
 | `ff_active_tour` | Single ActiveTourSession SoT (ATNA-86): map-home Route + Plan Trip / Optimise + demo; TripStop is a projection | **on** (defaults on) |
 | `ff_bridge_markers` | Low-bridge markers on MapLibre home (Australia-first sample JSON asset; SymbolManager + optional clearance label) | off (on in debug) |
 | `ff_stop_markers` | Route stop markers on MapLibre home (ATNA-81): pickup vs drop-off SymbolManager icons from active AppDataSource route; shares bridge SymbolManager / style lifecycle bind path | off (on in debug) |
@@ -63,10 +64,13 @@ XML screen layouts were removed; do not add new AppCompat/XML screens.
    it falls back to start→stops→end. Pack bridges map into the composer when
    `ff_bridge_passage` is on. Live HTTP only when `ff_async_routing_io` (defaults on) **and**
    `ff_graphhopper_live` + base URL; otherwise stub. Live PathRouter / Nominatim are suspend
-   and never called from Compose `remember` (ATNA-88). Toll preference stays stubbed as
-   allow-all passthrough until `ff_tolls` is implemented. **Fastest** and **Cost Effective**
-   are checkboxes (not radio), both on by default — AND selection via `TourOptimizeGoals` /
-   `TourPathSelector` (prefer fast and cost-effective together).
+   and never called from Compose `remember` (ATNA-88). With `ff_room_route_persist`
+   (defaults on, ATNA-89), Real ActiveTour persists routes/stops via Room (`RoomActiveTour`);
+   demo stays read-only in-memory; Migration 1→2 + `exportSchema`; production Room builder
+   does not `allowMainThreadQueries`. Toll preference stays stubbed as allow-all passthrough
+   until `ff_tolls` is implemented. **Fastest** and **Cost Effective** are checkboxes (not
+   radio), both on by default — AND selection via `TourOptimizeGoals` / `TourPathSelector`
+   (prefer fast and cost-effective together).
 6. Nav chrome (`ff_nav_chrome`) hosts Material3 `CenterAlignedTopAppBar` + bottom
    `NavigationBar` **once** on `MainActivity` around a Compose NavHost (global fixed
    chrome; content scrolls in between). Plan trip / Vehicles tabs still require

@@ -2,7 +2,7 @@ package com.truckie1.trips
 
 /**
  * Trip stop list store (reorder / add / delete) — projection over the active
- * [Route] when using [ActiveTourSession] (ATNA-86).
+ * [Route] when using [ActiveTourFacade] / [ActiveTourSession] (ATNA-86 / ATNA-89).
  * Real and demo modes share this contract — only the backing dataset differs.
  */
 interface TripRepository {
