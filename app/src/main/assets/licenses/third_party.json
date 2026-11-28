@@ -1,0 +1,153 @@
+{
+  "version": 1,
+  "note": "Canonical inventory for the in-app Licenses page (ATNA-116). Update this file first; keep docs/licenses.md in sync. Prefer accurate curated entries over a huge transitive dump.",
+  "entries": [
+    {
+      "id": "truckie",
+      "name": "Truckie",
+      "component": "com.truckie1.app",
+      "license": "Apache-2.0",
+      "copyright": "Copyright 2026 Daniel E. Smith and contributors",
+      "url": "https://github.com/potsed/truckie",
+      "notes": "Product source. See /LICENSE and /NOTICE.",
+      "attributionRequired": false
+    },
+    {
+      "id": "maplibre-android",
+      "name": "MapLibre Native Android",
+      "component": "org.maplibre.gl:android-sdk",
+      "version": "13.7.1",
+      "license": "BSD-2-Clause",
+      "copyright": "Copyright (c) MapLibre contributors",
+      "url": "https://github.com/maplibre/maplibre-native",
+      "notes": "Map render SDK in :app; facade/stub in :core-maps.",
+      "attributionRequired": false
+    },
+    {
+      "id": "maplibre-annotation",
+      "name": "MapLibre Annotation Plugin",
+      "component": "org.maplibre.gl:android-plugin-annotation",
+      "version": "4.0.0",
+      "license": "BSD-2-Clause",
+      "copyright": "Copyright (c) MapLibre contributors",
+      "url": "https://github.com/maplibre/maplibre-plugins-android",
+      "notes": "SymbolManager / LineManager for bridges, stops, and route polylines.",
+      "attributionRequired": false
+    },
+    {
+      "id": "openfreemap-osm",
+      "name": "OpenFreeMap / OpenStreetMap",
+      "component": "tiles.openfreemap.org (Liberty style)",
+      "license": "ODbL (OpenStreetMap data)",
+      "copyright": "© OpenStreetMap contributors",
+      "url": "https://www.openstreetmap.org/copyright",
+      "notes": "Street basemap via OpenFreeMap Liberty (free OSM vector tiles; no API key). OpenStreetMap attribution is required and shown via MapLibre map attribution and this Licenses page. OpenFreeMap: https://openfreemap.org/",
+      "attributionRequired": true
+    },
+    {
+      "id": "valhalla",
+      "name": "Valhalla",
+      "component": "valhalla/valhalla (HTTP PathRouter client)",
+      "license": "MIT",
+      "copyright": "Copyright (c) Valhalla contributors",
+      "url": "https://github.com/valhalla/valhalla",
+      "notes": "Live PathRouter with truck costing in :core-routing. Interim: hosted Valhalla (e.g. Simple Routing) via credentials. Long-term / offline: self-hosted or on-device tiles — see docs/valhalla-live.md and docs/valhalla-self-host-notes.md.",
+      "attributionRequired": false
+    },
+    {
+      "id": "gnaf",
+      "name": "Geoscape G-NAF / G-NAF Core",
+      "component": "data.gov.au G-NAF (owned AU address pack seed)",
+      "license": "CC-BY 4.0 + G-NAF EULA",
+      "copyright": "© Geoscape Australia",
+      "url": "https://data.gov.au/data/dataset/geocoded-national-address-file-g-naf",
+      "notes": "CC-BY 4.0 attribution required. G-NAF EULA: OK for navigation geocoding; not for bulk mailing. Cite in pack source + this page. See docs/owned-address-pack.md.",
+      "attributionRequired": true
+    },
+    {
+      "id": "androidx-compose",
+      "name": "AndroidX / Jetpack Compose / Material3",
+      "component": "androidx.compose:* (BOM 2026.11.01) + material3",
+      "license": "Apache-2.0",
+      "copyright": "Copyright The Android Open Source Project",
+      "url": "https://developer.android.com/jetpack/compose",
+      "notes": "UI stack. Curated — not every transitive artifact.",
+      "attributionRequired": false
+    },
+    {
+      "id": "androidx-room",
+      "name": "AndroidX Room",
+      "component": "androidx.room:room-*",
+      "version": "2.8.5",
+      "license": "Apache-2.0",
+      "copyright": "Copyright The Android Open Source Project",
+      "url": "https://developer.android.com/training/data-storage/room",
+      "notes": "Local-first vehicles, routes, and stops.",
+      "attributionRequired": false
+    },
+    {
+      "id": "androidx-navigation",
+      "name": "AndroidX Navigation Compose",
+      "component": "androidx.navigation:navigation-compose",
+      "version": "2.9.6",
+      "license": "Apache-2.0",
+      "copyright": "Copyright The Android Open Source Project",
+      "url": "https://developer.android.com/jetpack/compose/navigation",
+      "notes": "Single-activity NavHost shell.",
+      "attributionRequired": false
+    },
+    {
+      "id": "androidx-datastore",
+      "name": "AndroidX DataStore Preferences",
+      "component": "androidx.datastore:datastore-preferences",
+      "version": "1.3.0",
+      "license": "Apache-2.0",
+      "copyright": "Copyright The Android Open Source Project",
+      "url": "https://developer.android.com/topic/libraries/architecture/datastore",
+      "notes": "Durable feature-flag overrides.",
+      "attributionRequired": false
+    },
+    {
+      "id": "play-services-location",
+      "name": "Google Play Services Location",
+      "component": "com.google.android.gms:play-services-location",
+      "version": "21.3.0",
+      "license": "Google Play Services Terms of Service (free with Play)",
+      "copyright": "Copyright Google LLC",
+      "url": "https://developers.google.com/android/guides/overview",
+      "notes": "Fused Location Provider for map camera and my-location puck. Free with Play services; not a paid quota SDK.",
+      "attributionRequired": false
+    },
+    {
+      "id": "kotlin-coroutines",
+      "name": "Kotlin / kotlinx.coroutines",
+      "component": "org.jetbrains.kotlinx:kotlinx-coroutines-*",
+      "version": "1.9.0",
+      "license": "Apache-2.0",
+      "copyright": "Copyright JetBrains s.r.o. and Kotlin contributors",
+      "url": "https://github.com/Kotlin/kotlinx.coroutines",
+      "notes": "Async Valhalla / Nominatim I/O off the Compose main thread.",
+      "attributionRequired": false
+    },
+    {
+      "id": "nominatim-typeahead",
+      "name": "Nominatim (OpenStreetMap)",
+      "component": "nominatim.openstreetmap.org (typeahead only)",
+      "license": "ODbL (OSM data) / Nominatim usage policy",
+      "copyright": "© OpenStreetMap contributors",
+      "url": "https://operations.osmfoundation.org/policies/nominatim/",
+      "notes": "Typeahead UI at most until G-NAF resolves the hit. Not premise SoT.",
+      "attributionRequired": true
+    },
+    {
+      "id": "au-w5-8-sign",
+      "name": "AU road sign W5-8 (low bridge marker)",
+      "component": "assets/bridges/AU_road_sign_W5-8.svg",
+      "license": "Public domain (road sign)",
+      "copyright": null,
+      "url": "https://commons.wikimedia.org/wiki/File:AU_road_sign_W5-8.svg",
+      "notes": "Standards Australia / AS 1743; Wikimedia Commons. Attribution not required; source recorded here.",
+      "attributionRequired": false
+    }
+  ]
+}

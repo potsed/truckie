@@ -13,11 +13,17 @@
     <string name="nav_plan_trip_cd">Trip — add pickups and dropoffs, optimize route</string>
     <string name="nav_back">Back</string>
     <string name="settings_buffer_value">Current buffer: %1$s m</string>
-    <!-- Tolls / offline maps / licenses remain later; disclaimer ships ATNA-96. -->
-    <string name="settings_stub_note">Toll preferences, offline maps, and licenses land in later milestones.</string>
+    <!-- Tolls / offline maps remain later; disclaimer ATNA-96; licenses ATNA-116. -->
+    <string name="settings_stub_note">Toll preferences and offline maps land in later milestones.</string>
     <!-- ATNA-96: Play / select-user safety disclaimer (ff_settings_disclaimer). -->
     <string name="settings_disclaimer_title">Safety disclaimer</string>
     <string name="settings_disclaimer_body">Truckie is not a permit. Physical roadside signs override digital packs. Always verify restrictions with NHVR or the road authority. On-board weight shown in Truckie is guidance only — not a hard lock.</string>
+    <!-- ATNA-116: Settings → Licenses (ff_licenses_page). -->
+    <string name="settings_licenses_label">Licenses</string>
+    <string name="settings_licenses_note">Third-party libraries, map data, and attribution.</string>
+    <string name="licenses_title">Licenses</string>
+    <string name="licenses_intro">Truckie uses open-source and free-for-commercial components. Attribution for OpenStreetMap / OpenFreeMap also appears on the map. Inventory source: assets/licenses/third_party.json (see docs/licenses.md).</string>
+    <string name="licenses_license_line">Licence: %1$s</string>
     <!-- ATNA-113: Valhalla live vs degraded stub PathRouter geometry status. -->
     <string name="settings_routing_geometry_label">Route geometry</string>
     <!-- Debug dogfood: confirm installed APK includes a given marker/font fix. -->

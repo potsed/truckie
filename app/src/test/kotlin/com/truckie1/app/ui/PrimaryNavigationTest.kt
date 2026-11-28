@@ -126,6 +126,15 @@ class PrimaryNavigationTest {
     }
 
     @Test
+    fun licensesGraphStartsUnderSettings() {
+        assertEquals(
+            TruckieRoutes.SETTINGS,
+            PrimaryNavigation.graphStartDestination(TruckieRoutes.LICENSES),
+        )
+        assertEquals("licenses", TruckieRoutes.LICENSES)
+    }
+
+    @Test
     fun resolveStartRoutePrefersExtraThenHome() {
         assertEquals(
             TruckieRoutes.SETTINGS,

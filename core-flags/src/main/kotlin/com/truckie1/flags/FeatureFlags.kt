@@ -194,6 +194,12 @@ object FlagKeys {
      * Defaults on for Play / select-user.
      */
     const val SETTINGS_DISCLAIMER = "ff_settings_disclaimer"
+    /**
+     * In-app Licenses page (ATNA-116): Settings → Licenses lists third-party
+     * libraries/services from assets/licenses/third_party.json. Defaults on
+     * (legal / attribution surface for Play norms).
+     */
+    const val LICENSES_PAGE = "ff_licenses_page"
 }
 
 /**

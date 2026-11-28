@@ -59,7 +59,9 @@ object PrimaryNavigation {
             TruckieRoutes.VEHICLES,
             TruckieRoutes.VEHICLE_EDIT,
             -> TruckieRoutes.VEHICLES
-            TruckieRoutes.SETTINGS -> TruckieRoutes.SETTINGS
+            TruckieRoutes.SETTINGS,
+            TruckieRoutes.LICENSES,
+            -> TruckieRoutes.SETTINGS
             else -> TruckieRoutes.HOME
         }
     }

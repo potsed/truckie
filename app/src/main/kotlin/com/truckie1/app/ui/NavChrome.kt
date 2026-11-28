@@ -102,7 +102,9 @@ object NavChromeCatalog {
             TruckieRoutes.VEHICLES,
             TruckieRoutes.VEHICLE_EDIT,
             -> TruckiePrimaryDestination.VEHICLES
-            TruckieRoutes.SETTINGS -> TruckiePrimaryDestination.SETTINGS
+            TruckieRoutes.SETTINGS,
+            TruckieRoutes.LICENSES,
+            -> TruckiePrimaryDestination.SETTINGS
             else -> null
         }
     }
@@ -138,6 +140,8 @@ object TruckieRoutes {
     const val PLAN_TRIP = "plan_trip"
     const val VEHICLES = "vehicles"
     const val SETTINGS = "settings"
+    /** Settings → Licenses (`ff_licenses_page`, ATNA-116). */
+    const val LICENSES = LicensesCatalog.ROUTE
     const val ADD_STOP = "add_stop"
     const val VEHICLE_EDIT = "vehicle_edit"
     const val BLOCKED_ROUTE = "blocked_route"

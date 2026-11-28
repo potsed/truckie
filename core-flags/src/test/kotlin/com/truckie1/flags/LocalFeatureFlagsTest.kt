@@ -328,4 +328,13 @@ class LocalFeatureFlagsTest {
         flags.setEnabled(FlagKeys.SETTINGS_DISCLAIMER, true)
         assertTrue(flags.isEnabled(FlagKeys.SETTINGS_DISCLAIMER))
     }
+
+    @Test
+    fun licensesPageFlagKey() {
+        assertTrue(FlagKeys.LICENSES_PAGE == "ff_licenses_page")
+        val flags = LocalFeatureFlags()
+        assertFalse(flags.isEnabled(FlagKeys.LICENSES_PAGE))
+        flags.setEnabled(FlagKeys.LICENSES_PAGE, true)
+        assertTrue(flags.isEnabled(FlagKeys.LICENSES_PAGE))
+    }
 }

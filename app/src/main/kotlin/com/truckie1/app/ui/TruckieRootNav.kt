@@ -227,7 +227,21 @@ fun TruckieRootApp(
                             demoRevision = app.demoModeController.revision()
                         },
                         showDisclaimer = SettingsDisclaimerCatalog.shouldShow(app.featureFlags),
+                        showLicensesEntry = LicensesCatalog.shouldShow(app.featureFlags),
+                        onOpenLicenses = {
+                            navController.navigate(TruckieRoutes.LICENSES) {
+                                launchSingleTop = true
+                            }
+                        },
                     )
+                }
+            }
+            composable(TruckieRoutes.LICENSES) {
+                RootScrollBody {
+                    val inventory = remember {
+                        LicenseInventory.loadFromAssets(activity.applicationContext)
+                    }
+                    LicensesScreen(inventory = inventory)
                 }
             }
             composable(TruckieRoutes.ADD_STOP) {
@@ -307,6 +321,7 @@ private fun rootTitle(baseRoute: String): String = when (baseRoute) {
     TruckieRoutes.PLAN_TRIP -> stringResource(R.string.trip_stops)
     TruckieRoutes.VEHICLES -> stringResource(R.string.vehicle_profiles)
     TruckieRoutes.SETTINGS -> stringResource(R.string.settings)
+    TruckieRoutes.LICENSES -> stringResource(R.string.licenses_title)
     TruckieRoutes.ADD_STOP -> stringResource(R.string.add_stop_title)
     TruckieRoutes.VEHICLE_EDIT -> stringResource(R.string.edit_profile)
     TruckieRoutes.BLOCKED_ROUTE -> stringResource(R.string.blocked_route_title)
@@ -382,6 +397,7 @@ private fun openStartRoute(
         TruckieRoutes.BLOCKED_ROUTE,
         -> TruckieRoutes.PLAN_TRIP
         TruckieRoutes.VEHICLE_EDIT -> TruckieRoutes.VEHICLES
+        TruckieRoutes.LICENSES -> TruckieRoutes.SETTINGS
         else -> TruckieRoutes.HOME
     }
     if (TruckieRoutes.baseRoute(navController.currentDestination?.route) != parent) {

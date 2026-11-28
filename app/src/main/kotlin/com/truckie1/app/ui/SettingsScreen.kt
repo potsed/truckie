@@ -56,6 +56,12 @@ fun SettingsScreen(
      * Null → derive from [featureFlags] via [SettingsDisclaimerCatalog.shouldShow].
      */
     showDisclaimer: Boolean? = null,
+    /**
+     * ATNA-116: Settings → Licenses (`ff_licenses_page`).
+     * Null → derive from [featureFlags] via [LicensesCatalog.shouldShow].
+     */
+    showLicensesEntry: Boolean? = null,
+    onOpenLicenses: (() -> Unit)? = null,
 ) {
     TruckieBody(text = stringResource(R.string.clearance_buffer_label))
     Spacer(modifier = Modifier.height(8.dp))
@@ -68,6 +74,20 @@ fun SettingsScreen(
     if (disclaimerVisible) {
         Spacer(modifier = Modifier.height(16.dp))
         SettingsDisclaimerSection()
+    }
+    val licensesVisible = showLicensesEntry
+        ?: featureFlags?.let { LicensesCatalog.shouldShow(it) }
+        ?: false
+    if (licensesVisible) {
+        Spacer(modifier = Modifier.height(16.dp))
+        SettingsLicensesEntry(
+            onOpen = {
+                val open = requireNotNull(onOpenLicenses) {
+                    "Licenses entry requires onOpenLicenses"
+                }
+                open()
+            },
+        )
     }
     val geometryStatus = routingGeometryStatus
         ?: featureFlags?.let { ValhallaLiveCatalog.routingGeometryStatus(it) }
@@ -126,6 +146,25 @@ private fun SettingsDisclaimerSection() {
         style = MaterialTheme.typography.bodyMedium,
         color = MaterialTheme.colorScheme.onBackground,
         modifier = Modifier.testTag(SettingsDisclaimerCatalog.TEST_TAG),
+    )
+}
+
+@Composable
+private fun SettingsLicensesEntry(onOpen: () -> Unit) {
+    Text(
+        text = stringResource(R.string.settings_licenses_label),
+        style = MaterialTheme.typography.titleMedium,
+        color = MaterialTheme.colorScheme.primary,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onOpen)
+            .padding(vertical = 8.dp)
+            .testTag(LicensesCatalog.SETTINGS_ENTRY_TAG),
+    )
+    Text(
+        text = stringResource(R.string.settings_licenses_note),
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onBackground,
     )
 }
 
