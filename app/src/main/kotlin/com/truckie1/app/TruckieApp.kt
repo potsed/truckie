@@ -11,6 +11,7 @@ import com.truckie1.app.routing.AsyncRoutingIoCatalog
 import com.truckie1.app.routing.GraphHopperLiveCatalog
 import com.truckie1.app.routing.PathBlockDetourCatalog
 import com.truckie1.app.routing.RoutingBridgePackMapper
+import com.truckie1.app.routing.ValhallaLiveCatalog
 import com.truckie1.app.trips.RouteNavigateSession
 import com.truckie1.app.ui.ActiveTourCatalog
 import com.truckie1.app.ui.AuLowBridgesPack
@@ -31,6 +32,7 @@ import com.truckie1.profiles.VehicleProfileRepository
 import com.truckie1.routing.GraphHopperPathRouterFactory
 import com.truckie1.routing.MultiStopTourComposer
 import com.truckie1.routing.PathRouter
+import com.truckie1.routing.ValhallaPathRouterFactory
 import com.truckie1.trips.ActiveTourFacade
 import com.truckie1.trips.ActiveTourSession
 import com.truckie1.trips.ClearanceBuffer
@@ -76,22 +78,37 @@ class TruckieApp : Application() {
     val mapEngine = MapLibreNativeEngine()
 
     /**
-     * Live GraphHopper base URL (no trailing path). From BuildConfig /
-     * `truckie.graphhopper.baseUrl` / `TRUCKIE_GRAPHHOPPER_BASE_URL`. Empty →
-     * stub even when [FlagKeys.GRAPHHOPPER_LIVE] is on (see docs/graphhopper-live.md).
+     * Live GraphHopper base URL (legacy secondary). Prefer Valhalla
+     * ([graphHopperBaseUrl] unused when `ff_valhalla_live` credentials resolve).
      */
     var graphHopperBaseUrl: String? = GraphHopperLiveCatalog.configuredBaseUrl().ifBlank { null }
 
+    /** Valhalla base URL / Simple Routing default when API key set. */
+    var valhallaBaseUrl: String? = ValhallaLiveCatalog.effectiveBaseUrl().ifBlank { null }
+
+    /** Hosted Valhalla Bearer token (BuildConfig / secrets). Blank for self-host. */
+    var valhallaApiKey: String? = ValhallaLiveCatalog.configuredApiKey().ifBlank { null }
+
     /**
-     * Single app-owned PathRouter: stub vs live from `ff_graphhopper_live` +
-     * [graphHopperBaseUrl], gated by async routing I/O (ATNA-88). Injected into
-     * Navigate **and** Optimise. Live HTTP is suspend / off-main. Select-user
-     * alternates around blocks use this same live PathRouter (ATNA-102).
+     * Single app-owned PathRouter: prefer live Valhalla (`ff_valhalla_live` +
+     * credentials), else legacy GraphHopper live, else stub. Gated by async
+     * routing I/O (ATNA-88). Injected into Navigate **and** Optimise.
      */
-    fun pathRouter(): PathRouter = GraphHopperPathRouterFactory.create(
-        liveEnabled = AsyncRoutingIoCatalog.allowsLiveGraphHopper(featureFlags),
-        baseUrl = graphHopperBaseUrl,
-    )
+    fun pathRouter(): PathRouter {
+        if (AsyncRoutingIoCatalog.allowsLiveValhalla(featureFlags) &&
+            ValhallaLiveCatalog.isLivePathRouterActive(featureFlags)
+        ) {
+            return ValhallaPathRouterFactory.create(
+                liveEnabled = true,
+                baseUrl = valhallaBaseUrl ?: ValhallaLiveCatalog.effectiveBaseUrl(),
+                apiKey = valhallaApiKey ?: ValhallaLiveCatalog.configuredApiKey().ifBlank { null },
+            )
+        }
+        return GraphHopperPathRouterFactory.create(
+            liveEnabled = AsyncRoutingIoCatalog.allowsLiveGraphHopper(featureFlags),
+            baseUrl = graphHopperBaseUrl,
+        )
+    }
 
     /**
      * Multi-stop GraphHopper tour optimiser (ATNA-68/71/102). Same [pathRouter] as
@@ -189,7 +206,12 @@ class TruckieApp : Application() {
             featureFlags.setEnabled(FlagKeys.STOP_MARKERS, true)
             // Constrained PathRouter route line on MapLibre home (ATNA-82).
             featureFlags.setEnabled(FlagKeys.MAP_ROUTE_POLYLINE, true)
-            // Live GraphHopper for select-user (ATNA-102) — needs base URL (see docs/graphhopper-live.md).
+            // Live Valhalla for select-user (ATNA-113) — needs API key / base URL.
+            featureFlags.setEnabled(
+                FlagKeys.VALHALLA_LIVE,
+                ValhallaLiveCatalog.ENABLED_BY_DEFAULT_IN_DEBUG,
+            )
+            // Legacy GraphHopper live remains available if Valhalla credentials missing.
             featureFlags.setEnabled(
                 FlagKeys.GRAPHHOPPER_LIVE,
                 GraphHopperLiveCatalog.ENABLED_BY_DEFAULT_IN_DEBUG,

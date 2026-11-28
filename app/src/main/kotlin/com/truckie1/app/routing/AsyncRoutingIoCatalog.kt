@@ -51,6 +51,13 @@ object AsyncRoutingIoCatalog {
         isEnabled(flags) && flags.isEnabled(FlagKeys.GRAPHHOPPER_LIVE)
 
     /**
+     * Live Valhalla is allowed only when async I/O is on **and**
+     * [FlagKeys.VALHALLA_LIVE] is on (credentials still required by factory).
+     */
+    fun allowsLiveValhalla(flags: FeatureFlags): Boolean =
+        isEnabled(flags) && flags.isEnabled(FlagKeys.VALHALLA_LIVE)
+
+    /**
      * Live Nominatim is allowed only when async I/O is on **and**
      * address autocomplete is on — otherwise NoOp (never sync HTTP).
      */

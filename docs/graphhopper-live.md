@@ -5,9 +5,12 @@ Alternates around blocks (low bridges, closures, weight bans — ATNA-102) must 
 the **same live PathRouter** (Custom Model / blocked edges), not a hand-rolled
 map polyline.
 
-**OSS / self-hosted only.** Live routing talks to an open-source GraphHopper
-server you host (or an equivalent OSS GraphHopper-compatible `/route` endpoint).
-Do **not** use GraphHopper Cloud, paid SaaS, or commercial Cloud APIs.
+> **ATNA-113:** Select-user road-following now prefers **Valhalla**
+> (`ff_valhalla_live`, [valhalla-live.md](./valhalla-live.md)). This page remains
+> for the legacy GraphHopper live PathRouter / OCI GH scaffold.
+
+**OSS / self-hosted only** for GraphHopper. GraphHopper Cloud was abandoned
+(signup closed). Prefer Valhalla for new dogfood builds.
 
 ## Intended select-user path
 

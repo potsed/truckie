@@ -34,19 +34,28 @@ data class RoutePath(
     val id: String,
     val points: List<LatLngPoint>,
     val durationSeconds: Long = 0L,
-    /** `graphhopper-stub` until live GraphHopper HTTP is enabled. */
+    /** `graphhopper-stub` until live Valhalla / GraphHopper HTTP is enabled. */
     val source: String = SOURCE_STUB,
     val preferences: TruckRoutingPreferences = TruckRoutingPreferences.DEFAULT,
-    /** Custom Model snippet that live GraphHopper will receive (Phase D). */
+    /** Custom Model / costing snippet for constrained truck routing. */
     val customModelSnippet: String? = null,
 ) {
     init {
         require(points.size >= 2) { "path needs at least start and end points" }
     }
 
+    /**
+     * Live road-network geometry (Valhalla or GraphHopper). Stub interpolate
+     * is **not** road-following (ATNA-113 degraded fallback only).
+     */
+    val followsRoadNetwork: Boolean
+        get() = source == SOURCE_VALHALLA || source == SOURCE_LIVE
+
     companion object {
         const val SOURCE_STUB: String = "graphhopper-stub"
         const val SOURCE_LIVE: String = "graphhopper-live"
+        /** Hosted or self-hosted Valhalla truck path (ATNA-113). */
+        const val SOURCE_VALHALLA: String = "valhalla-live"
     }
 }
 

@@ -59,4 +59,16 @@ class AsyncRoutingIoCatalogTest {
         flags.setEnabled(FlagKeys.ASYNC_ROUTING_IO, true)
         assertTrue(AsyncRoutingIoCatalog.allowsLiveNominatim(flags))
     }
+
+    @Test
+    fun liveValhallaRequiresAsyncAndLiveFlags() {
+        val flags = LocalFeatureFlags()
+        assertFalse(AsyncRoutingIoCatalog.allowsLiveValhalla(flags))
+        flags.setEnabled(FlagKeys.VALHALLA_LIVE, true)
+        assertFalse(AsyncRoutingIoCatalog.allowsLiveValhalla(flags))
+        flags.setEnabled(FlagKeys.ASYNC_ROUTING_IO, true)
+        assertTrue(AsyncRoutingIoCatalog.allowsLiveValhalla(flags))
+        flags.setEnabled(FlagKeys.ASYNC_ROUTING_IO, false)
+        assertFalse(AsyncRoutingIoCatalog.allowsLiveValhalla(flags))
+    }
 }

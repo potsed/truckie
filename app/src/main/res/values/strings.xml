@@ -14,6 +14,8 @@
     <string name="nav_back">Back</string>
     <string name="settings_buffer_value">Current buffer: %1$s m</string>
     <string name="settings_stub_note">Toll preferences, offline maps, licenses, and disclaimer land in later milestones.</string>
+    <!-- ATNA-113: Valhalla live vs degraded stub PathRouter geometry status. -->
+    <string name="settings_routing_geometry_label">Route geometry</string>
     <!-- Debug dogfood: confirm installed APK includes a given marker/font fix. -->
     <string name="settings_app_version">App version: %1$s</string>
     <string name="clearance_buffer_label">Clearance buffer (0.15–1.0 m)</string>
@@ -68,7 +70,7 @@
     <string name="run_optimize">Optimize</string>
     <string name="optimize_need_vehicle">Set an active vehicle before optimizing</string>
     <string name="optimize_need_stops">Add stops before optimizing</string>
-    <string name="optimize_success">Optimized · %1$s · %2$ds</string>
+    <string name="optimize_success">Optimized · %1$s · %2$ds · %3$s</string>
     <string name="blocked_route_title">No safe route</string>
     <string name="blocked_route_default_reason">No height- and weight-safe tour for this vehicle and cargo.</string>
     <string name="edit_stops">Edit stops</string>

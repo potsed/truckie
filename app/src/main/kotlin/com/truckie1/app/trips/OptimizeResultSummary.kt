@@ -16,8 +16,10 @@ object OptimizeResultSummary {
     fun pathSourceLabel(result: OptimizeResult.Ok): String {
         val source = result.path?.source ?: RoutePath.SOURCE_STUB
         return when (source) {
+            RoutePath.SOURCE_VALHALLA -> "Valhalla live"
             RoutePath.SOURCE_LIVE -> "GraphHopper live"
-            else -> "GraphHopper stub"
+            else ->
+                "Stub (degraded — not road network; set VALHALLA_API_KEY or VALHALLA_BASE_URL)"
         }
     }
 

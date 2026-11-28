@@ -25,6 +25,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import com.truckie1.app.BuildConfig
 import com.truckie1.app.R
+import com.truckie1.app.routing.ValhallaLiveCatalog
 import com.truckie1.app.settings.InstalledNavigationAppQuery
 import com.truckie1.app.settings.NavigationAppPreference
 import com.truckie1.app.settings.NavigationAppSelection
@@ -48,12 +49,31 @@ fun SettingsScreen(
     /** Debug dogfood: show [BuildConfig.VERSION_NAME] so installs of a fix can be confirmed. */
     showAppVersion: Boolean = true,
     appVersionName: String = BuildConfig.VERSION_NAME,
+    /** ATNA-113: live Valhalla vs degraded stub. Null → derive from flags. */
+    routingGeometryStatus: String? = null,
 ) {
     TruckieBody(text = stringResource(R.string.clearance_buffer_label))
     Spacer(modifier = Modifier.height(8.dp))
     TruckieBody(text = stringResource(R.string.settings_buffer_value, "%.2f".format(bufferM)))
     Spacer(modifier = Modifier.height(16.dp))
     TruckieBody(text = stringResource(R.string.settings_stub_note))
+    val geometryStatus = routingGeometryStatus
+        ?: featureFlags?.let { ValhallaLiveCatalog.routingGeometryStatus(it) }
+    if (!geometryStatus.isNullOrBlank()) {
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = stringResource(R.string.settings_routing_geometry_label),
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onBackground,
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = geometryStatus,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onBackground,
+            modifier = Modifier.testTag(ValhallaLiveCatalog.SETTINGS_ROUTING_STATUS_TAG),
+        )
+    }
     if (showAppVersion) {
         Spacer(modifier = Modifier.height(8.dp))
         Text(

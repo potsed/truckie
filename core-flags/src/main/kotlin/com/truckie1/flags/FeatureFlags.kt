@@ -123,6 +123,13 @@ object FlagKeys {
      */
     const val GRAPHHOPPER_LIVE = "ff_graphhopper_live"
     /**
+     * Live Valhalla PathRouter (ATNA-113): hosted Valhalla interim (e.g. Simple
+     * Routing) or self-hosted / offline tiles. When on **and** credentials
+     * resolve a base URL, Navigate / Optimise use Valhalla truck costing;
+     * otherwise stub. Preferred over [GRAPHHOPPER_LIVE] for select-user.
+     */
+    const val VALHALLA_LIVE = "ff_valhalla_live"
+    /**
      * While navigating, always show the next destination address (upcoming stop)
      * on map-home (ATNA-83) — not turn-only chrome. Drivers may know a better way.
      * Does not touch LineManager / MapRoutePathAnnotations.
