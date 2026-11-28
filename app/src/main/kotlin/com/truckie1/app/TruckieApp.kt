@@ -28,6 +28,7 @@ import com.truckie1.app.ui.NavigateMultiStopCatalog
 import com.truckie1.app.ui.RealAppDataSource
 import com.truckie1.app.ui.RoomRoutePersistCatalog
 import com.truckie1.app.ui.RoutePathFromLocationCatalog
+import com.truckie1.app.ui.LicensesCatalog
 import com.truckie1.app.ui.SettingsDisclaimerCatalog
 import com.truckie1.flags.FlagKeys
 import com.truckie1.flags.LocalFeatureFlags
@@ -176,6 +177,11 @@ class TruckieApp : Application() {
         featureFlags.setEnabled(
             FlagKeys.SETTINGS_DISCLAIMER,
             SettingsDisclaimerCatalog.DEFAULT_ENABLED,
+        )
+        // ATNA-116: Licenses page — defaults on (attribution / Play norms).
+        featureFlags.setEnabled(
+            FlagKeys.LICENSES_PAGE,
+            LicensesCatalog.DEFAULT_ENABLED,
         )
         val realTour: ActiveTourFacade = RoomActiveTour(db.activeTourDao())
         // ATNA-75: Real (Room vehicles + Room tour) vs Demo (read-only seed).

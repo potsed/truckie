@@ -4,12 +4,15 @@ Copyright 2026 Daniel E. Smith and contributors
 This product is licensed under the Apache License, Version 2.0.
 See the LICENSE file for the full license text.
 
-This product includes or will include software developed by third parties.
-Attribution for map data, routing, and UI libraries will be maintained in
-docs/licenses.md as dependencies are integrated.
+This product includes software and data from third parties.
+The curated inventory (licence names, copyright/attribution, links) is maintained in:
 
-Planned / stubbed components (Phase 0):
-- MapLibre Native Android (BSD-2-Clause) — map render stub in :core-maps
-- Valhalla (MIT) — live PathRouter HTTP client in :core-routing
-- OpenStreetMap data (ODbL) — used via routing/map pipelines
-- AndroidX / Jetpack libraries (Apache-2.0)
+- app/src/main/assets/licenses/third_party.json (in-app Licenses page SoT)
+- docs/licenses.md (human-readable mirror)
+
+Notable components:
+- MapLibre Native Android (BSD-2-Clause)
+- OpenFreeMap / OpenStreetMap data (ODbL) — © OpenStreetMap contributors
+- Valhalla (MIT) — interim hosted PathRouter; self-hosted/offline planned
+- Geoscape G-NAF (CC-BY 4.0 + G-NAF EULA; not for bulk mailing)
+- AndroidX / Jetpack Compose / Room (Apache-2.0)

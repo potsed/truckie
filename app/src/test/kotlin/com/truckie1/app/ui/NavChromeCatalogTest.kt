@@ -131,6 +131,11 @@ class NavChromeCatalogTest {
         assertFalse(NavChromeCatalog.showBottomBarForRoute(TruckieRoutes.ADD_STOP))
         assertFalse(NavChromeCatalog.showBottomBarForRoute(TruckieRoutes.VEHICLE_EDIT))
         assertFalse(NavChromeCatalog.showBottomBarForRoute(TruckieRoutes.BLOCKED_ROUTE))
+        assertFalse(NavChromeCatalog.showBottomBarForRoute(TruckieRoutes.LICENSES))
+        assertEquals(
+            TruckiePrimaryDestination.SETTINGS,
+            NavChromeCatalog.destinationForRoute(TruckieRoutes.LICENSES),
+        )
     }
 
     @Test

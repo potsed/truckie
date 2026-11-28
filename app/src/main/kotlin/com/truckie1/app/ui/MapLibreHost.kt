@@ -64,6 +64,8 @@ internal class MapLibreHost(
      */
     fun ensureStyle(map: MapLibreMap, onReady: (Style) -> Unit) {
         mapRef = map
+        // OSM / OpenFreeMap: keep MapLibre attribution visible (ATNA-116).
+        applyMapAttributionPolicy(map)
         val existing = map.style
         val fullyLoaded = existing != null && existing.isFullyLoaded
         val decision = MapLibreStyleLifecycle.decide(
@@ -556,6 +558,17 @@ internal class MapLibreHost(
         boundStyle = null
         hasAppliedInitialCamera = false
         mapRef = null
+    }
+
+    /**
+     * OpenStreetMap / OpenFreeMap attribution must stay visible to drivers
+     * (ATNA-116 / ODbL). Never strip MapLibre attribution for chrome aesthetics.
+     */
+    fun applyMapAttributionPolicy(map: MapLibreMap) {
+        if (!LicensesCatalog.mapAttributionRemainsEnabled) return
+        runCatching {
+            map.uiSettings.isAttributionEnabled = true
+        }
     }
 
 }
