@@ -388,14 +388,15 @@ fun MapLibreMap(
                         cameraTarget = cameraTarget,
                         isFollowing = followStateRef.value.isFollowing,
                     )
-                    // One applyOverlays path: route → stops → puck mid → bridges
-                    // (W5-8 above LocationComponent). No parallel inline binds (ATNA-121).
+                    // One applyOverlays path: bridges → puck mid → route → stops,
+                    // then native z-order reconcile (stops top, route next)
+                    // (ATNA-121 / ATNA-122). No parallel inline binds.
                     mapHost.applyOverlays(
                         mapView = view,
                         map = map,
                         style = style,
                         snapshot = snapshot,
-                        betweenStopsAndBridges = {
+                        afterBridgesBeforeRoute = {
                             if (showLocationPuck) {
                                 mapHost.headingUpEnabled = headingUpEnabled
                                 mapHost.ensureLocationComponent(map = map, style = style)

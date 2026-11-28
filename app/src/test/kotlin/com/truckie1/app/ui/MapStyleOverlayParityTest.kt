@@ -27,6 +27,7 @@ class MapStyleOverlayParityTest {
         assertTrue(MapStyleOverlayCatalog.sharesOneBindPathForBridgesStopsAndRoute)
         assertTrue(MapStyleOverlayCatalog.usesMapLibreStyleLifecycle)
         assertTrue(MapStyleOverlayCatalog.preservesRecenterAndFollow)
+        assertTrue(MapStyleOverlayCatalog.usesNativeOverlayZOrder)
     }
 
     @Test

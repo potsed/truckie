@@ -166,10 +166,11 @@ internal class MapLibreHost(
     }
 
     /**
-     * **One** overlay bind path for home map (ATNA-117 / ATNA-121).
+     * **One** overlay bind path for home map (ATNA-117 / ATNA-121 / ATNA-122).
      *
-     * Order: street labels → route line → stops → optional mid (LocationComponent
-     * puck) → bridges last so W5-8 sits above puck layers.
+     * Bind order: bridges → optional mid (LocationComponent puck) → route →
+     * stops, then [MapStyleOverlayBind.reconcileOverlayZOrder] so MapLibre
+     * native layer order is **stops top, route next, others below**.
      * Callers must not also invoke bindStops/bindRoute/bindBridges in parallel.
      */
     fun applyOverlays(
@@ -177,9 +178,18 @@ internal class MapLibreHost(
         map: MapLibreMap,
         style: Style,
         snapshot: MapLibreBindSnapshot,
-        betweenStopsAndBridges: (() -> Unit)? = null,
+        afterBridgesBeforeRoute: (() -> Unit)? = null,
     ) {
         applyStreetLabelPriority(style, enabled = snapshot.prioritiseStreetLabels)
+        bindBridges(
+            mapView = mapView,
+            map = map,
+            style = style,
+            bridges = snapshot.bridges,
+        )
+        // LocationComponent inserts its own layers; reconcile lifts Truckie
+        // overlays above them while keeping stops > route > bridges.
+        afterBridgesBeforeRoute?.invoke()
         bindRoutePath(
             mapView = mapView,
             map = map,
@@ -192,13 +202,7 @@ internal class MapLibreHost(
             style = style,
             stops = snapshot.stops,
         )
-        betweenStopsAndBridges?.invoke()
-        bindBridges(
-            mapView = mapView,
-            map = map,
-            style = style,
-            bridges = snapshot.bridges,
-        )
+        MapStyleOverlayBind.reconcileOverlayZOrder(style)
     }
 
     /** @deprecated Use [applyOverlays] — single path, no Annotation dual bind. */

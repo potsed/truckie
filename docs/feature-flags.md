@@ -45,6 +45,7 @@ XML screen layouts were removed; do not add new AppCompat/XML screens.
 | `ff_bridge_markers` | Low-bridge markers on MapLibre home (Australia-first sample JSON asset; GeoJSON symbol layer + optional clearance label) | off (on in debug) |
 | `ff_stop_markers` | Route stop markers on MapLibre home (ATNA-81 / ATNA-117 / ATNA-121): numbered pickup/drop-off style-image sprites + one symbol layer from active AppDataSource route; shares bridge GeoJSON / style lifecycle bind path | off (on in debug) |
 | `ff_map_route_polyline` | Active route polyline on MapLibre home (ATNA-82 / ATNA-117): PathRouter / MultiStopTourComposer constrained geometry via shared style line layer with Navigate; Fastest + Cost Effective checkboxes both on by default (AND); stub geometry only when stub PathRouter is active | off (on in debug) |
+| `ff_map_overlay_z_order` | Map overlay z-order (ATNA-122): stop symbol layer on top, route line next, bridges / other overlays below via MapLibre native `Style.addLayerAbove` / `addLayerBelow` (not Annotation zIndex). See `features/map_overlay_z_order.feature` | **on** (defaults on; on in debug) |
 | `ff_next_destination_display` | While navigating, show upcoming stop / end address (ATNA-83): compact optional phone chip; **must** show clearly on Android Auto when ATNA-10 lands. Human-driver first-class destination (not turn-only). No route overlay changes | off (on in debug) |
 | `ff_verified_cbd_clearances` | Verified CBD sample clearances (ATNA-42): labels only for published road heights; unknown / not_applicable omit invented mocks | off (on in debug) |
 | `ff_queensland_rail_clearances` | Queensland Rail SEQ road-under-rail clearances (ATNA-44): show published QR railbridges pack entries; off keeps BCC CBD samples only | off (on in debug) |
@@ -162,6 +163,10 @@ enablement. Catalogs encode the contracts; Gherkin lives under `features/`.
     parallel stack). Stops come from [AppDataSource] (demo or real). **Numbered style-image
     sprites** (`Style.addImage` + one icon-only symbol layer — no textField, no Annotation).
     Distinct pickup/drop-off colours. Satellite peek is out of scope.
+12c. Overlay z-order (`ff_map_overlay_z_order`, ATNA-122): after bind, MapLibre native
+    `Style.addLayerAbove` / `addLayerBelow` stack Truckie overlays as **stops top**,
+    **route line next**, **bridges / other layers below** (not Annotation zIndex).
+    `MapLibreHost.applyOverlays` reconciles after LocationComponent mid-bind.
 13. Verified CBD clearances (`ff_verified_cbd_clearances`, ATNA-42) replace mock demo heights
     with BCC/QR/TMR-sourced road clearances (or omit height as unknown / not_applicable).
     When on, map labels show only `clearanceStatus=verified` heights. Pack meta cites sources

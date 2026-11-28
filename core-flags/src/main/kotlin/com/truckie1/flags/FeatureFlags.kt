@@ -207,6 +207,12 @@ object FlagKeys {
      * (legal / attribution surface for Play norms).
      */
     const val LICENSES_PAGE = "ff_licenses_page"
+    /**
+     * Map overlay z-order (ATNA-122): stop symbol layer on top, route line
+     * next, bridges / other overlays below — via MapLibre native
+     * Style.addLayerAbove / addLayerBelow (not Annotation zIndex).
+     */
+    const val MAP_OVERLAY_Z_ORDER = "ff_map_overlay_z_order"
 }
 
 /**

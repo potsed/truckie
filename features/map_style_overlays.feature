@@ -52,3 +52,10 @@ Feature: MapLibre style-layer overlays for bridges, stops, and route
     Then setStyle is not started a second time while loading
     And missing overlay layers are recreated on the live style
     And Recenter / follow LocationComponent behaviour is unchanged
+
+  # ATNA-122 — detail in features/map_overlay_z_order.feature
+  @ff_map_overlay_z_order
+  Scenario: Overlay stack keeps stops above route above bridges
+    Given bridge, stop, and route style layers are bound
+    When MapLibreHost applyOverlays reconciles z-order
+    Then MapLibre native layer order is stops top, route next, bridges below

@@ -346,4 +346,13 @@ class LocalFeatureFlagsTest {
         flags.setEnabled(FlagKeys.LICENSES_PAGE, true)
         assertTrue(flags.isEnabled(FlagKeys.LICENSES_PAGE))
     }
+
+    @Test
+    fun mapOverlayZOrderFlagKey() {
+        assertTrue(FlagKeys.MAP_OVERLAY_Z_ORDER == "ff_map_overlay_z_order")
+        val flags = LocalFeatureFlags()
+        assertFalse(flags.isEnabled(FlagKeys.MAP_OVERLAY_Z_ORDER))
+        flags.setEnabled(FlagKeys.MAP_OVERLAY_Z_ORDER, true)
+        assertTrue(flags.isEnabled(FlagKeys.MAP_OVERLAY_Z_ORDER))
+    }
 }

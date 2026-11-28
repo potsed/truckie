@@ -12,9 +12,11 @@ import org.maplibre.android.style.sources.GeoJsonSource
 /**
  * One shared GeoJSONSource + style-layer ensure/rebind path for home-map
  * overlays (bridges, stops, route). Replaces Annotation SymbolManager /
- * LineManager obtain (ATNA-117).
+ * LineManager obtain (ATNA-117). Overlay stack order uses MapLibre native
+ * [Style.addLayerAbove] (ATNA-122).
  *
- * Gherkin: features/map_style_overlays.feature
+ * Gherkin: features/map_style_overlays.feature,
+ * features/map_overlay_z_order.feature
  */
 object MapStyleOverlayBind {
     const val sharesPathWithBridgeStopAndRoute: Boolean = true
@@ -22,6 +24,10 @@ object MapStyleOverlayBind {
     /** Stop pins: iconImage only (number baked into style image sprite). */
     const val stopSymbolLayerUsesIconOnly: Boolean = true
     const val stopSymbolLayerUsesTextField: Boolean = false
+    /** Stops top, route next, bridges below — MapLibre Style layer APIs. */
+    const val usesNativeOverlayZOrder: Boolean = true
+    const val reconcilesOverlayZOrderAfterBind: Boolean = true
+    const val usesAnnotationZIndex: Boolean = false
 
     fun setGeoJson(style: Style, sourceId: String, geoJson: String) {
         val existing = style.getSourceAs<GeoJsonSource>(sourceId)
@@ -30,6 +36,14 @@ object MapStyleOverlayBind {
             return
         }
         style.addSource(GeoJsonSource(sourceId, geoJson))
+    }
+
+    private fun presentOverlayIds(style: Style): Set<String> =
+        MapOverlayZOrder.bottomToTop.filter { style.getLayer(it) != null }.toSet()
+
+    private fun addOverlayLayer(style: Style, layerId: String, layer: org.maplibre.android.style.layers.Layer) {
+        val placement = MapOverlayZOrder.placementFor(layerId, presentOverlayIds(style))
+        MapOverlayZOrder.addLayer(style, layer, placement)
     }
 
     fun ensureBridgeSymbolLayer(style: Style) {
@@ -61,7 +75,7 @@ object MapStyleOverlayBind {
             PropertyFactory.textAllowOverlap(MapStyleOverlayCatalog.textAllowOverlap),
             PropertyFactory.textOptional(MapStyleOverlayCatalog.textOptional),
         )
-        style.addLayer(layer)
+        addOverlayLayer(style, MapStyleOverlayIds.BRIDGE_LAYER, layer)
     }
 
     /**
@@ -80,7 +94,7 @@ object MapStyleOverlayBind {
             PropertyFactory.iconAllowOverlap(MapStyleOverlayCatalog.iconAllowOverlap),
             PropertyFactory.iconIgnorePlacement(MapStyleOverlayCatalog.iconIgnorePlacement),
         )
-        style.addLayer(layer)
+        addOverlayLayer(style, MapStyleOverlayIds.STOP_LAYER, layer)
     }
 
     fun ensureRouteLineLayer(style: Style) {
@@ -94,8 +108,8 @@ object MapStyleOverlayBind {
             PropertyFactory.lineCap(Property.LINE_CAP_ROUND),
             PropertyFactory.lineJoin(Property.LINE_JOIN_ROUND),
         )
-        // Route under stop/bridge symbols so W5-8 and stop indices stay readable.
-        style.addLayer(layer)
+        // Native z-order: route below stops, above bridges (ATNA-122).
+        addOverlayLayer(style, MapStyleOverlayIds.ROUTE_LAYER, layer)
     }
 
     fun bindBridges(style: Style, bridges: List<BridgeSymbolSpec>) {
@@ -111,6 +125,11 @@ object MapStyleOverlayBind {
     fun bindRoute(style: Style, points: List<com.truckie1.routing.LatLngPoint>) {
         setGeoJson(style, MapStyleOverlayIds.ROUTE_SOURCE, MapOverlayGeoJson.routeLine(points))
         ensureRouteLineLayer(style)
+    }
+
+    /** Lift Truckie overlays into stops → route → bridges stack order. */
+    fun reconcileOverlayZOrder(style: Style) {
+        MapOverlayZOrder.reconcile(style)
     }
 
     /**

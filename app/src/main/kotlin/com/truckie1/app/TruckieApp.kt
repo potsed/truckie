@@ -30,6 +30,7 @@ import com.truckie1.app.ui.RealAppDataSource
 import com.truckie1.app.ui.RoomRoutePersistCatalog
 import com.truckie1.app.ui.RoutePathFromLocationCatalog
 import com.truckie1.app.ui.LicensesCatalog
+import com.truckie1.app.ui.MapOverlayZOrderCatalog
 import com.truckie1.app.ui.SettingsDisclaimerCatalog
 import com.truckie1.flags.FlagKeys
 import com.truckie1.flags.LocalFeatureFlags
@@ -179,6 +180,10 @@ class TruckieApp : Application() {
             FlagKeys.GEOGRAPHIC_TOUR_ORDER,
             GeographicTourOrderCatalog.DEFAULT_ENABLED,
         )
+        featureFlags.seedIfAbsent(
+            FlagKeys.MAP_OVERLAY_Z_ORDER,
+            MapOverlayZOrderCatalog.DEFAULT_ENABLED,
+        )
         // ATNA-96: Settings safety disclaimer — defaults on for Play / select-user.
         featureFlags.setEnabled(
             FlagKeys.SETTINGS_DISCLAIMER,
@@ -225,6 +230,10 @@ class TruckieApp : Application() {
             featureFlags.seedIfAbsent(FlagKeys.BRIDGE_MARKERS, true)
             featureFlags.seedIfAbsent(FlagKeys.STOP_MARKERS, true)
             featureFlags.seedIfAbsent(FlagKeys.MAP_ROUTE_POLYLINE, true)
+            featureFlags.seedIfAbsent(
+                FlagKeys.MAP_OVERLAY_Z_ORDER,
+                MapOverlayZOrderCatalog.ENABLED_BY_DEFAULT_IN_DEBUG,
+            )
             featureFlags.seedIfAbsent(
                 FlagKeys.VALHALLA_LIVE,
                 ValhallaLiveCatalog.ENABLED_BY_DEFAULT_IN_DEBUG,
