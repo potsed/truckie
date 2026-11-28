@@ -114,7 +114,22 @@ object DemoDataset {
         action = CargoAction.PICK_UP,
     )
 
+    /**
+     * Geographic tour-like seed (ATNA-120): closer SEQ cluster first from the
+     * airport depot, far south (Yatala) last among pickups before its Acacia
+     * drop — not the old north→far-south→north zig-zag. Demo is read-only so
+     * Optimise cannot persist a reorder; the seed itself must be logical.
+     */
     val stops: List<DemoStop> = listOf(
+        DemoStop(
+            id = "demo-stop-delivery-eagle-farm",
+            addressLabel = "55 Schneider Road, Eagle Farm QLD 4009",
+            suburb = "Eagle Farm",
+            latitude = -27.4305,
+            longitude = 153.0912,
+            kind = StopKind.DROP_OFF_UNLOAD,
+            areaKind = DemoStopAreaKind.INDUSTRIAL,
+        ),
         DemoStop(
             id = "demo-stop-pickup-lytton",
             addressLabel = "42 South Street, Lytton QLD 4178",
@@ -124,6 +139,27 @@ object DemoDataset {
             kind = StopKind.PICKUP_LOAD,
             areaKind = DemoStopAreaKind.INDUSTRIAL,
             cargo = listOf(cargoCrates),
+        ),
+        DemoStop(
+            id = "demo-stop-delivery-hemmant",
+            addressLabel = "120 Tingalpa Road, Hemmant QLD 4174",
+            suburb = "Hemmant",
+            latitude = -27.4502,
+            longitude = 153.1295,
+            kind = StopKind.DROP_OFF_UNLOAD,
+            areaKind = DemoStopAreaKind.INDUSTRIAL,
+            cargo = listOf(cargoCrates.copy(action = CargoAction.DROP_OFF)),
+        ),
+        // Residential delivery beside QR Colina St / Berrima St underbridge (1.9 m).
+        DemoStop(
+            id = "demo-stop-delivery-wynnum-residential",
+            addressLabel = "8 Colina Street, Wynnum QLD 4178",
+            suburb = "Wynnum",
+            latitude = -27.44395,
+            longitude = 153.16905,
+            kind = StopKind.DROP_OFF_UNLOAD,
+            areaKind = DemoStopAreaKind.RESIDENTIAL,
+            nearLowBridge = true,
         ),
         DemoStop(
             id = "demo-stop-pickup-yatala",
@@ -136,25 +172,6 @@ object DemoDataset {
             cargo = listOf(cargoPallets),
         ),
         DemoStop(
-            id = "demo-stop-delivery-eagle-farm",
-            addressLabel = "55 Schneider Road, Eagle Farm QLD 4009",
-            suburb = "Eagle Farm",
-            latitude = -27.4305,
-            longitude = 153.0912,
-            kind = StopKind.DROP_OFF_UNLOAD,
-            areaKind = DemoStopAreaKind.INDUSTRIAL,
-        ),
-        DemoStop(
-            id = "demo-stop-delivery-hemmant",
-            addressLabel = "120 Tingalpa Road, Hemmant QLD 4174",
-            suburb = "Hemmant",
-            latitude = -27.4502,
-            longitude = 153.1295,
-            kind = StopKind.DROP_OFF_UNLOAD,
-            areaKind = DemoStopAreaKind.INDUSTRIAL,
-            cargo = listOf(cargoCrates.copy(action = CargoAction.DROP_OFF)),
-        ),
-        DemoStop(
             id = "demo-stop-delivery-acacia-ridge",
             addressLabel = "25 Beatty Road, Acacia Ridge QLD 4110",
             suburb = "Acacia Ridge",
@@ -163,17 +180,6 @@ object DemoDataset {
             kind = StopKind.DROP_OFF_UNLOAD,
             areaKind = DemoStopAreaKind.INDUSTRIAL,
             cargo = listOf(cargoPallets.copy(action = CargoAction.DROP_OFF)),
-        ),
-        // Residential delivery beside QR Colina St / Berrima St underbridge (1.9 m).
-        DemoStop(
-            id = "demo-stop-delivery-wynnum-residential",
-            addressLabel = "8 Colina Street, Wynnum QLD 4178",
-            suburb = "Wynnum",
-            latitude = -27.44395,
-            longitude = 153.16905,
-            kind = StopKind.DROP_OFF_UNLOAD,
-            areaKind = DemoStopAreaKind.RESIDENTIAL,
-            nearLowBridge = true,
         ),
     )
 

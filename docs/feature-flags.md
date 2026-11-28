@@ -23,6 +23,7 @@ XML screen layouts were removed; do not add new AppCompat/XML screens.
 | `ff_stop_cargo` | Cargo H/W/L/mass pick-up/drop-off on stops; on-board clearance | off (on in debug) |
 | `ff_bridge_safe_routing` | Height/weight-aware truck routing model routing (future). Legacy `SafeRouteSelector` deleted (ATNA-92) — production clearance/mass path is MultiStopTourComposer + PathRouter | off |
 | `ff_route_optimize` | Optimize for this vehicle — Fastest / Cheapest among safe PathRouter tours (multi-stop stop-order; Trip stops UI) | off (on in debug) |
+| `ff_geographic_tour_order` | Geographic tour stop order (ATNA-120): Optimise anchors start+end and permutes only intermediate stops via PathRouter (Valhalla) legs — closer-first / shortest feasible under bridge/weight/toll; avoids city zig-zag. Demo seed is geographic (read-only cannot persist Optimise reorder) | **on** (defaults on; on in debug) |
 | `ff_valhalla_live` | Live Valhalla PathRouter (ATNA-113 / ATNA-9): road-network polylines with **truck costing**. **Interim:** hosted Valhalla (Simple Routing default) via `VALHALLA_API_KEY`. **Self-host:** `VALHALLA_BASE_URL` → OCI Free Tier / compose ([`infra/oci-valhalla/`](../infra/oci-valhalla/), [`oci-valhalla-runbook.md`](./oci-valhalla-runbook.md)); clear API key. See `docs/valhalla-live.md`, `secrets.properties.example` | off (on in debug) |
 | `ff_path_block_detour` | Alternate around geographic path blocks via PathRouter (ATNA-102): live Valhalla truck costing / exclude polygons; never erase the tour polyline; stub only for tests / missing credentials | **on** (defaults on) |
 | `ff_tolls` | Toll preference stub / avoid-allow settings | off |
@@ -92,7 +93,9 @@ enablement. Catalogs encode the contracts; Gherkin lives under `features/`.
 5. Route optimize (`ff_route_optimize`) hard-filters by effective clearance (height + buffer) and
    on-board operating mass vs GVM / route max weight. Multi-stop tours compose PathRouter legs
    (`MultiStopTourComposer`); under-passage low bridges hard-block when `ff_bridge_passage` is on
-   (over deck OK). **Navigate and Optimise share one app-owned `PathRouter`** from
+   (over deck OK). With `ff_geographic_tour_order` (defaults on, ATNA-120), Optimise anchors
+   route start and end and permutes only intermediate stops — geographic tour / closer-first
+   under constraints (not raw zig-zag). **Navigate and Optimise share one app-owned `PathRouter`** from
    `ValhallaPathRouterFactory` (`TruckieApp.pathRouter()`). With `ff_navigate_multi_stop`
    (defaults on, ATNA-87), Navigate uses `ActiveTourPath` + ordered composer legs — the same
    geometry as Optimise + map polyline; start→end-only Navigate is deleted. With

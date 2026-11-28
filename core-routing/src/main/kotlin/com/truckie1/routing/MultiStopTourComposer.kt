@@ -9,12 +9,16 @@ import com.truckie1.trips.TourOptimizeGoals
 import com.truckie1.trips.TripStop
 
 /**
- * Multi-stop PathRouter tour optimiser (ATNA-68 / ATNA-82 / ATNA-102).
+ * Multi-stop PathRouter tour optimiser (ATNA-68 / ATNA-82 / ATNA-102 / ATNA-120).
  *
- * Origin (first stop) stays fixed; remaining stops are permuted. Each order is
- * scored by composing [PathRouter] legs with a truck Custom Model. Under-passage
- * conflicts trigger [PathBlockDetour] (PathRouter retry / live GH alternate) when
- * [pathBlockDetourEnabled] — never erase a drawable tour line. Over-deck OK.
+ * Origin (first stop) stays fixed. With [geographicTourOrder] (`ff_geographic_tour_order`),
+ * destination (last stop) is also fixed and only intermediate stops permute —
+ * closer-first / shortest feasible under bridge/weight/toll constraints via
+ * [PathRouter] legs (Valhalla live or stub). Without the flag, remaining stops
+ * including a synthetic end may permute (legacy).
+ *
+ * Under-passage conflicts trigger [PathBlockDetour] when [pathBlockDetourEnabled]
+ * — never erase a drawable tour line. Over-deck OK.
  *
  * Selection uses [TourOptimizeGoals] checkboxes (Fastest + Cost Effective, both
  * on by default = AND) — not single-axis radio.
@@ -25,11 +29,16 @@ class MultiStopTourComposer(
     private val bridgePassageEnabled: Boolean = false,
     /**
      * Prefer PathRouter alternates around geographic blocks (ATNA-102). Defaults
-     * on; production select-user uses live GH Custom Model via the same PathRouter.
+     * on; production select-user uses live Valhalla truck costing via the same PathRouter.
      */
     private val pathBlockDetourEnabled: Boolean = true,
     private val tollPreference: TollPreference = TollPreference.ALLOW_ALL,
     private val preferences: TruckRoutingPreferences = TruckRoutingPreferences.DEFAULT,
+    /**
+     * When true (`ff_geographic_tour_order`), anchor start **and** end; permute
+     * only middle stops for a geographic tour (ATNA-120).
+     */
+    private val geographicTourOrder: Boolean = false,
 ) {
     suspend fun optimize(
         stops: List<TripStop>,
@@ -299,25 +308,11 @@ class MultiStopTourComposer(
             LatLngPoint(lat, lng)
         }
 
-    private fun candidateOrders(stops: List<TripStop>): List<List<TripStop>> {
-        if (stops.size <= 1) return listOf(stops)
-        val origin = stops.first()
-        val rest = stops.drop(1)
-        return permutations(rest).map { perm -> listOf(origin) + perm }
-    }
-
-    private fun <T> permutations(items: List<T>): List<List<T>> {
-        if (items.size <= 1) return listOf(items)
-        val result = mutableListOf<List<T>>()
-        for (i in items.indices) {
-            val head = items[i]
-            val others = items.filterIndexed { index, _ -> index != i }
-            for (tail in permutations(others)) {
-                result += listOf(head) + tail
-            }
-        }
-        return result
-    }
+    private fun candidateOrders(stops: List<TripStop>): List<List<TripStop>> =
+        TourCandidateOrders.candidates(
+            stops = stops,
+            anchorDestination = geographicTourOrder,
+        )
 
     private fun TripStop.asEndpoint(): RouteEndpoint = RouteEndpoint(
         addressLabel = addressLabel,

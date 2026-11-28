@@ -11,6 +11,7 @@ import com.truckie1.app.settings.NavigationAppStore
 import com.truckie1.app.settings.PackageManagerNavigationAppQuery
 import com.truckie1.app.settings.SharedNavigationAppStore
 import com.truckie1.app.routing.AsyncRoutingIoCatalog
+import com.truckie1.app.routing.GeographicTourOrderCatalog
 import com.truckie1.app.routing.PathBlockDetourCatalog
 import com.truckie1.app.routing.RoutingBridgePackMapper
 import com.truckie1.app.routing.ValhallaLiveCatalog
@@ -135,6 +136,7 @@ class TruckieApp : Application() {
                 ),
                 bridgePassageEnabled = passageOn,
                 pathBlockDetourEnabled = PathBlockDetourCatalog.isEnabled(featureFlags),
+                geographicTourOrder = GeographicTourOrderCatalog.isEnabled(featureFlags),
             )
         }
 
@@ -173,6 +175,10 @@ class TruckieApp : Application() {
             FlagKeys.PATH_BLOCK_DETOUR,
             PathBlockDetourCatalog.DEFAULT_ENABLED,
         )
+        featureFlags.seedIfAbsent(
+            FlagKeys.GEOGRAPHIC_TOUR_ORDER,
+            GeographicTourOrderCatalog.DEFAULT_ENABLED,
+        )
         // ATNA-96: Settings safety disclaimer — defaults on for Play / select-user.
         featureFlags.setEnabled(
             FlagKeys.SETTINGS_DISCLAIMER,
@@ -203,6 +209,10 @@ class TruckieApp : Application() {
             featureFlags.seedIfAbsent(FlagKeys.MULTI_STOP, true)
             featureFlags.seedIfAbsent(FlagKeys.STOP_CARGO, true)
             featureFlags.seedIfAbsent(FlagKeys.ROUTE_OPTIMIZE, true)
+            featureFlags.seedIfAbsent(
+                FlagKeys.GEOGRAPHIC_TOUR_ORDER,
+                GeographicTourOrderCatalog.ENABLED_BY_DEFAULT_IN_DEBUG,
+            )
             featureFlags.seedIfAbsent(FlagKeys.NAV_CHROME, true)
             featureFlags.seedIfAbsent(FlagKeys.MAP_HOME, true)
             featureFlags.seedIfAbsent(FlagKeys.ADDRESS_AUTOCOMPLETE, true)

@@ -82,6 +82,18 @@ class DemoDatasetTest {
     }
 
     @Test
+    fun seedOrderIsGeographicNotFarthestFirst() {
+        // ATNA-120: demo is read-only so Optimise cannot persist; seed must not
+        // zig-zag north → far Yatala → north again as stop #2.
+        val first = DemoDataset.stops.first()
+        assertFalse(first.suburb.contains("Yatala", ignoreCase = true))
+        val yatalaIndex = DemoDataset.stops.indexOfFirst {
+            it.suburb.contains("Yatala", ignoreCase = true)
+        }
+        assertTrue(yatalaIndex > 1)
+    }
+
+    @Test
     fun tripStopsIncludeCargoAndCoordsForReadOnlyDogfood() {
         val trips = DemoDataset.buildTripStops()
         assertEquals(6, trips.size)
