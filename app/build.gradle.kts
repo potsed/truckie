@@ -20,7 +20,7 @@ android {
         minSdk = 24
         targetSdk = 35
         versionCode = 1
-        versionName = "0.8.51-style-layer-overlays"
+        versionName = "0.8.52-w5-8-enlarge"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Live Valhalla credentials (ATNA-113 / ATNA-9). Empty → stub PathRouter.
         // Interim: API key (defaults base to Simple Routing hosted Valhalla).

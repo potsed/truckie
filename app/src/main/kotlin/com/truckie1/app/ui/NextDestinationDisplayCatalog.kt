@@ -45,7 +45,6 @@ object NextDestinationDisplayCatalog {
     const val replacesAddressWithTurnOnly: Boolean = false
     const val usesComposeMaterial3Banner: Boolean = true
     const val touchesLineManager: Boolean = false
-    const val touchesMapRoutePathAnnotations: Boolean = false
     const val touchesMapRoutePathStyle: Boolean = false
 
     /** Phone map overlay stays compact so it does not clutter the handset. */

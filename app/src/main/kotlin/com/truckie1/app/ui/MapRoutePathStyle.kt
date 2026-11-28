@@ -13,10 +13,3 @@ object MapRoutePathStyle {
     const val usesLineManager: Boolean = false
     const val usesSharedStyleOverlayBindPath: Boolean = true
 }
-
-/** @deprecated Use [MapRoutePathStyle]; kept for older call sites during ATNA-117. */
-@Deprecated(
-    message = "Use MapRoutePathStyle (style line layer, not Annotation LineManager)",
-    replaceWith = ReplaceWith("MapRoutePathStyle"),
-)
-typealias MapRoutePathAnnotations = MapRoutePathStyle

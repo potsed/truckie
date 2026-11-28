@@ -99,7 +99,12 @@ class MapStyleOverlayParityTest {
         assertEquals(1.1f, MapStyleOverlayCatalog.IconSize.STOP_BASELINE)
         assertEquals(1.15f, MapStyleOverlayCatalog.IconSize.BRIDGE_W58_BASELINE)
         assertEquals(1.1f * 1.5f, MapStyleOverlayCatalog.IconSize.STOP)
-        assertEquals(1.15f * 0.5f, MapStyleOverlayCatalog.IconSize.BRIDGE_W58)
+        // Relative sizing kept: 0.5× baseline, then Daniel dogfood +25% (ATNA-118).
+        assertEquals(1.25f, MapStyleOverlayCatalog.IconSize.BRIDGE_W58_ENLARGE)
+        assertEquals(
+            1.15f * 0.5f * 1.25f,
+            MapStyleOverlayCatalog.IconSize.BRIDGE_W58,
+        )
         assertTrue(
             MapStyleOverlayCatalog.IconSize.STOP > MapStyleOverlayCatalog.IconSize.BRIDGE_W58,
         )

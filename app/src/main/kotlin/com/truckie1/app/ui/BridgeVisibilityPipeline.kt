@@ -62,16 +62,7 @@ object BridgeVisibilityPipeline {
     /**
      * Style-layer bind path: list is already filtered by [filter].
      * Returns the same instance — assert-only contract for callers.
+     * Annotation SymbolManager bind path removed (ATNA-117 / ATNA-118).
      */
     fun forStyleBind(preFiltered: List<BridgePoint>): List<BridgePoint> = preFiltered
-
-    /**
-     * @deprecated Use [forStyleBind] — Annotation SymbolManager deleted (ATNA-117).
-     */
-    @Deprecated(
-        message = "Use forStyleBind",
-        replaceWith = ReplaceWith("forStyleBind(preFiltered)"),
-    )
-    fun forSymbolBind(preFiltered: List<BridgePoint>): List<BridgePoint> =
-        forStyleBind(preFiltered)
 }

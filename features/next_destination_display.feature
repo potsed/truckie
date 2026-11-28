@@ -9,7 +9,7 @@ Feature: Show next destination address while navigating
   # clearly on the car screen (first-class alongside turn-by-turn — not optional there).
   # Address source: upcoming RouteStop by order; when no intermediate stops, route end.
   # Destination address is first-class alongside turn-by-turn (not turn-only chrome).
-  # Out of scope: MapLibre LineManager / MapRoutePathAnnotations (ATNA-82 polyline).
+  # Out of scope: MapLibre LineManager / MapRoutePathStyle (ATNA-82 polyline).
   # Out of scope: satellite peek, external handoff UI changes, Auto UI implementation.
 
   Scenario: Next destination display is feature-flagged
@@ -43,4 +43,4 @@ Feature: Show next destination address while navigating
     Then the phone map-home chip is compact and single-line
     And the phone surface is optional via the feature flag
     And Android Auto (ATNA-10) must show the next destination clearly when Auto nav lands
-    And no LineManager or MapRoutePathAnnotations changes are required
+    And no LineManager or MapRoutePathStyle changes are required

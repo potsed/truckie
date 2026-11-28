@@ -157,9 +157,3 @@ object MapStopMarkersCatalog {
         return bitmap
     }
 }
-
-/**
- * Backward-compatible alias — prefer [MapStopMarkersCatalog].
- * Kept so older call sites / docs that named [MapStopAnnotations] still resolve.
- */
-typealias MapStopAnnotations = MapStopMarkersCatalog
