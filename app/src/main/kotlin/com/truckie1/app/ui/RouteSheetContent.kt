@@ -612,7 +612,6 @@ private fun AddFindStopsSection(
     Spacer(modifier = Modifier.height(sectionGap))
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun StopKindChip(
     label: String,

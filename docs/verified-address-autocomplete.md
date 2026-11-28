@@ -22,6 +22,21 @@ Inject another `AddressAutocomplete` (or `AddressHttpClient` for Nominatim tests
 
 - Base: `https://nominatim.openstreetmap.org/search`
 - Bias: `countrycodes=au`
+- Params: `format=json`, `addressdetails=1`, `limit=5`
 - User-Agent: `TruckieAndroid/0.8 (https://github.com/potsed/truckie; address-autocomplete)`
 
 Respect Nominatim usage policy (identify the app; avoid heavy polling).
+
+### House / unit numbers (ATNA-108)
+
+OSM/Nominatim often has the **street** in AU suburbs but not individual
+housenumbers (e.g. `U21 1-31 Elsie Street Kallangur` → street-only hit, or
+empty for the full unit query). Truckie:
+
+1. Searches the typed query as usual.
+2. If empty and the query had a typed unit/house premise, retries with the
+   street/locality remainder (still Nominatim AU — no invented coordinates).
+3. When the verified hit’s `display_name` lacks the typed unit/house number,
+   **preserves them in the suggestion label** while keeping Nominatim lat/lon.
+
+Gherkin: [`features/address_autocomplete_housenumber.feature`](../features/address_autocomplete_housenumber.feature).

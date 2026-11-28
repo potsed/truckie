@@ -90,6 +90,79 @@ class NominatimAddressAutocompleteTest {
         assertTrue(empty.suggest("x").isEmpty())
     }
 
+    /**
+     * Gherkin: address_autocomplete_housenumber.feature —
+     * unit+number query empty → street fallback + premise preserved on label.
+     */
+    @Test
+    fun preservesTypedPremiseWhenNominatimReturnsStreetOnly() = runBlocking {
+        val streetJson = """
+            [
+              {
+                "place_id": 27935006,
+                "lat": "-27.2543388",
+                "lon": "152.9958419",
+                "display_name": "Elsie Street, Brisbane, Queensland, 4503, Australia"
+              }
+            ]
+        """.trimIndent()
+        val client = AddressHttpClient { url, _ ->
+            when {
+                url.contains("U21") || url.contains("1-31") -> "[]"
+                else -> streetJson
+            }
+        }
+        val autocomplete = NominatimAddressAutocomplete(client = client)
+
+        val suggestions = autocomplete.suggest("U21 1-31 Elsie Street Kallangur")
+        assertEquals(1, suggestions.size)
+        assertTrue(suggestions[0].label.contains("U21"))
+        assertTrue(suggestions[0].label.contains("1-31"))
+        assertTrue(suggestions[0].label.contains("Elsie Street"))
+        assertEquals(-27.2543388, suggestions[0].latitude!!, 1e-7)
+        assertEquals(152.9958419, suggestions[0].longitude!!, 1e-7)
+        assertTrue(suggestions[0].isVerified)
+    }
+
+    @Test
+    fun searchUrlRequestsAddressDetails() = runBlocking {
+        var capturedUrl: String? = null
+        val client = AddressHttpClient { url, _ ->
+            capturedUrl = url
+            "[]"
+        }
+        NominatimAddressAutocomplete(client = client).suggest("Brisbane")
+        assertTrue(requireNotNull(capturedUrl).contains("addressdetails=1"))
+    }
+
+    @Test
+    fun parsesNestedAddressDetailsWithoutLosingTopLevelFields() {
+        val json = """
+            [
+              {
+                "place_id": 27935006,
+                "lat": "-27.2543388",
+                "lon": "152.9958419",
+                "display_name": "Elsie Street, Brisbane, Queensland, 4503, Australia",
+                "address": {
+                  "road": "Elsie Street",
+                  "city": "Brisbane",
+                  "state": "Queensland",
+                  "postcode": "4503",
+                  "country": "Australia"
+                }
+              }
+            ]
+        """.trimIndent()
+        val suggestions = NominatimSearchParser.parse(json)
+        assertEquals(1, suggestions.size)
+        assertEquals(
+            "Elsie Street, Brisbane, Queensland, 4503, Australia",
+            suggestions[0].label,
+        )
+        assertEquals(-27.2543388, suggestions[0].latitude!!, 1e-7)
+    }
+
     private fun assertFalseCalled(called: Boolean) {
         assertTrue("HTTP client must not be called for blank queries", !called)
     }

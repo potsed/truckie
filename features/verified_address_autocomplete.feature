@@ -31,3 +31,6 @@ Feature: Verified address autocomplete
     Given a fake AddressAutocomplete that returns a verified Brisbane suggestion
     When the driver selects that suggestion for pickup/load
     Then the RouteStop stores the formatted label with non-null latitude and longitude
+
+  # House / unit numbers on street-level Nominatim hits:
+  # see features/address_autocomplete_housenumber.feature (ATNA-108).

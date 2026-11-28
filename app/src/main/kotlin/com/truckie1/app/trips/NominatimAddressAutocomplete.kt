@@ -29,18 +29,32 @@ class NominatimAddressAutocomplete(
         if (trimmed.isEmpty()) return emptyList()
         return withContext(ioDispatcher) {
             try {
-                val url = buildSearchUrl(trimmed)
-                val body = client.get(url, userAgent)
-                NominatimSearchParser.parse(body)
+                val premise = AddressPremiseParser.parse(trimmed)
+                val primary = fetchSuggestions(trimmed)
+                val raw = when {
+                    primary.isNotEmpty() -> primary
+                    premise.hasPremise && premise.remainder.isNotBlank() ->
+                        fetchSuggestions(premise.remainder)
+                    else -> emptyList()
+                }
+                AddressSuggestionLabelEnricher.enrich(
+                    premise = premise,
+                    suggestions = raw,
+                )
             } catch (_: Exception) {
                 emptyList()
             }
         }
     }
 
+    private fun fetchSuggestions(query: String): List<AddressSuggestion> {
+        val body = client.get(buildSearchUrl(query), userAgent)
+        return NominatimSearchParser.parse(body)
+    }
+
     fun buildSearchUrl(query: String): String {
         val encoded = URLEncoder.encode(query.trim(), StandardCharsets.UTF_8.name())
-        return "$baseUrl?q=$encoded&format=json&addressdetails=0" +
+        return "$baseUrl?q=$encoded&format=json&addressdetails=1" +
             "&limit=$limit&countrycodes=$countryCodes"
     }
 
@@ -56,6 +70,7 @@ class NominatimAddressAutocomplete(
 /**
  * Parses Nominatim search JSON into verified [AddressSuggestion]s.
  * Avoids a JSON library dependency — Nominatim fields are simple scalars.
+ * Supports nested `address` objects from `addressdetails=1` via brace balancing.
  */
 object NominatimSearchParser {
     fun parse(body: String): List<AddressSuggestion> {
@@ -66,7 +81,7 @@ object NominatimSearchParser {
         while (index < trimmed.length) {
             val objStart = trimmed.indexOf('{', index)
             if (objStart < 0) break
-            val objEnd = trimmed.indexOf('}', objStart)
+            val objEnd = endOfJsonObject(trimmed, objStart)
             if (objEnd < 0) break
             val obj = trimmed.substring(objStart, objEnd + 1)
             val label = stringField(obj, "display_name")
@@ -84,6 +99,34 @@ object NominatimSearchParser {
             index = objEnd + 1
         }
         return results
+    }
+
+    /** Index of the matching `}` for the `{` at [start], or -1 if unbalanced. */
+    internal fun endOfJsonObject(source: String, start: Int): Int {
+        if (start < 0 || start >= source.length || source[start] != '{') return -1
+        var depth = 0
+        var inString = false
+        var escaped = false
+        for (i in start until source.length) {
+            val c = source[i]
+            if (inString) {
+                when {
+                    escaped -> escaped = false
+                    c == '\\' -> escaped = true
+                    c == '"' -> inString = false
+                }
+                continue
+            }
+            when (c) {
+                '"' -> inString = true
+                '{' -> depth++
+                '}' -> {
+                    depth--
+                    if (depth == 0) return i
+                }
+            }
+        }
+        return -1
     }
 
     private fun stringField(obj: String, key: String): String? {
