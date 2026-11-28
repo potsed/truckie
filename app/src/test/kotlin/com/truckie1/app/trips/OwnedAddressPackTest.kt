@@ -13,7 +13,7 @@ import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 
 /**
- * Gherkin: features/owned_au_address_pack.feature — owned AU address SoT scaffold.
+ * Gherkin: features/owned_au_address_pack.feature — owned AU address SoT / QLD pack.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28])
@@ -23,15 +23,20 @@ class OwnedAddressPackTest {
     fun flagKeyAndBootstrapManifest() {
         assertEquals("ff_owned_address_pack", FlagKeys.OWNED_ADDRESS_PACK)
         assertEquals("ff_owned_address_pack", OwnedAddressPack.FLAG_KEY)
-        assertEquals("0.0.0-sample", OwnedAddressPack.BOOTSTRAP_VERSION)
+        assertEquals("0.1.0-kallangur-sample", OwnedAddressPack.BOOTSTRAP_VERSION)
+        assertEquals("QLD", OwnedAddressPack.REGION)
         assertEquals("addresses/au_sample_addresses.json", OwnedAddressPack.ASSET_PATH)
+        assertTrue(OwnedAddressPack.DOWNLOAD_URL.startsWith("https://"))
+        assertTrue(OwnedAddressPack.DOWNLOAD_URL.contains("qld-gnaf-"))
         val manifest = OwnedAddressPack.bootstrapManifest()
-        assertEquals("AU", manifest.region)
-        assertEquals("0.0.0-sample", manifest.version)
-        assertEquals(0, manifest.recordCount)
+        assertEquals("QLD", manifest.region)
+        assertEquals("0.1.0-kallangur-sample", manifest.version)
         assertEquals(AddressPackManifest.SCHEMA_VERSION, manifest.schemaVersion)
         assertNull(manifest.downloadUrl)
         assertTrue(manifest.source.url.contains("data.gov.au"))
+        val remote = OwnedAddressPack.remoteManifest()
+        assertEquals("0.1.0", remote.version)
+        assertEquals(OwnedAddressPack.DOWNLOAD_URL, remote.downloadUrl)
     }
 
     @Test
@@ -39,6 +44,7 @@ class OwnedAddressPackTest {
         val flags = LocalFeatureFlags()
         assertFalse(OwnedAddressPack.isEnabled(flags))
         assertFalse(OwnedAddressPack.shouldConsultPack(flags))
+        assertTrue(OwnedAddressPack.downloaderFor(flags) is NoOpAddressPackDownloader)
     }
 
     @Test
@@ -46,18 +52,28 @@ class OwnedAddressPackTest {
         val flags = LocalFeatureFlags(mapOf(FlagKeys.OWNED_ADDRESS_PACK to true))
         assertTrue(OwnedAddressPack.isEnabled(flags))
         assertTrue(OwnedAddressPack.shouldConsultPack(flags))
+        assertTrue(OwnedAddressPack.downloaderFor(flags) is UrlAddressPackDownloader)
     }
 
     @Test
-    fun emptyBootstrapAssetParsesWithoutInventingRows() {
+    fun qldBootstrapAssetIncludesKallangurU21() {
         val context = RuntimeEnvironment.getApplication()
         val json = context.assets.open(OwnedAddressPack.ASSET_PATH).bufferedReader().use { it.readText() }
         val pack = AddressPackJson.parse(json)
-        assertEquals("AU", pack.manifest.region)
-        assertEquals("0.0.0-sample", pack.manifest.version)
-        assertEquals(0, pack.manifest.recordCount)
-        assertTrue(pack.addresses.isEmpty())
-        assertEquals(AddressPackSource.BUNDLED_SAMPLE, pack.source)
+        assertEquals("QLD", pack.manifest.region)
+        assertEquals("0.1.0-kallangur-sample", pack.manifest.version)
+        assertTrue(pack.manifest.recordCount > 0)
+        assertEquals(pack.addresses.size, pack.manifest.recordCount)
+        val u21 = pack.addresses.single { it.id == "GAQLD163067541" }
+        assertEquals(-27.25532783, u21.lat, 1e-8)
+        assertEquals(152.99620218, u21.lon, 1e-8)
+        assertEquals("21", u21.unit)
+        assertEquals("1-31", u21.number)
+        assertEquals("Elsie Street", u21.street)
+        assertEquals("Kallangur", u21.locality)
+        assertEquals(AddressPrecisionLevel.UNIT, u21.precision)
+        assertTrue(u21.isPremisePrecise)
+        assertTrue(u21.source.url.contains("data.gov.au"))
     }
 
     @Test

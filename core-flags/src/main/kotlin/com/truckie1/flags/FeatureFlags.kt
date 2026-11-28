@@ -175,10 +175,10 @@ object FlagKeys {
      */
     const val PATH_BLOCK_DETOUR = "ff_path_block_detour"
     /**
-     * Owned AU address pack (ATNA-109): versioned local-first **G-NAF-only**
-     * JSON pack as stop-geocode SoT (one pack/search path; no multi-dataset
-     * merges). Nominatim = typeahead UI at most until G-NAF resolves the hit.
-     * Off until pack wired.
+     * Owned AU address pack (ATNA-109 / ATNA-111): versioned local-first
+     * **G-NAF-only** JSON pack as stop-geocode SoT (QLD Kallangur bootstrap →
+     * downloadable QLD; one pack/search path; no multi-dataset merges).
+     * Nominatim = typeahead UI at most until G-NAF resolves the hit.
      */
     const val OWNED_ADDRESS_PACK = "ff_owned_address_pack"
 }

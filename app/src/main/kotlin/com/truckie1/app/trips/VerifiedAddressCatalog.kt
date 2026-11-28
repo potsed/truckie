@@ -34,17 +34,26 @@ object VerifiedAddressCatalog {
      * Provider for the map-home sheet: Nominatim when autocomplete **and** async
      * routing I/O are on; otherwise NoOp (never sync live HTTP).
      *
-     * When [GnafAddressCatalog] is on and a [gnafIndex] is supplied, wraps
-     * Nominatim in [PremiseGeocodeAutocomplete] for unit/housenumber points.
+     * Prefer **one G-NAF path** when [OwnedAddressPack] is on and an
+     * [addressPackIndex] is present ([OwnedAddressAutocomplete] — pack SoT,
+     * Nominatim typeahead until pack hit). Else interim [GnafAddressCatalog]
+     * + [PremiseGeocodeAutocomplete] when that flag and [gnafIndex] are set.
      */
     fun autocompleteFor(
         flags: FeatureFlags,
         gnafIndex: GnafAddressIndex? = null,
+        addressPackIndex: AddressPackIndex? = null,
     ): AddressAutocomplete {
         if (!AsyncRoutingIoCatalog.allowsLiveNominatim(flags)) {
             return NoOpAddressAutocomplete
         }
         val nominatim = defaultAutocomplete()
+        if (OwnedAddressPack.shouldConsultPack(flags) && addressPackIndex != null) {
+            return OwnedAddressAutocomplete(
+                nominatim = nominatim,
+                pack = addressPackIndex,
+            )
+        }
         return if (GnafAddressCatalog.isEnabled(flags) && gnafIndex != null) {
             PremiseGeocodeAutocomplete(nominatim = nominatim, gnaf = gnafIndex)
         } else {

@@ -1,16 +1,1550 @@
 {
   "manifest": {
-    "region": "AU",
-    "version": "0.0.0-sample",
+    "region": "QLD",
+    "version": "0.1.0-kallangur-sample",
     "generatedAt": "2026-11-28",
     "schemaVersion": 1,
-    "recordCount": 0,
+    "recordCount": 81,
     "source": {
-      "name": "Geoscape G-NAF (scaffold — empty pack)",
+      "name": "Geoscape G-NAF",
       "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
-      "licence": "CC-BY 4.0 (G-NAF EULA — no bulk mail sending)",
-      "retrievedAt": "2026-11-28"
+      "retrievedAt": "2026-11-28",
+      "licence": "CC-BY 4.0 (G-NAF EULA \u2014 no bulk mail sending)"
     }
   },
-  "addresses": []
+  "addresses": [
+    {
+      "id": "GAQLD719367964",
+      "lat": -27.25542385,
+      "lon": 152.99568248,
+      "formatted": "U81 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD719367964",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "81"
+    },
+    {
+      "id": "GAQLD163067529",
+      "lat": -27.25526883,
+      "lon": 152.99539933,
+      "formatted": "U10 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163067529",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "10"
+    },
+    {
+      "id": "GAQLD163067530",
+      "lat": -27.25558244,
+      "lon": 152.99589527,
+      "formatted": "U11 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163067530",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "11"
+    },
+    {
+      "id": "GAQLD163067575",
+      "lat": -27.25394481,
+      "lon": 152.99704121,
+      "formatted": "U52 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163067575",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "52"
+    },
+    {
+      "id": "GAQLD163067579",
+      "lat": -27.25371135,
+      "lon": 152.99690401,
+      "formatted": "U56 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163067579",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "56"
+    },
+    {
+      "id": "GAQLD163067545",
+      "lat": -27.25495853,
+      "lon": 152.99611951,
+      "formatted": "U25 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163067545",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "25"
+    },
+    {
+      "id": "GAQLD163067576",
+      "lat": -27.2538989,
+      "lon": 152.99695561,
+      "formatted": "U53 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163067576",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "53"
+    },
+    {
+      "id": "GAQLD163067586",
+      "lat": -27.25491557,
+      "lon": 152.9956647,
+      "formatted": "U6 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163067586",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "6"
+    },
+    {
+      "id": "GAQLD163067537",
+      "lat": -27.2551968,
+      "lon": 152.99595632,
+      "formatted": "U18 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163067537",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "18"
+    },
+    {
+      "id": "GAQLD163067559",
+      "lat": -27.25451772,
+      "lon": 152.99653386,
+      "formatted": "U38 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163067559",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "38"
+    },
+    {
+      "id": "GAQLD163067574",
+      "lat": -27.25398864,
+      "lon": 152.99712401,
+      "formatted": "U51 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163067574",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "51"
+    },
+    {
+      "id": "GAQLD163067557",
+      "lat": -27.25453296,
+      "lon": 152.9962603,
+      "formatted": "U36 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163067557",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "36"
+    },
+    {
+      "id": "GAQLD163178886",
+      "lat": -27.2534841,
+      "lon": 152.99711167,
+      "formatted": "U63 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163178886",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "63"
+    },
+    {
+      "id": "GAQLD163178889",
+      "lat": -27.25331398,
+      "lon": 152.9967883,
+      "formatted": "U66 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163178889",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "66"
+    },
+    {
+      "id": "GAQLD163067553",
+      "lat": -27.2547259,
+      "lon": 152.99662206,
+      "formatted": "U32 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163067553",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "32"
+    },
+    {
+      "id": "GAQLD163067555",
+      "lat": -27.25462773,
+      "lon": 152.99644095,
+      "formatted": "U34 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163067555",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "34"
+    },
+    {
+      "id": "GAQLD163067589",
+      "lat": -27.25516632,
+      "lon": 152.99546993,
+      "formatted": "U9 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163067589",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "9"
+    },
+    {
+      "id": "GAQLD163067585",
+      "lat": -27.25357192,
+      "lon": 152.99727438,
+      "formatted": "U61 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163067585",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "61"
+    },
+    {
+      "id": "GAQLD163178891",
+      "lat": -27.2535248,
+      "lon": 152.99661412,
+      "formatted": "U68 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163178891",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "68"
+    },
+    {
+      "id": "GAQLD163067546",
+      "lat": -27.25490382,
+      "lon": 152.9960098,
+      "formatted": "U26 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163067546",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "26"
+    },
+    {
+      "id": "GAQLD163067572",
+      "lat": -27.254705,
+      "lon": 152.99578618,
+      "formatted": "U4 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163067572",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "4"
+    },
+    {
+      "id": "GAQLD163067558",
+      "lat": -27.25447045,
+      "lon": 152.99644504,
+      "formatted": "U37 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163067558",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "37"
+    },
+    {
+      "id": "GAQLD163067532",
+      "lat": -27.25543959,
+      "lon": 152.9959911,
+      "formatted": "U13 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163067532",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "13"
+    },
+    {
+      "id": "GAQLD163067564",
+      "lat": -27.25431462,
+      "lon": 152.99679217,
+      "formatted": "U42 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163067564",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "42"
+    },
+    {
+      "id": "GAQLD163067531",
+      "lat": -27.2555138,
+      "lon": 152.99594105,
+      "formatted": "U12 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163067531",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "12"
+    },
+    {
+      "id": "GAQLD163178895",
+      "lat": -27.25393432,
+      "lon": 152.99633236,
+      "formatted": "U72 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163178895",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "72"
+    },
+    {
+      "id": "GAQLD163072614",
+      "lat": -27.25542385,
+      "lon": 152.99568248,
+      "formatted": "1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "house",
+      "gnafPid": "GAQLD163072614",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      }
+    },
+    {
+      "id": "GAQLD163067554",
+      "lat": -27.25467577,
+      "lon": 152.99652978,
+      "formatted": "U33 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163067554",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "33"
+    },
+    {
+      "id": "GAQLD163067587",
+      "lat": -27.25502191,
+      "lon": 152.99559393,
+      "formatted": "U7 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163067587",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "7"
+    },
+    {
+      "id": "GAQLD163178890",
+      "lat": -27.25342177,
+      "lon": 152.99668145,
+      "formatted": "U67 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163178890",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "67"
+    },
+    {
+      "id": "GAQLD163067538",
+      "lat": -27.25523762,
+      "lon": 152.99603017,
+      "formatted": "U19 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163067538",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "19"
+    },
+    {
+      "id": "GAQLD163067543",
+      "lat": -27.25505374,
+      "lon": 152.99629811,
+      "formatted": "U23 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163067543",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "23"
+    },
+    {
+      "id": "GAQLD163067563",
+      "lat": -27.25435801,
+      "lon": 152.99687479,
+      "formatted": "U41 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163067563",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "41"
+    },
+    {
+      "id": "GAQLD163067588",
+      "lat": -27.25509725,
+      "lon": 152.99551545,
+      "formatted": "U8 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163067588",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "8"
+    },
+    {
+      "id": "GAQLD163067533",
+      "lat": -27.25537157,
+      "lon": 152.99603686,
+      "formatted": "U14 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163067533",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "14"
+    },
+    {
+      "id": "GAQLD163067544",
+      "lat": -27.25500506,
+      "lon": 152.99620721,
+      "formatted": "U24 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163067544",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "24"
+    },
+    {
+      "id": "GAQLD163067566",
+      "lat": -27.25422832,
+      "lon": 152.99663174,
+      "formatted": "U44 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163067566",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "44"
+    },
+    {
+      "id": "GAQLD163067570",
+      "lat": -27.25415251,
+      "lon": 152.99678694,
+      "formatted": "U48 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163067570",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "48"
+    },
+    {
+      "id": "GAQLD163067573",
+      "lat": -27.2542426,
+      "lon": 152.99695255,
+      "formatted": "U50 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163067573",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "50"
+    },
+    {
+      "id": "GAQLD163067577",
+      "lat": -27.25385737,
+      "lon": 152.99687835,
+      "formatted": "U54 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163067577",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "54"
+    },
+    {
+      "id": "GAQLD163067565",
+      "lat": -27.25426946,
+      "lon": 152.99670813,
+      "formatted": "U43 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163067565",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "43"
+    },
+    {
+      "id": "GAQLD163067536",
+      "lat": -27.25514321,
+      "lon": 152.99584743,
+      "formatted": "U17 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163067536",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "17"
+    },
+    {
+      "id": "GAQLD163067547",
+      "lat": -27.25478098,
+      "lon": 152.99609564,
+      "formatted": "U27 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163067547",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "27"
+    },
+    {
+      "id": "GAQLD163178892",
+      "lat": -27.253636,
+      "lon": 152.996563,
+      "formatted": "U69 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163178892",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "69"
+    },
+    {
+      "id": "GAQLD163067580",
+      "lat": -27.25376001,
+      "lon": 152.99699215,
+      "formatted": "U57 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163067580",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "57"
+    },
+    {
+      "id": "GAQLD163178888",
+      "lat": -27.25339811,
+      "lon": 152.99695206,
+      "formatted": "U65 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163178888",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "65"
+    },
+    {
+      "id": "GAQLD163067548",
+      "lat": -27.2548406,
+      "lon": 152.99619547,
+      "formatted": "U28 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163067548",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "28"
+    },
+    {
+      "id": "GAQLD163067584",
+      "lat": -27.25361843,
+      "lon": 152.99736237,
+      "formatted": "U60 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163067584",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "60"
+    },
+    {
+      "id": "GAQLD163067540",
+      "lat": -27.25528543,
+      "lon": 152.99611928,
+      "formatted": "U20 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163067540",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "20"
+    },
+    {
+      "id": "GAQLD163067551",
+      "lat": -27.25492918,
+      "lon": 152.99635921,
+      "formatted": "U30 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163067551",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "30"
+    },
+    {
+      "id": "GAQLD163067541",
+      "lat": -27.25532783,
+      "lon": 152.99620218,
+      "formatted": "U21 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163067541",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "21"
+    },
+    {
+      "id": "GAQLD163178887",
+      "lat": -27.25343763,
+      "lon": 152.99702542,
+      "formatted": "U64 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163178887",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "64"
+    },
+    {
+      "id": "GAQLD163067583",
+      "lat": -27.25480646,
+      "lon": 152.99571671,
+      "formatted": "U5 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163067583",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "5"
+    },
+    {
+      "id": "GAQLD163067578",
+      "lat": -27.25380462,
+      "lon": 152.99677294,
+      "formatted": "U55 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163067578",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "55"
+    },
+    {
+      "id": "GAQLD163067581",
+      "lat": -27.25381103,
+      "lon": 152.99708758,
+      "formatted": "U58 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163067581",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "58"
+    },
+    {
+      "id": "GAQLD163067535",
+      "lat": -27.2552334,
+      "lon": 152.99578109,
+      "formatted": "U16 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163067535",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "16"
+    },
+    {
+      "id": "GAQLD163067568",
+      "lat": -27.25405502,
+      "lon": 152.99660917,
+      "formatted": "U46 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163067568",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "46"
+    },
+    {
+      "id": "GAQLD163178885",
+      "lat": -27.25352549,
+      "lon": 152.99718782,
+      "formatted": "U62 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163178885",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "62"
+    },
+    {
+      "id": "GAQLD163067569",
+      "lat": -27.2541113,
+      "lon": 152.99671031,
+      "formatted": "U47 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163067569",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "47"
+    },
+    {
+      "id": "GAQLD163178894",
+      "lat": -27.25383226,
+      "lon": 152.99640013,
+      "formatted": "U71 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163178894",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "71"
+    },
+    {
+      "id": "GAQLD163067534",
+      "lat": -27.25530043,
+      "lon": 152.99573788,
+      "formatted": "U15 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163067534",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "15"
+    },
+    {
+      "id": "GAQLD163067567",
+      "lat": -27.25417545,
+      "lon": 152.99652633,
+      "formatted": "U45 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163067567",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "45"
+    },
+    {
+      "id": "GAQLD163067556",
+      "lat": -27.25458818,
+      "lon": 152.99636538,
+      "formatted": "U35 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163067556",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "35"
+    },
+    {
+      "id": "GAQLD163067552",
+      "lat": -27.25497854,
+      "lon": 152.99645203,
+      "formatted": "U31 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163067552",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "31"
+    },
+    {
+      "id": "GAQLD163067542",
+      "lat": -27.25509743,
+      "lon": 152.99637847,
+      "formatted": "U22 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163067542",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "22"
+    },
+    {
+      "id": "GAQLD163067560",
+      "lat": -27.25456697,
+      "lon": 152.99662223,
+      "formatted": "U39 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163067560",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "39"
+    },
+    {
+      "id": "GAQLD163067549",
+      "lat": -27.25488161,
+      "lon": 152.99627005,
+      "formatted": "U29 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163067549",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "29"
+    },
+    {
+      "id": "GAQLD163067561",
+      "lat": -27.25460437,
+      "lon": 152.99586661,
+      "formatted": "U3 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163067561",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "3"
+    },
+    {
+      "id": "GAQLD163067571",
+      "lat": -27.2541976,
+      "lon": 152.99687082,
+      "formatted": "U49 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163067571",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "49"
+    },
+    {
+      "id": "GAQLD163067582",
+      "lat": -27.25386642,
+      "lon": 152.9971876,
+      "formatted": "U59 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163067582",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "59"
+    },
+    {
+      "id": "GAQLD163067550",
+      "lat": -27.25450549,
+      "lon": 152.9959378,
+      "formatted": "U2 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163067550",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "2"
+    },
+    {
+      "id": "GAQLD163178897",
+      "lat": -27.2541518,
+      "lon": 152.99621461,
+      "formatted": "U74 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163178897",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "74"
+    },
+    {
+      "id": "GAQLD163178896",
+      "lat": -27.25404558,
+      "lon": 152.9962834,
+      "formatted": "U73 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163178896",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "73"
+    },
+    {
+      "id": "GAQLD163178893",
+      "lat": -27.25373955,
+      "lon": 152.99648539,
+      "formatted": "U70 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163178893",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "70"
+    },
+    {
+      "id": "GAQLD163067562",
+      "lat": -27.25461199,
+      "lon": 152.99670384,
+      "formatted": "U40 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163067562",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "40"
+    },
+    {
+      "id": "GAQLD163067539",
+      "lat": -27.254392,
+      "lon": 152.99602605,
+      "formatted": "U1 1-31 Elsie Street Kallangur QLD 4503",
+      "number": "1-31",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "unit",
+      "gnafPid": "GAQLD163067539",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      },
+      "unit": "1"
+    },
+    {
+      "id": "GAQLD155429141",
+      "lat": -27.25332633,
+      "lon": 152.99614708,
+      "formatted": "4 Elsie Street Kallangur QLD 4503",
+      "number": "4",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "house",
+      "gnafPid": "GAQLD155429141",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      }
+    },
+    {
+      "id": "GAQLD155435269",
+      "lat": -27.25434951,
+      "lon": 152.99548322,
+      "formatted": "18 Elsie Street Kallangur QLD 4503",
+      "number": "18",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "house",
+      "gnafPid": "GAQLD155435269",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      }
+    },
+    {
+      "id": "GAQLD156695351",
+      "lat": -27.25420827,
+      "lon": 152.9955903,
+      "formatted": "16 Elsie Street Kallangur QLD 4503",
+      "number": "16",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "house",
+      "gnafPid": "GAQLD156695351",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      }
+    },
+    {
+      "id": "GAQLD425376041",
+      "lat": -27.25557728,
+      "lon": 152.99569587,
+      "formatted": "31A Elsie Street Kallangur QLD 4503",
+      "number": "31A",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "house",
+      "gnafPid": "GAQLD425376041",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      }
+    },
+    {
+      "id": "GAQLD156689229",
+      "lat": -27.25475816,
+      "lon": 152.99519574,
+      "formatted": "24 Elsie Street Kallangur QLD 4503",
+      "number": "24",
+      "street": "Elsie Street",
+      "locality": "Kallangur",
+      "state": "QLD",
+      "postcode": "4503",
+      "precision": "house",
+      "gnafPid": "GAQLD156689229",
+      "source": {
+        "name": "Geoscape G-NAF",
+        "url": "https://data.gov.au/data/dataset/19432f89-dc3a-4ef3-b943-5326ef1dbecc",
+        "retrievedAt": "2026-11-28"
+      }
+    }
+  ]
 }

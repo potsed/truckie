@@ -175,18 +175,17 @@ Keeping ETL single-source is part of the performance plan — no merge tax.
 
 ---
 
-## Scaffold in this PR
+## Scaffold (#70) + QLD ETL (ATNA-111)
 
 - Flag `ff_owned_address_pack` (off by default; on in debug)
-- Empty G-NAF pack JSON envelope + schema types
-- Catalog when flag off = do not consult pack
-- Unit tests + Gherkin — **no** national G-NAF dump
+- QLD Kallangur dogfood bootstrap + schema types + `CachedAddressPackRepository`
+- `OwnedAddressAutocomplete` when flag on (Nominatim typeahead until pack hit)
+- ETL: `tools/gnaf-etl/gnaf_to_owned_pack.py` — see [`docs/owned-address-pack.md`](owned-address-pack.md)
+- Unit tests + Gherkin — **no** national G-NAF dump; full QLD via Release download
 
-## Next build steps (after Daniel approves schema)
+## Next build steps
 
-1. Confirm JSON fields / precision / `ADDRESS_DETAIL_PID` as `id`
-2. QLD-first **G-NAF-only** ETL + Release hosting
-3. `CachedAddressPackRepository` + FTS (TDD)
-4. Wire: Nominatim typeahead → G-NAF resolve for the hit
-5. Replace #69 sample with versioned QLD G-NAF pack
-6. Attribution in Licenses + `docs/licenses.md`
+1. Publish full QLD Release asset + bump `REMOTE_VERSION` when ready
+2. Optional on-device FTS / Room derived index for larger packs
+3. State slices beyond QLD
+4. Attribution in Licenses screen (pack `source` + `docs/licenses.md` already cite G-NAF)

@@ -20,7 +20,7 @@ android {
         minSdk = 24
         targetSdk = 35
         versionCode = 1
-        versionName = "0.8.43-valhalla-live-roads"
+        versionName = "0.8.44-qld-gnaf-address-pack"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Live routing credentials (ATNA-113). Empty → stub PathRouter.
         // Valhalla interim: API key (defaults base to Simple Routing hosted Valhalla).

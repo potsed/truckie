@@ -178,4 +178,50 @@ object AddressPackJson {
         url = obj.getString("url"),
         retrievedAt = obj.getString("retrievedAt"),
     )
+
+    /** Serialise a pack envelope for on-device cache (same schema as assets / Release). */
+    fun stringify(pack: AddressPack): String {
+        val source = org.json.JSONObject()
+            .put("name", pack.manifest.source.name)
+            .put("url", pack.manifest.source.url)
+            .put("retrievedAt", pack.manifest.source.retrievedAt)
+        val manifest = org.json.JSONObject()
+            .put("region", pack.manifest.region)
+            .put("version", pack.manifest.version)
+            .put("generatedAt", pack.manifest.generatedAt)
+            .put("schemaVersion", pack.manifest.schemaVersion)
+            .put("recordCount", pack.addresses.size)
+            .put("source", source)
+        if (pack.manifest.downloadUrl != null) {
+            manifest.put("downloadUrl", pack.manifest.downloadUrl)
+        }
+        val addresses = org.json.JSONArray()
+        pack.addresses.forEach { row ->
+            val obj = org.json.JSONObject()
+                .put("id", row.id)
+                .put("lat", row.lat)
+                .put("lon", row.lon)
+                .put("formatted", row.formatted)
+                .put("number", row.number)
+                .put("street", row.street)
+                .put("locality", row.locality)
+                .put("state", row.state)
+                .put("postcode", row.postcode)
+                .put("precision", row.precision.toWire())
+                .put(
+                    "source",
+                    org.json.JSONObject()
+                        .put("name", row.source.name)
+                        .put("url", row.source.url)
+                        .put("retrievedAt", row.source.retrievedAt),
+                )
+            if (row.unit != null) obj.put("unit", row.unit)
+            if (row.gnafPid != null) obj.put("gnafPid", row.gnafPid)
+            addresses.put(obj)
+        }
+        return org.json.JSONObject()
+            .put("manifest", manifest)
+            .put("addresses", addresses)
+            .toString()
+    }
 }

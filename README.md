@@ -73,6 +73,8 @@ Legacy GraphHopper OCI scaffold remains under [`infra/oci-graphhopper/`](infra/o
 
 Bridge/weight packs stay on GitHub Releases. No Firebase.
 
+Owned G-NAF address pack (QLD-first): [`docs/owned-address-pack.md`](docs/owned-address-pack.md) (`ff_owned_address_pack`).
+
 ## Gherkin
 
 One feature file per capability under [`features/`](features/).
