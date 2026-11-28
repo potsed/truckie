@@ -17,7 +17,7 @@ In-app: **Settings → Licenses** (`ff_licenses_page`, defaults **on**). Gherkin
 
 | Component | License | Notes |
 | --- | --- | --- |
-| MapLibre Native Android (`org.maplibre.gl:android-sdk` **13.7.1**) + Annotation plugin (`android-plugin-annotation` **4.0.0**) | BSD-2-Clause | Wired in `:app`; facade/stub in `:core-maps` |
+| MapLibre Native Android (`org.maplibre.gl:android-sdk` **13.7.1**) | BSD-2-Clause | Wired in `:app`; facade/stub in `:core-maps`. Overlays use GeoJSONSource + style layers (Annotation plugin removed ATNA-117) |
 | **OpenFreeMap Liberty** + **OpenStreetMap** data | ODbL (OSM) | Basemap tiles (`tiles.openfreemap.org`). **© OpenStreetMap contributors** — attribution required; MapLibre map attribution stays enabled **and** listed on Licenses |
 | Valhalla | MIT | Live PathRouter HTTP client in `:core-routing`. **Interim:** hosted Valhalla; **self-host:** OCI Free Tier / compose (`infra/oci-valhalla/`, `docs/oci-valhalla-runbook.md`) |
 | Valhalla scripted Docker image (`ghcr.io/valhalla/valhalla-scripted`) | MIT (Valhalla) | Ops-only tile host under `infra/oci-valhalla/` — not an Android Maven dep |

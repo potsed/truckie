@@ -10,8 +10,8 @@ Feature: Active route polyline on home map
   # Constraints (agreed): hard under-passage low bridges (height+buffer) +
   # weight; soft residential; over-deck OK; toll prefs when ff_tolls.
   # Same PathRouter + BridgePassagePolicy + pack bridges as Optimize/Navigate.
-  # Rendering: shared MapLibre LineManager path with Navigate
-  # (MapRoutePathAnnotations / MapLineBind — not a parallel line stack).
+  # Rendering: shared GeoJSON LineString + style line layer with Navigate
+  # (MapRoutePathStyle / MapStyleOverlayBind — not Annotation LineManager).
   # Out of scope: satellite peek.
 
   Scenario: Route polyline is feature-flagged
@@ -47,14 +47,14 @@ Feature: Active route polyline on home map
     And both checkboxes are selected by default
     And selection prefers tours that are fast and cost-effective together
 
-  Scenario: Shared LineManager with Navigate
+  Scenario: Shared style line layer with Navigate
     Given ff_map_route_polyline is enabled
-    Then the polyline uses LineManager via MapRoutePathAnnotations
-    And managers recreate when style identity drifts or a manager layer is missing
+    Then the polyline uses a GeoJSONSource line layer via MapRoutePathStyle
+    And overlays recreate when style identity drifts or an overlay layer is missing
     And satellite peek is not implemented by this feature
 
   # Demo Airport run seeds a residential stop beside Colina St (1.9 m). Stop
-  # markers must not imply an empty LineManager — PathRouter geometry still
+  # markers must not imply an empty route overlay — PathRouter geometry still
   # draws current→start→stops→end when ff_map_route_polyline is on.
   Scenario: Demo Airport run draws polyline when a stop is near a low bridge
     Given ff_demo_mode, ff_map_home, and ff_map_route_polyline are enabled
@@ -63,5 +63,5 @@ Feature: Active route polyline on home map
     And stop markers are visible for the seeded stops
     When ActiveTourPath / MapRoutePolylineGeometry resolve for the home map
     Then PathRouter geometry is Ready with at least two points
-    And LineManager receives that path (not an empty deleteAll-only bind)
+    And the style line layer receives that path (not an empty FeatureCollection-only bind)
     And Room ActiveTour on the real store does not clear the demo in-memory route

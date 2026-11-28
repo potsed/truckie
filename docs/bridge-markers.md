@@ -10,10 +10,10 @@ Feature flags: **`ff_bridge_markers`** (on in debug), **`ff_verified_cbd_clearan
 | **Data (long-term)** | Downloadable, updatable AU **bridge pack** — versioned manifest + JSON body, local cache under app files, refresh when remote version is newer |
 | **Data (bootstrap)** | Baked-in sample `app/src/main/assets/bridges/au_sample_bridges.json` seeds the cache when empty (and re-seeds when the bootstrap version advances) — **not** the long-term source of truth |
 | **Local-first** | `loadActive()` is **on-device only** (bundled → disk). No network on cold start, Jump, or map redraw. `refresh()` downloads **only** when the remote version is newer — same/older versions keep the disk pack (power efficiency). Weight packs will follow the same lifecycle later; live OSM/NHVR ingest is ATNA-11 |
-| **Rendering** | Annotation plugin **SymbolManager** via shared **`MapSymbolBind`** (same obtain/defaults path as stop markers — distinct manager instance, not a parallel stack); style loaded **once** (concurrent AndroidView updates coalesce — no second `setStyle`); managers recreate if style identity drifts or the manager layer is missing from the live style |
-| **Icon** | Australian road sign **W5-8** (low level bridge) — Wikimedia Commons public-domain SVG, rasterised to `res/drawable/au_road_sign_w5_8.png` (~96px @ `MapSymbolBind.IconSize.BRIDGE_W58` = 0.575 = 0.5× prior 1.15; stops use shared 1.5× scale 1.65). **Only** on qualifying low bridges when `ff_w5_8_low_only` is on (ATNA-45) — not every pack bridge. |
+| **Rendering** | MapLibre **GeoJSONSource** + style **symbol** layer via shared **`MapStyleOverlayBind`** (same path as stop markers / route line — ATNA-117; Annotation SymbolManager deleted); style loaded **once** (concurrent AndroidView updates coalesce — no second `setStyle`); overlays recreate if style identity drifts or the overlay layer is missing from the live style |
+| **Icon** | Australian road sign **W5-8** (low level bridge) — Wikimedia Commons public-domain SVG, rasterised to `res/drawable/au_road_sign_w5_8.png` (~96px @ `MapStyleOverlayCatalog.IconSize.BRIDGE_W58` = 0.575 = 0.5× prior 1.15; stops use shared 1.5× scale 1.65). **Only** on qualifying low bridges when `ff_w5_8_low_only` is on (ATNA-45) — not every pack bridge. |
 | **Label** | Short clearance text (e.g. `3.8 m`) only for **verified** published road heights when `ff_verified_cbd_clearances` is on. Unknown / not_applicable / high open spans get **no W5-8** (and no invented height). **Must** set `text-font` to **Noto Sans Regular** (OpenFreeMap glyph host); MapLibre’s default Open Sans stack 404s and hides the whole symbol. `textOptional=true` keeps icons if glyphs fail. |
-| **Build check** | Debug `versionName` (Android App info / Settings) — demo-mode-off-default builds are `0.8.15-demo-mode-off-default` or newer. Prior: `0.8.14-au-low-bridges-pack`, `0.8.13-bridge-passage`. |
+| **Build check** | Debug `versionName` (Android App info / Settings) — style-layer overlay builds are `0.8.51-style-layer-overlays` or newer. |
 | **Where to look** | Demo samples snap onto real **Brisbane CBD crossings** (Story, Victoria, Captain Cook / M3, Goodwill, William Jolly, Go Between, Kurilpa) within ~2 km of the fallback camera. With **`ff_queensland_rail_clearances`**, SEQ **road-under-rail** markers from the QR railbridges page also appear. With **`ff_tmr_structure_clearances`** / **`ff_bcc_road_height_restrictions`**, statewide TMR Structure Clearances and Brisbane local under-4.6 m GIS rows appear. **Demo mode** (`ff_demo_mode`, Settings) swaps to a read-only sample SEQ dataset; floating Jump FAB removed (ATNA-67); **DEMO MODE** pill is the only in-app demo label. |
 | **Out of scope** | Live CDN hosting, full NHVR national / other-state pack ingest (ATNA-43 / remaining ATNA-11), truck routing model, Phase C vehicle UI, create-route changes, global chrome |
 
@@ -43,7 +43,7 @@ Kept in pack bootstrap **`0.7.0-sample`** (passage field ATNA-48; still includes
 | QR road-under-rail rows with a **published** clearance (height-restricted underpasses, including 4.6–5.4 m band) | Verified non-QR height **above** 4.6 m |
 | | Missing height even if status says verified |
 
-When the flag is on, SymbolManager binds only `LowBridgeW58.bridgesForW58(…)`. Pack rows remain on disk for routing later; they simply do not all get the LOW LEVEL BRIDGE diamond.
+When the flag is on, the style symbol layer binds only `LowBridgeW58.bridgesForW58(…)`. Pack rows remain on disk for routing later; they simply do not all get the LOW LEVEL BRIDGE diamond.
 
 ## Vehicle-height conflict filter (ATNA-47)
 
@@ -75,7 +75,7 @@ Flag **`ff_bridge_passage`**. Pack field `passage`: `under` | `over` | `both` | 
 
 ## Single visibility pipeline (ATNA-73)
 
-One **`BridgeVisibilityPipeline`** owns home-map marker filtering. Ordered stages: `qld_open` → `w5_8_low` → `passage_under` → `vehicle_height`. Compose (`TruckieRootNav`) runs the pipeline once; `MapLibreHost.bindBridges` receives the pre-filtered list via `forSymbolBind` and does **not** re-apply W5-8 / passage / vehicle-height. Gherkin: [`features/bridge_passage_pipeline.feature`](../features/bridge_passage_pipeline.feature).
+One **`BridgeVisibilityPipeline`** owns home-map marker filtering. Ordered stages: `qld_open` → `w5_8_low` → `passage_under` → `vehicle_height`. Compose (`TruckieRootNav`) runs the pipeline once; `MapLibreHost.bindBridges` receives the pre-filtered list via `forStyleBind` and does **not** re-apply W5-8 / passage / vehicle-height. Gherkin: [`features/bridge_passage_pipeline.feature`](../features/bridge_passage_pipeline.feature), [`features/map_style_overlays.feature`](../features/map_style_overlays.feature).
 
 ## Queensland Rail SEQ clearances (ATNA-44)
 

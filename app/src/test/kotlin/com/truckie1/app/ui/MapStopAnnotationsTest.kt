@@ -12,15 +12,16 @@ import org.robolectric.annotation.Config
 
 /**
  * Legacy alias coverage — prefer [MapStopMarkersCatalogTest].
- * Ensures stop markers use SymbolManager, not deprecated MarkerOptions.
+ * Ensures stop markers use style symbol layers, not deprecated MarkerOptions.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28])
 class MapStopAnnotationsTest {
 
     @Test
-    fun usesSymbolManagerNotDeprecatedMarkerApi() {
-        assertTrue(MapStopAnnotations.usesSymbolManager)
+    fun usesStyleSymbolLayerNotAnnotationOrDeprecatedMarkerApi() {
+        assertTrue(MapStopAnnotations.usesStyleSymbolLayer)
+        assertFalse(MapStopAnnotations.usesSymbolManager)
         assertFalse(MapStopAnnotations.usesDeprecatedMarkerApi)
         assertEquals(MapStopMarkersCatalog.ICON_PICKUP, MapStopAnnotations.ICON_ID)
         assertTrue(MapStopAnnotations.requiresOpenFreeMapCompatibleTextFont)

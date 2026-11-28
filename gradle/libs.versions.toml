@@ -18,7 +18,6 @@ carApp = "1.7.0"
 room = "2.8.5"
 robolectric = "4.18.1"
 maplibre = "13.7.1"
-maplibreAnnotation = "4.0.0"
 lifecycleRuntimeCompose = "2.9.4"
 playServicesLocation = "21.3.0"
 # Matches Compose BOM / Kotlin 2.4 transitive pin already on classpath.
@@ -50,8 +49,6 @@ androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref =
 androidx-room-testing = { module = "androidx.room:room-testing", version.ref = "room" }
 robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
 maplibre-android = { module = "org.maplibre.gl:android-sdk", version.ref = "maplibre" }
-# Annotation plugin for MapLibre Native Android 13.x (v4 drops the -v9 postfix; SymbolManager replaces deprecated MarkerOptions).
-maplibre-annotation = { module = "org.maplibre.gl:android-plugin-annotation", version.ref = "maplibreAnnotation" }
 play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "playServicesLocation" }
 androidx-lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "lifecycleRuntimeCompose" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }

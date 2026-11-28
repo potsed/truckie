@@ -14,7 +14,7 @@ import org.robolectric.annotation.Config
 
 /**
  * Visibility contract for home-map bridge markers:
- * flag on → pack seeds → SymbolManager bind; SEQ samples near Brisbane fallback.
+ * flag on → pack seeds → style-layer bind; SEQ samples near Brisbane fallback.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28])
@@ -73,9 +73,10 @@ class BridgeMarkersVisibilityTest {
     fun mapHostMustNotReloadStyleEveryUpdate() {
         assertTrue(BridgeMarkersVisibility.loadsStyleOnce)
         assertTrue(BridgeMarkersVisibility.coalescesConcurrentStyleLoads)
-        assertTrue(BridgeMarkersVisibility.recreatesManagersOnNewStyle)
-        assertTrue(BridgeMarkersVisibility.recreatesManagersWhenStyleIdentityDrifts)
-        assertTrue(BridgeMarkersVisibility.recreatesManagersWhenLayerMissing)
+        assertTrue(BridgeMarkersVisibility.recreatesOverlaysOnNewStyle)
+        assertTrue(BridgeMarkersVisibility.recreatesOverlaysWhenStyleIdentityDrifts)
+        assertTrue(BridgeMarkersVisibility.recreatesOverlaysWhenLayerMissing)
+        assertFalse(BridgeMarkersVisibility.recreatesManagersOnNewStyle)
         assertTrue(BridgeMarkersVisibility.usesAuRoadSignW58)
         assertTrue(BridgeMarkersVisibility.requiresOpenFreeMapCompatibleTextFont)
         assertEquals(
@@ -84,8 +85,8 @@ class BridgeMarkersVisibilityTest {
         )
         assertTrue(
             "W5-8 iconSize should stay neighbourhood-readable " +
-                "(${MapSymbolBind.IconSize.neighbourhoodReadableRange}), was ${BridgeMarkersVisibility.iconSize}",
-            MapSymbolBind.IconSize.isNeighbourhoodReadable(BridgeMarkersVisibility.iconSize),
+                "(${MapStyleOverlayCatalog.IconSize.neighbourhoodReadableRange}), was ${BridgeMarkersVisibility.iconSize}",
+            MapStyleOverlayCatalog.IconSize.isNeighbourhoodReadable(BridgeMarkersVisibility.iconSize),
         )
     }
 

@@ -20,18 +20,7 @@
       "license": "BSD-2-Clause",
       "copyright": "Copyright (c) MapLibre contributors",
       "url": "https://github.com/maplibre/maplibre-native",
-      "notes": "Map render SDK in :app; facade/stub in :core-maps.",
-      "attributionRequired": false
-    },
-    {
-      "id": "maplibre-annotation",
-      "name": "MapLibre Annotation Plugin",
-      "component": "org.maplibre.gl:android-plugin-annotation",
-      "version": "4.0.0",
-      "license": "BSD-2-Clause",
-      "copyright": "Copyright (c) MapLibre contributors",
-      "url": "https://github.com/maplibre/maplibre-plugins-android",
-      "notes": "SymbolManager / LineManager for bridges, stops, and route polylines.",
+      "notes": "Map render SDK in :app; facade/stub in :core-maps. Bridges/stops/route use GeoJSONSource + style layers (ATNA-117).",
       "attributionRequired": false
     },
     {

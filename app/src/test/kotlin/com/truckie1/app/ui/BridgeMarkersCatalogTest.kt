@@ -44,8 +44,9 @@ class BridgeMarkersCatalogTest {
     }
 
     @Test
-    fun usesSymbolManagerNotDeprecatedMarkerApi() {
-        assertTrue(BridgeMarkersCatalog.usesSymbolManager)
+    fun usesStyleSymbolLayerNotAnnotationOrDeprecatedMarkerApi() {
+        assertTrue(BridgeMarkersCatalog.usesStyleSymbolLayer)
+        assertFalse(BridgeMarkersCatalog.usesSymbolManager)
         assertFalse(BridgeMarkersCatalog.usesDeprecatedMarkerApi)
         assertTrue(BridgeMarkersCatalog.usesAuRoadSignW58)
         assertEquals("truckie_bridge_marker_w5_8", BridgeMarkersCatalog.ICON_ID)

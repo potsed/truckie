@@ -19,12 +19,12 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * Demo Airport run + Colina St: stop markers must not leave LineManager empty
- * (ATNA-101). Gherkin: features/map_route_polyline.feature,
+ * Demo Airport run + Colina St: stop markers must not leave the style line
+ * layer empty (ATNA-101 / ATNA-117). Gherkin: features/map_route_polyline.feature,
  * features/demo_mode.feature, features/bridge_passage_pipeline.feature.
  *
- * Root cause: under-passage hard-block emptied LineManager. Fix: stop-proximity
- * allowance + PathBlockDetour via PathRouter (live GH preferred; stub in tests).
+ * Root cause: under-passage hard-block emptied the route overlay. Fix:
+ * stop-proximity allowance + PathBlockDetour via PathRouter (stub in tests).
  */
 class DemoRoutePolylineVisibilityTest {
 
@@ -116,12 +116,12 @@ class DemoRoutePolylineVisibilityTest {
             currentLocation = current,
         )
         assertTrue(
-            "Map polyline must Ready so LineManager gets points; got $polyline",
+            "Map polyline must Ready so the style line layer gets points; got $polyline",
             polyline is MapRoutePolylineGeometry.Result.Ready,
         )
         val points = MapRoutePolylineGeometry.pointsOrEmpty(polyline)
         assertTrue(points.size >= 2)
-        assertTrue(MapRoutePolylineCatalog.usesLineManager)
+        assertTrue(MapRoutePolylineCatalog.usesStyleLineLayer)
         assertTrue(MapLineBind.sharesPathWithNavigatePolyline)
     }
 }

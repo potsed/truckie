@@ -32,7 +32,7 @@ import com.truckie1.trips.Route
  * the next destination **must** show clearly on the car screen — not optional
  * chrome there.
  *
- * Out of scope: LineManager / [MapRoutePathAnnotations] (ATNA-82 polyline).
+ * Out of scope: style route overlays / [MapRoutePathStyle] (ATNA-82 polyline).
  * Gherkin: features/next_destination_display.feature
  */
 object NextDestinationDisplayCatalog {
@@ -46,6 +46,7 @@ object NextDestinationDisplayCatalog {
     const val usesComposeMaterial3Banner: Boolean = true
     const val touchesLineManager: Boolean = false
     const val touchesMapRoutePathAnnotations: Boolean = false
+    const val touchesMapRoutePathStyle: Boolean = false
 
     /** Phone map overlay stays compact so it does not clutter the handset. */
     const val phoneSurfaceIsCompact: Boolean = true

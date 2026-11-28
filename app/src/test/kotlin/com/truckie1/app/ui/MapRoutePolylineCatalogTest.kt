@@ -39,17 +39,18 @@ class MapRoutePolylineCatalogTest {
     }
 
     @Test
-    fun usesSharedLineManagerPathNotParallelStack() {
-        assertTrue(MapRoutePolylineCatalog.usesLineManager)
-        assertTrue(MapRoutePolylineCatalog.usesSharedLineBindPath)
+    fun usesSharedStyleLineLayerPathNotParallelStack() {
+        assertTrue(MapRoutePolylineCatalog.usesStyleLineLayer)
+        assertFalse(MapRoutePolylineCatalog.usesLineManager)
+        assertTrue(MapRoutePolylineCatalog.usesSharedStyleOverlayBindPath)
         assertTrue(MapRoutePolylineCatalog.sharesStyleLifecycleWithNavigate)
         assertTrue(MapLineBind.sharesPathWithNavigatePolyline)
         assertEquals(
-            MapRoutePathAnnotations.LINE_COLOR_HEX,
+            MapRoutePathStyle.LINE_COLOR_HEX,
             MapRoutePolylineCatalog.LINE_COLOR_HEX,
         )
         assertEquals(
-            MapRoutePathAnnotations.LINE_WIDTH,
+            MapRoutePathStyle.LINE_WIDTH,
             MapRoutePolylineCatalog.LINE_WIDTH,
         )
     }

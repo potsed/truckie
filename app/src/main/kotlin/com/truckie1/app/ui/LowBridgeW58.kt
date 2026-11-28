@@ -50,7 +50,7 @@ object LowBridgeW58 {
 
     /**
      * When [ff_w5_8_low_only][FlagKeys.W5_8_LOW_ONLY] is on, only qualifying
-     * low bridges are returned for W5-8 SymbolManager binding. When off,
+     * low bridges are returned for W5-8 style-layer binding. When off,
      * returns the input list unchanged (legacy all-markers behaviour).
      */
     fun bridgesForW58(bridges: List<BridgePoint>, flags: FeatureFlags): List<BridgePoint> {

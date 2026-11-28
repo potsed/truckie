@@ -17,7 +17,7 @@ import org.robolectric.annotation.Config
 /**
  * Gherkin: features/bridge_passage_pipeline.feature — visibility pipeline (ATNA-73).
  *
- * One ordered BridgeVisibilityPipeline for Compose home-map and SymbolManager bind.
+ * One ordered BridgeVisibilityPipeline for Compose home-map and style-layer bind.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28])
@@ -103,9 +103,9 @@ class BridgeVisibilityPipelineTest {
     }
 
     @Test
-    fun forSymbolBindDoesNotReFilter() {
+    fun forStyleBindDoesNotReFilter() {
         val preFiltered = listOf(storyBoth)
-        assertSame(preFiltered, BridgeVisibilityPipeline.forSymbolBind(preFiltered))
+        assertSame(preFiltered, BridgeVisibilityPipeline.forStyleBind(preFiltered))
     }
 
     @Test

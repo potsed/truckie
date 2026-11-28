@@ -44,11 +44,6 @@ import org.maplibre.android.location.modes.RenderMode
 import org.maplibre.android.maps.MapLibreMap
 import org.maplibre.android.maps.MapView
 import org.maplibre.android.maps.Style
-import org.maplibre.android.maps.MapLibreMap.CancelableCallback
-import org.maplibre.android.plugins.annotation.LineManager
-import org.maplibre.android.plugins.annotation.LineOptions
-import org.maplibre.android.plugins.annotation.SymbolManager
-import org.maplibre.android.plugins.annotation.SymbolOptions
 
 /**
  * Full-bleed MapLibre map. Camera prefers the driver's **current location** via
@@ -72,9 +67,9 @@ import org.maplibre.android.plugins.annotation.SymbolOptions
  * [CameraMode.TRACKING_GPS] so the map orients to the direction of travel.
  *
  * Stop markers (`ff_stop_markers`) and bridge markers (`ff_bridge_markers`) both
- * use the Annotation plugin [SymbolManager] via the shared [MapSymbolBind] /
- * [MapLibreStyleLifecycle] path (not deprecated MarkerOptions, not a parallel
- * marker stack). Pickup vs drop-off use distinct icons; bridges use W5-8.
+ * use GeoJSONSource + style symbol layers via [MapStyleOverlayBind] /
+ * [MapLibreStyleLifecycle] (not Annotation managers, not deprecated MarkerOptions).
+ * Pickup vs drop-off use distinct icons; bridges use W5-8.
  *
  * When [prioritiseStreetLabels] is true (`ff_map_street_labels`), runtime
  * OpenFreeMap Liberty layer tweaks prefer highway names over bus-stop / POI clutter.
@@ -362,7 +357,7 @@ fun MapLibreMap(
         update = { view ->
             view.getMapAsync { map ->
                 // Load style once. Re-calling setStyle on every recomposition orphans
-                // SymbolManagers / LineManager / LocationComponent bound to the old style
+                // GeoJSON overlays / LocationComponent bound to the old style
                 // (root cause of invisible bridge markers after location updates).
                 mapHost.ensureStyle(map) { style ->
                     if (!mapHost.hasAppliedInitialCamera) {
@@ -393,23 +388,23 @@ fun MapLibreMap(
                         cameraTarget = cameraTarget,
                         isFollowing = followStateRef.value.isFollowing,
                     )
-                    // Annotations first (stops + path); bridges rebound after puck so
-                    // W5-8 sits above LocationComponent layers.
+                    // Route line first (under symbols); stops next; bridges after puck
+                    // so W5-8 sits above LocationComponent layers (ATNA-117).
                     mapHost.applyStreetLabelPriority(
                         style = style,
                         enabled = snapshot.prioritiseStreetLabels,
-                    )
-                    mapHost.bindStops(
-                        mapView = view,
-                        map = map,
-                        style = style,
-                        stops = snapshot.stops,
                     )
                     mapHost.bindRoutePath(
                         mapView = view,
                         map = map,
                         style = style,
                         points = snapshot.routePathPoints,
+                    )
+                    mapHost.bindStops(
+                        mapView = view,
+                        map = map,
+                        style = style,
+                        stops = snapshot.stops,
                     )
                     if (showLocationPuck) {
                         mapHost.headingUpEnabled = headingUpEnabled

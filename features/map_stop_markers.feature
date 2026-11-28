@@ -5,8 +5,8 @@ Feature: Route stop markers on home map
 
   # Product toggle: ff_stop_markers (requires ff_map_home).
   # Data: active route stops from AppDataSource (demo or real — same schema).
-  # Rendering: shared MapLibre SymbolManager / style lifecycle path with bridges
-  # (one obtain + rebind pipeline — not a parallel marker stack).
+  # Rendering: shared GeoJSONSource + style symbol layer path with bridges
+  # (MapStyleOverlayBind — not Annotation SymbolManager, not a parallel stack).
   # Out of scope: satellite peek (touch-and-hold), create-route changes, global chrome.
 
   Scenario: Stop markers are feature-flagged
@@ -19,9 +19,9 @@ Feature: Route stop markers on home map
   Scenario: Pickup and drop-off markers are distinct
     Given ff_stop_markers is enabled
     And the active route has pickup/load and drop-off/unload stops with coordinates
-    Then pickup stops use the pickup SymbolManager icon
-    And drop-off stops use the drop-off SymbolManager icon
-    And stop markers use SymbolManager not deprecated MarkerOptions
+    Then pickup stops use the pickup style-layer icon
+    And drop-off stops use the drop-off style-layer icon
+    And stop markers use a GeoJSONSource symbol layer not deprecated MarkerOptions
 
   Scenario: Demo and real share AppDataSource stops
     Given ff_stop_markers is enabled
@@ -35,8 +35,8 @@ Feature: Route stop markers on home map
     Given ff_stop_markers is enabled
     And the MapLibre style has loaded once
     When location updates cause Compose to recompose the map
-    Then stop markers rebind via the shared SymbolManager path with bridges
-    And managers recreate when style identity drifts or a manager layer is missing
+    Then stop markers rebind via the shared style-layer path with bridges
+    And overlays recreate when style identity drifts or an overlay layer is missing
 
   Scenario: Stop markers stay Compose-only on map home
     Given ff_map_home and ff_stop_markers are enabled

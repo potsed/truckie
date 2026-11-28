@@ -20,7 +20,7 @@ android {
         minSdk = 24
         targetSdk = 35
         versionCode = 1
-        versionName = "0.8.50-valhalla-oci"
+        versionName = "0.8.51-style-layer-overlays"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Live Valhalla credentials (ATNA-113 / ATNA-9). Empty → stub PathRouter.
         // Interim: API key (defaults base to Simple Routing hosted Valhalla).
@@ -135,7 +135,6 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.maplibre.android)
-    implementation(libs.maplibre.annotation)
     implementation(libs.play.services.location)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)

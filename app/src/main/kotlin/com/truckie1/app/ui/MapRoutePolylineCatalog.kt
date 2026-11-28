@@ -13,17 +13,21 @@ import com.truckie1.trips.TourOptimizeGoals
  *
  * Constraints match Optimize/Navigate: hard under-passage low bridges
  * (height+buffer) + weight; soft residential; over-deck OK; toll prefs when
- * `ff_tolls`. Shared [MapLineBind] / [MapRoutePathAnnotations] LineManager path.
+ * `ff_tolls`. Shared [MapStyleOverlayBind] / [MapRoutePathStyle] line layer.
  *
  * Tour selection: [TourOptimizeGoals] checkboxes (Fastest + Cost Effective),
  * both on by default = AND.
  *
- * Out of scope: satellite peek. Gherkin: features/map_route_polyline.feature.
+ * Out of scope: satellite peek. Gherkin: features/map_route_polyline.feature,
+ * features/map_style_overlays.feature.
  */
 object MapRoutePolylineCatalog {
     const val FLAG_KEY: String = FlagKeys.MAP_ROUTE_POLYLINE
 
-    const val usesLineManager: Boolean = true
+    const val usesStyleLineLayer: Boolean = true
+    const val usesLineManager: Boolean = false
+    const val usesSharedStyleOverlayBindPath: Boolean = true
+    /** @deprecated Use [usesSharedStyleOverlayBindPath]. */
     const val usesSharedLineBindPath: Boolean = true
     const val sharesStyleLifecycleWithNavigate: Boolean = true
 
@@ -45,8 +49,8 @@ object MapRoutePolylineCatalog {
 
     const val implementsSatellitePeek: Boolean = false
 
-    val LINE_COLOR_HEX: String = MapRoutePathAnnotations.LINE_COLOR_HEX
-    val LINE_WIDTH: Float = MapRoutePathAnnotations.LINE_WIDTH
+    val LINE_COLOR_HEX: String = MapRoutePathStyle.LINE_COLOR_HEX
+    val LINE_WIDTH: Float = MapRoutePathStyle.LINE_WIDTH
 
     fun isEnabled(flags: FeatureFlags): Boolean =
         flags.isEnabled(FlagKeys.MAP_ROUTE_POLYLINE)

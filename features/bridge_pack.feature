@@ -4,7 +4,7 @@ Feature: Downloadable Australia bridge pack
   So that clearance data stays current without a full app release
 
   # Ships with ff_bridge_markers. Baked-in sample JSON is bootstrap fallback only.
-  # Long-term source of truth: versioned downloadable pack + local cache → SymbolManager.
+  # Long-term source of truth: versioned downloadable pack + local cache → style symbol layer.
   # Local-first / power efficiency: loadActive never networks; refresh downloads only
   # when the remote version is newer. Live OSM/NHVR ingest stays ATNA-11.
   # Out of scope: live CDN hosting, full OSM/NHVR ingest, truck routing model.
@@ -36,7 +36,7 @@ Feature: Downloadable Australia bridge pack
     And a remote manifest advertises version "1.1.0" with AU bridges JSON
     When the pack repository refreshes
     Then the cache stores version "1.1.0"
-    And SymbolManager loads the updated bridge points
+    And the style symbol layer loads the updated bridge points
 
   Scenario: Refresh keeps the cache when remote is not newer
     Given a cached pack at version "1.1.0"

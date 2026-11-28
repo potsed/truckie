@@ -14,10 +14,10 @@ import com.truckie1.flags.FeatureFlags
  * 3. [passage_under] — under-restricting structures when `ff_bridge_passage`
  * 4. [vehicle_height] — conflicts vs active vehicle height + buffer
  *
- * Compose runs [filter] once; SymbolManager bind uses [forSymbolBind] on that
+ * Compose runs [filter] once; style-layer bind uses [forStyleBind] on that
  * pre-filtered list (no second filter pass).
  *
- * Gherkin: features/bridge_passage_pipeline.feature
+ * Gherkin: features/bridge_passage_pipeline.feature, features/map_style_overlays.feature
  */
 object BridgeVisibilityPipeline {
     /** Catalog: one pipeline owns map marker filters (Compose + bind). */
@@ -60,8 +60,18 @@ object BridgeVisibilityPipeline {
     }
 
     /**
-     * SymbolManager bind path: list is already filtered by [filter].
+     * Style-layer bind path: list is already filtered by [filter].
      * Returns the same instance — assert-only contract for callers.
      */
-    fun forSymbolBind(preFiltered: List<BridgePoint>): List<BridgePoint> = preFiltered
+    fun forStyleBind(preFiltered: List<BridgePoint>): List<BridgePoint> = preFiltered
+
+    /**
+     * @deprecated Use [forStyleBind] — Annotation SymbolManager deleted (ATNA-117).
+     */
+    @Deprecated(
+        message = "Use forStyleBind",
+        replaceWith = ReplaceWith("forStyleBind(preFiltered)"),
+    )
+    fun forSymbolBind(preFiltered: List<BridgePoint>): List<BridgePoint> =
+        forStyleBind(preFiltered)
 }

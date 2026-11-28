@@ -5,7 +5,7 @@ import org.json.JSONObject
 import java.io.File
 
 /**
- * Loads AU bridge points for SymbolManager — **local-first** (power efficiency).
+ * Loads AU bridge points for style-layer overlays — **local-first** (power efficiency).
  *
  * - [loadActive] never hits the network: reads versioned on-device cache, or seeds
  *   from the bundled AU sample asset onto disk when empty / when bootstrap advances.
