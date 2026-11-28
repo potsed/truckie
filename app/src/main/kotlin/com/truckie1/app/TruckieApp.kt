@@ -175,6 +175,8 @@ class TruckieApp : Application() {
             featureFlags.setEnabled(FlagKeys.NAV_CHROME, true)
             featureFlags.setEnabled(FlagKeys.MAP_HOME, true)
             featureFlags.setEnabled(FlagKeys.ADDRESS_AUTOCOMPLETE, true)
+            // G-NAF premise points when OSM lacks housenumber/unit (ATNA-108).
+            featureFlags.setEnabled(FlagKeys.GNAF_ADDRESS_GEOCODE, true)
             featureFlags.setEnabled(FlagKeys.MAP_LOCATION_PUCK, true)
             // Course-up while following — map orients to driving direction.
             featureFlags.setEnabled(FlagKeys.MAP_HEADING_UP, true)

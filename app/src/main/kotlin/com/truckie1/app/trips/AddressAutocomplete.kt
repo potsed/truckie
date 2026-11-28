@@ -20,15 +20,24 @@ fun interface AddressAutocomplete {
 /**
  * Verified place candidate for a route stop.
  * [isVerified] is true only when both coordinates are present.
+ *
+ * [precision] records whether coords are unit/house/building vs street-only
+ * so Navigate can refuse street centroids when the driver typed a premise.
  */
 data class AddressSuggestion(
     val label: String,
     val placeId: String? = null,
     val latitude: Double? = null,
     val longitude: Double? = null,
+    val precision: AddressPrecision = AddressPrecision.UNKNOWN,
+    val source: String? = null,
 ) {
     val isVerified: Boolean
         get() = label.isNotBlank() && latitude != null && longitude != null
+
+    val isPremisePrecise: Boolean
+        get() = isVerified && precision != AddressPrecision.STREET &&
+            precision != AddressPrecision.UNKNOWN
 }
 
 /** No-op when the verified-address flag is off or no provider is wired. */

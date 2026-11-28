@@ -54,4 +54,19 @@ class VerifiedAddressCatalogTest {
         flags.setEnabled(FlagKeys.ASYNC_ROUTING_IO, true)
         assertTrue(VerifiedAddressCatalog.autocompleteFor(flags) is NominatimAddressAutocomplete)
     }
+
+    @Test
+    fun autocompleteForWrapsNominatimWithGnafWhenFlagAndIndexPresent() {
+        val flags = LocalFeatureFlags(
+            mapOf(
+                FlagKeys.ADDRESS_AUTOCOMPLETE to true,
+                FlagKeys.ASYNC_ROUTING_IO to true,
+                FlagKeys.GNAF_ADDRESS_GEOCODE to true,
+            ),
+        )
+        val gnaf = GnafAddressIndex(emptyList())
+        assertTrue(
+            VerifiedAddressCatalog.autocompleteFor(flags, gnaf) is PremiseGeocodeAutocomplete,
+        )
+    }
 }
