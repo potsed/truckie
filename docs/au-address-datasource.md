@@ -2,7 +2,7 @@
 
 Plan for Truckie’s **first-party Australia address pack** — **G-NAF data first only** as the source of truth for stop geocoding (lat/lon + high-quality formatted address). Daniel reviews schema before full national ETL.
 
-**Related:** [#69](https://github.com/potsed/truckie/pull/69) interim QLD G-NAF sample + `ff_gnaf_address_geocode`; Gherkin `features/owned_au_address_pack.feature`; flag `ff_owned_address_pack`.
+**Related:** [#69](https://github.com/potsed/truckie/pull/69) **merged** — interim QLD G-NAF sample + `ff_gnaf_address_geocode` on main; Gherkin `features/owned_au_address_pack.feature`; flag `ff_owned_address_pack`. PR [#70](https://github.com/potsed/truckie/pull/70) rebased onto that tip.
 
 ---
 
