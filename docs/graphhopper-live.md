@@ -5,6 +5,10 @@ Alternates around blocks (low bridges, closures, weight bans — ATNA-102) must 
 the **same live PathRouter** (Custom Model / blocked edges), not a hand-rolled
 map polyline.
 
+**OSS / self-hosted only.** Live routing talks to an open-source GraphHopper
+server you host (or an equivalent OSS GraphHopper-compatible `/route` endpoint).
+Do **not** use GraphHopper Cloud, paid SaaS, or commercial Cloud APIs.
+
 ## Intended select-user path
 
 | Piece | Requirement |
