@@ -20,7 +20,7 @@ android {
         minSdk = 24
         targetSdk = 35
         versionCode = 1
-        versionName = "0.8.47-offline-auto-nhvr-gherkin"
+        versionName = "0.8.48-shrink-cbd-passage"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Live Valhalla credentials (ATNA-113). Empty → stub PathRouter.
         // Interim: API key (defaults base to Simple Routing hosted Valhalla).
