@@ -47,6 +47,15 @@ XML screen layouts were removed; do not add new AppCompat/XML screens.
 | `ff_map_street_labels` | Prefer street/road name labels over POI clutter on OpenFreeMap Liberty (ATNA-78): runtime visibility + minzoom tweaks; same OSS style URL | off (on in debug) |
 | `ff_au_low_bridges_pack` | Consume public AU low-bridges JSON pack (ATNA-50) local-first from GitHub Release when newer | off (on in debug) |
 
+## Architecture (not a separate ship toggle)
+
+Map-home / RootNav / MapLibre orchestration (ATNA-90 / P1-5) is a structural split
+gated by existing `ff_map_home` (and related map flags). Domain lives in
+`MapHomeController`; `MapLibreHost` is a thin command executor with
+`MapLibreBindSnapshot`; route sheet + RootNav destinations are modular files.
+See `features/map_home_orchestration.feature`. No GraphHopper Cloud — live routing
+is self-hosted OSS GraphHopper only (`docs/graphhopper-live.md`).
+
 ## Rules
 
 1. UI and navigation entry points must check the flag before exposing capability.
