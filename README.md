@@ -70,10 +70,10 @@ debug dogfood uses `seedIfAbsent` so persisted toggles are not overwritten.
 Road-following Navigate / Optimise use **Valhalla truck costing** (`ff_valhalla_live`):
 
 - Interim hosted Valhalla (Simple Routing): [`docs/valhalla-live.md`](docs/valhalla-live.md) (`VALHALLA_API_KEY`)
-- Later self-hosted / on-device AU tiles: same client, set `VALHALLA_BASE_URL`, clear API key
+- Self-hosted OCI Free Tier / compose (QLD-first SEQ tiles): [`infra/oci-valhalla/`](infra/oci-valhalla/), [`docs/oci-valhalla-runbook.md`](docs/oci-valhalla-runbook.md) — set `VALHALLA_BASE_URL`, clear API key
 - Secrets template: [`secrets.properties.example`](secrets.properties.example)
 
-Self-host notes (docs only): [`docs/valhalla-self-host-notes.md`](docs/valhalla-self-host-notes.md).
+Self-host notes: [`docs/valhalla-self-host-notes.md`](docs/valhalla-self-host-notes.md).
 
 Bridge/weight packs stay on GitHub Releases. No Firebase.
 

@@ -21,11 +21,12 @@ Feature: Navigate and Optimise polylines follow road network geometry
 
   @ff_valhalla_live
   Scenario: Self-hosted or offline tiles swap leaves the same LiveValhallaPathRouter
-    Given AU Valhalla tiles are available on a self-hosted or on-device host
+    Given QLD/SEQ Valhalla tiles are available via infra/oci-valhalla or on-device host
     When VALHALLA_BASE_URL is set to https://vh.example.com
     And VALHALLA_API_KEY is cleared
     Then LiveValhallaPathRouter calls {base}/route without Authorization
     And ValhallaLiveCatalog.selfHostedSwapSteps documents the cutover
+    And OciValhallaHostCatalog.buildConfigWiringSteps lists secrets/local.properties
 
   @ff_valhalla_live
   Scenario: Missing credentials falls back to stub and surfaces degraded notice

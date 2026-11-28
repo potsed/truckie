@@ -39,6 +39,7 @@ class LicenseInventoryTest {
         assertTrue(
             blob.contains("interim") || blob.contains("hosted") || blob.contains("self-host"),
         )
+        assertTrue(blob.contains("oci") || blob.contains("valhalla-scripted") || blob.contains("caddy"))
         assertTrue(blob.contains("g-naf") || blob.contains("gnaf"))
         assertTrue(blob.contains("cc-by") || blob.contains("cc by"))
         assertTrue(blob.contains("eula") || blob.contains("bulk mail"))

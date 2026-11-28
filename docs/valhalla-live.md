@@ -9,13 +9,14 @@ Road-following Navigate / Optimise polylines use **Valhalla truck costing**
 | Phase | Host | Credentials |
 | --- | --- | --- |
 | **Interim (now)** | Hosted Valhalla — [Simple Routing](https://www.simplerouting.io/hosted-valhalla/) default | `VALHALLA_API_KEY` (Bearer; BuildConfig / secrets — **never commit**) |
-| **Long-term / offline** | Self-hosted or on-device Valhalla tiles (OCI Free Tier OK) | `VALHALLA_BASE_URL` only; clear API key |
+| **Long-term / offline** | Self-hosted Valhalla — [`infra/oci-valhalla/`](../infra/oci-valhalla/) (OCI Free Tier) or local compose; on-device tiles later | `VALHALLA_BASE_URL` only; clear API key |
 
 Same Valhalla HTTP `/route` body either way — swap base URL, drop Bearer.
 
 > **Coverage note:** Simple Routing’s free tier documents North America & Europe.
-> Australia-first dogfood may need a paid / bespoke hosted plan **or** self-hosted
-> AU tiles via `VALHALLA_BASE_URL`. The client is host-agnostic.
+> Australia-first dogfood: deploy **QLD/SEQ** self-hosted tiles via
+> `VALHALLA_BASE_URL` ([`oci-valhalla-runbook.md`](./oci-valhalla-runbook.md)).
+> The client is host-agnostic.
 
 ## Intended select-user path
 
@@ -49,17 +50,19 @@ Any one of (priority: Gradle property → env → `secrets.properties`):
 Request: `POST {base}/route` with `Authorization: Bearer …`, `costing: truck`,
 and vehicle dimensions in `costing_options.truck`. Shape is polyline **precision 6**.
 
-## Swap to self-hosted / offline tiles (later)
+## Swap to self-hosted / OCI Free Tier (ATNA-9)
 
-1. Build or obtain **AU** Valhalla tiles (OCI Free Tier or on-device pack).
-2. Set base URL (any one):
+1. Deploy [`infra/oci-valhalla/`](../infra/oci-valhalla/) (Terraform + `import-qld-seq.sh`)
+   or local compose — see [`oci-valhalla-runbook.md`](./oci-valhalla-runbook.md).
+   SEQ (QLD-first) tiles are the Free Tier default; full AU is a next step.
+2. Set base URL (any one; priority Gradle → env → `secrets.properties` → `local.properties`):
    - `truckie.valhalla.baseUrl=https://<host>`
    - `TRUCKIE_VALHALLA_BASE_URL=https://<host>`
-   - `VALHALLA_BASE_URL=…` in `secrets.properties`
+   - `VALHALLA_BASE_URL=…` in `secrets.properties` or `local.properties`
 3. **Clear** `VALHALLA_API_KEY` / `TRUCKIE_VALHALLA_API_KEY`.
 4. Rebuild with `ff_valhalla_live` on — same `LiveValhallaPathRouter`.
 
-See `ValhallaLiveCatalog.selfHostedSwapSteps()`.
+See `ValhallaLiveCatalog.selfHostedSwapSteps()` and `OciValhallaHostCatalog`.
 
 ## Degraded stub
 
@@ -70,6 +73,9 @@ summary label this as **degraded stub** (`ValhallaLiveCatalog.routingGeometrySta
 ## Related
 
 - `features/route_follow_roads.feature`
+- `features/oci_valhalla_host.feature`
 - `docs/feature-flags.md` (`ff_valhalla_live`)
-- `docs/valhalla-self-host-notes.md` (self-host / OCI notes — docs only)
+- `docs/oci-valhalla-runbook.md` (create/apply/destroy + dogfood curl)
+- `docs/valhalla-self-host-notes.md`
+- `infra/oci-valhalla/`
 - `secrets.properties.example`

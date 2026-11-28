@@ -51,7 +51,29 @@
       "license": "MIT",
       "copyright": "Copyright (c) Valhalla contributors",
       "url": "https://github.com/valhalla/valhalla",
-      "notes": "Live PathRouter with truck costing in :core-routing. Interim: hosted Valhalla (e.g. Simple Routing) via credentials. Long-term / offline: self-hosted or on-device tiles — see docs/valhalla-live.md and docs/valhalla-self-host-notes.md.",
+      "notes": "Live PathRouter with truck costing in :core-routing. Interim: hosted Valhalla (e.g. Simple Routing) via credentials. Self-host: OCI Free Tier / compose (infra/oci-valhalla/, docs/oci-valhalla-runbook.md) via VALHALLA_BASE_URL.",
+      "attributionRequired": false
+    },
+    {
+      "id": "valhalla-scripted-docker",
+      "name": "Valhalla scripted Docker image",
+      "component": "ghcr.io/valhalla/valhalla-scripted (infra/oci-valhalla)",
+      "version": "3.9.3",
+      "license": "MIT",
+      "copyright": "Copyright (c) Valhalla contributors",
+      "url": "https://github.com/valhalla/valhalla",
+      "notes": "Ops-only tile host for select-user dogfood. Not an Android Maven dependency. QLD/SEQ OSM tiles via Geofabrik + osmium clip.",
+      "attributionRequired": false
+    },
+    {
+      "id": "caddy-oci-valhalla",
+      "name": "Caddy",
+      "component": "caddy:2.8-alpine (infra/oci-valhalla/compose)",
+      "version": "2.8",
+      "license": "Apache-2.0",
+      "copyright": "Copyright (c) Matthew Holt and The Caddy Authors",
+      "url": "https://github.com/caddyserver/caddy",
+      "notes": "Ops-only HTTPS reverse proxy in front of Valhalla on OCI Free Tier. Not an Android Maven dependency.",
       "attributionRequired": false
     },
     {

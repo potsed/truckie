@@ -1,0 +1,34 @@
+{
+	email {$LETSENCRYPT_EMAIL}
+}
+
+{$VALHALLA_DOMAIN} {
+	encode gzip
+
+	# Truckie LiveValhallaPathRouter posts JSON to /route
+	handle /route* {
+		reverse_proxy valhalla:8002
+	}
+
+	# Operator health / readiness (Valhalla /status)
+	handle /status* {
+		reverse_proxy valhalla:8002
+	}
+
+	# Deny everything else
+	handle {
+		respond "Not found" 404
+	}
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options nosniff
+		Referrer-Policy no-referrer
+		-Server
+	}
+
+	log {
+		output stdout
+		format console
+	}
+}

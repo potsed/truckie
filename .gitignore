@@ -57,12 +57,12 @@ secrets.properties
 *.p12
 google-services.json
 **/keystore.properties
-infra/oci-graphhopper/secrets/.env
-infra/oci-graphhopper/compose/.env
-infra/oci-graphhopper/terraform/terraform.tfvars
-infra/oci-graphhopper/terraform/*.tfstate
-infra/oci-graphhopper/terraform/*.tfstate.*
-infra/oci-graphhopper/terraform/.terraform/
+infra/oci-valhalla/secrets/.env
+infra/oci-valhalla/compose/.env
+infra/oci-valhalla/terraform/terraform.tfvars
+infra/oci-valhalla/terraform/*.tfstate
+infra/oci-valhalla/terraform/*.tfstate.*
+infra/oci-valhalla/terraform/.terraform/
 
 # --- OS: macOS ---
 .DS_Store

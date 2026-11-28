@@ -20,30 +20,34 @@ android {
         minSdk = 24
         targetSdk = 35
         versionCode = 1
-        versionName = "0.8.49-licenses-page"
+        versionName = "0.8.50-valhalla-oci"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        // Live Valhalla credentials (ATNA-113). Empty → stub PathRouter.
+        // Live Valhalla credentials (ATNA-113 / ATNA-9). Empty → stub PathRouter.
         // Interim: API key (defaults base to Simple Routing hosted Valhalla).
-        // Self-hosted/offline later: set VALHALLA_BASE_URL, clear API key.
-        // See docs/valhalla-live.md.
-        val secretsFile = rootProject.file("secrets.properties")
-        val secretsMap: Map<String, String> = if (secretsFile.exists()) {
-            secretsFile.readLines()
+        // Self-hosted (OCI Free Tier / compose): set VALHALLA_BASE_URL, clear API key.
+        // Priority: -P gradle → env → secrets.properties → local.properties
+        // See docs/valhalla-live.md, docs/oci-valhalla-runbook.md.
+        fun loadPropertiesFile(file: java.io.File): Map<String, String> {
+            if (!file.exists()) return emptyMap()
+            return file.readLines()
                 .map { it.trim() }
                 .filter { it.isNotEmpty() && !it.startsWith("#") && it.contains("=") }
                 .associate { line ->
                     val idx = line.indexOf('=')
                     line.substring(0, idx).trim() to line.substring(idx + 1).trim()
                 }
-        } else {
-            emptyMap()
         }
+        val secretsMap = loadPropertiesFile(rootProject.file("secrets.properties"))
+        // local.properties is gitignored (SDK path); also accepts VALHALLA_* overrides.
+        val localPropsMap = loadPropertiesFile(rootProject.file("local.properties"))
         fun secretOrEnv(propKey: String, envKey: String, gradleProp: String): String {
             val fromGradle = (project.findProperty(gradleProp) as String?)?.trim().orEmpty()
             if (fromGradle.isNotEmpty()) return fromGradle
             val fromEnv = System.getenv(envKey)?.trim().orEmpty()
             if (fromEnv.isNotEmpty()) return fromEnv
-            return secretsMap[propKey]?.trim().orEmpty()
+            val fromSecrets = secretsMap[propKey]?.trim().orEmpty()
+            if (fromSecrets.isNotEmpty()) return fromSecrets
+            return localPropsMap[propKey]?.trim().orEmpty()
         }
         fun escapeBuildConfig(value: String): String =
             value.replace("\\", "\\\\").replace("\"", "\\\"")
