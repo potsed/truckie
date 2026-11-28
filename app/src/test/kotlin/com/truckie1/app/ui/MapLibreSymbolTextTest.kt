@@ -8,7 +8,7 @@ import org.junit.Test
 
 /**
  * OpenFreeMap Liberty only hosts Noto Sans glyphs. MapLibre’s default Open Sans
- * stack 404s and hides SymbolManager icons when textField is set (clearance labels).
+ * stack 404s and hides style-layer icons when textField is set (clearance labels).
  *
  * Gherkin: features/bridge_markers.feature — OpenFreeMap-compatible text font
  */
@@ -44,14 +44,14 @@ class MapLibreSymbolTextTest {
     @Test
     fun bridgeAndStopMarkersShareOpenFreeMapFontContract() {
         assertTrue(BridgeMarkersVisibility.requiresOpenFreeMapCompatibleTextFont)
-        assertTrue(MapStopAnnotations.requiresOpenFreeMapCompatibleTextFont)
+        assertTrue(MapStopMarkersCatalog.requiresOpenFreeMapCompatibleTextFont)
         assertArrayEquals(
             MapLibreSymbolText.openFreeMapTextFont,
             BridgeMarkersVisibility.symbolTextFont,
         )
         assertArrayEquals(
             MapLibreSymbolText.openFreeMapTextFont,
-            MapStopAnnotations.symbolTextFont,
+            MapStopMarkersCatalog.symbolTextFont,
         )
     }
 }

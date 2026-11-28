@@ -38,15 +38,19 @@ object MapStyleOverlayCatalog {
     val textOptional: Boolean = MapLibreSymbolText.textOptional
 
     /**
-     * Shared iconSize policy for home-map markers (Annotation-era Daniel scales).
+     * Shared style-layer [iconSize] policy for home-map markers.
      * Baseline before ATNA-81 dogfood: stops 1.1, W5-8 1.15.
-     * Daniel: stops **1.5×** (→ 1.65), W5-8 **0.5×** (→ 0.575).
+     * Daniel: stops **1.5×** (→ 1.65); W5-8 **0.5×** then **+25%** (ATNA-118 → 0.71875).
+     * Relative preference kept: stops still read larger than W5-8.
      */
     object IconSize {
         const val STOP_BASELINE: Float = 1.1f
         const val BRIDGE_W58_BASELINE: Float = 1.15f
+        /** Daniel dogfood: enlarge W5-8 style-layer icons by 25% vs prior 0.5× scale. */
+        const val BRIDGE_W58_ENLARGE: Float = 1.25f
         const val STOP: Float = STOP_BASELINE * 1.5f
-        const val BRIDGE_W58: Float = BRIDGE_W58_BASELINE * 0.5f
+        /** AU W5-8 low-bridge diamond (~96px intrinsic) — 0.5× baseline × 1.25. */
+        const val BRIDGE_W58: Float = BRIDGE_W58_BASELINE * 0.5f * BRIDGE_W58_ENLARGE
         val neighbourhoodReadableRange: ClosedFloatingPointRange<Float> = 0.5f..2.0f
 
         fun isNeighbourhoodReadable(size: Float): Boolean =

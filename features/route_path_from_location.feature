@@ -9,7 +9,7 @@ Feature: Route path from current location through tour
   #   current location → route start → ordered stops → route end.
   # When current location is unavailable, fall back to start → stops → end.
   # Optimise still permutes start-fixed tours (current is approach-only, not origin).
-  # Shared LineManager bind with Navigate (MapRoutePathAnnotations / MapLineBind).
+  # Shared style-layer bind with Navigate (MapRoutePathStyle / MapStyleOverlayBind).
   # Out of scope: async PathRouter (P1-3), Room persist (P1-4), god-file splits (P1-5).
 
   Scenario: Approach-from-location is feature-flagged and defaults on

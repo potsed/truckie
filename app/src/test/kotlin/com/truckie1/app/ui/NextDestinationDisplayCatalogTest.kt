@@ -122,7 +122,7 @@ class NextDestinationDisplayCatalogTest {
         assertFalse(NextDestinationDisplayCatalog.replacesAddressWithTurnOnly)
         assertTrue(NextDestinationDisplayCatalog.usesComposeMaterial3Banner)
         assertFalse(NextDestinationDisplayCatalog.touchesLineManager)
-        assertFalse(NextDestinationDisplayCatalog.touchesMapRoutePathAnnotations)
+        assertFalse(NextDestinationDisplayCatalog.touchesMapRoutePathStyle)
     }
 
     @Test
